@@ -1,0 +1,26 @@
+.menu-title {
+    font-family: "Poppins", sans-serif;
+    font-weight: 800;
+    text-align: center;
+    margin-top: 2rem;
+    font-size: 1.5rem;
+    color: #000000;
+  }
+  
+  .menu-image-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 4rem;
+  }
+  
+  .menu-image {
+    width: 175px; /* Ajusta el tamaño como gustes */
+    height: auto;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+  }
+  
+  .menu-image:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  }

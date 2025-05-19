@@ -1,0 +1,91 @@
+/* body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  background-image: 
+    linear-gradient(45deg, #2F2E2E 25%, transparent 25%),
+    linear-gradient(-45deg, #C2953D 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #667B7A 75%),
+    linear-gradient(-45deg, transparent 75%, #E4E0D6 75%);
+  background-size: 60px 60px;
+  background-position: 0 0, 0 30px, 30px -30px, -30px 0px;
+  background-repeat: repeat;
+} */
+
+/* Contenedor principal */
+/* .login-container {
+  margin-top: 3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+} */
+
+
+/* .login-title {
+  font-family: "Poppins", sans-serif;
+  font-size: 1.5rem;
+  font-weight: 800;
+  text-align: center;
+  color: #000000;
+  margin-bottom: 0.5rem;
+  white-space: nowrap;      
+  overflow: hidden; 
+} */
+
+/* .login-subtitle {
+  font-family: "Poppins", sans-serif;
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-align: center;
+  color: #000000;
+} */
+
+/* Estilo del formulario */
+.login-form {
+  /* width: 100%;
+  max-width: 300px;
+  margin: 0 auto; */
+  /* background-color: linear-gradient(135deg, #7393B3 0%, rgba(115,147,179,0.1) 100%); */
+  /* border-radius: 12px; */
+}
+
+/* Campos de texto */
+/* .login-form .MuiTextField-root {
+  margin-bottom: 1.2rem;
+} */
+
+/* Recuerda y recuperar */
+/* .login-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+  
+} */
+
+/* .login-options .MuiFormControlLabel-root {
+  margin-left: 0;
+} */
+
+.recover-link {
+  text-align: center;
+  width: 100%;
+  margin-top: 0.5rem;
+  color: #1976d2;;
+  cursor: pointer;
+  text-decoration: underline;
+  font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+  font-weight: normal;
+  transition: color 0.2s ease-in-out;
+
+}
+
+.recover-link:hover {
+  color: #004ba0; /* Azul más oscuro al pasar el mouse */
+}
+
+/* Modal */
+.recover-modal .MuiPaper-root {
+  padding: 2rem;
+  border-radius: 12px;
+}
