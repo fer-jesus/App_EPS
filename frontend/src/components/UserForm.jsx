@@ -8,6 +8,7 @@ import {
   Box,
   useMediaQuery,
 } from "@mui/material";
+import axios from "axios";
 import { useTheme } from "@mui/material/styles";
 import dayjs from "dayjs";
 
@@ -15,24 +16,52 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
+  // Estado para manejar los datos del formulario
   const [formData, setFormData] = useState({
     nombre: "",
     titulo: "",
     fechaNacimiento: "",
     edad: "",
-    sexo: "", 
-    rol: "",
+    sexo: "",
+    ROL_id_rol: "",
     unidad: "",
     fechaRegistro: "",
-    fechaBaja: "",
+    //fechaBaja: "",
     correo: "",
     contraseña: "",
     valContraseña: "",
-    ...initialData,
   });
 
   const [errors, setErrors] = useState({});
 
+// Inicializar los datos del formulario si se proporcionan datos iniciales
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+         id: initialData.id_usuario,
+        nombre: initialData.nombre || "",
+        titulo: initialData.titulo || "",
+        fechaNacimiento: initialData.fecha_nacimiento
+          ? dayjs(initialData.fecha_nacimiento).format("YYYY-MM-DD")
+          : "",
+        sexo: initialData.sexo || "",
+        ROL_id_rol: initialData.ROL_id_rol || "",
+        unidad: initialData.unidad || "",
+        fechaRegistro: initialData.fecha_registro
+          ? dayjs(initialData.fecha_registro).format("YYYY-MM-DD")
+          : "",
+        fechaBaja: initialData.fecha_baja
+          ? dayjs(initialData.fecha_baja).format("YYYY-MM-DD")
+          : "",
+        correo: initialData.correo || "",
+        contraseña: "", 
+        valContraseña: "",
+        edad: "", 
+      });
+    }
+  }, [initialData]);
+
+  // Calcular la edad cuando se cambia la fecha de nacimiento
   useEffect(() => {
     if (formData.fechaNacimiento) {
       const birthDate = dayjs(formData.fechaNacimiento);
@@ -42,6 +71,7 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
     }
   }, [formData.fechaNacimiento]);
 
+  // Manejar cambios en los campos del formulario
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -51,35 +81,91 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
     setErrors((prev) => ({ ...prev, [name]: false }));
   };
 
+  // Validar los campos del formulario
   const validate = () => {
-    const newErrors = {};
-    Object.entries(formData).forEach(([key, value]) => {
-      if (!value && key !== "edad" && key !== "fechaBaja") {
+  const newErrors = {};
+  Object.entries(formData).forEach(([key, value]) => {
+    if (!value && key !== "edad" && key !== "fechaBaja" && key !== "titulo") {
+      // Aquí se validan también contraseña y valContraseña, incluso si están ocultos
+      if (!initialData?.id_usuario || (key !== "contraseña" && key !== "valContraseña")) {
         newErrors[key] = true;
       }
-    });
-
-    // Validacion de correo
-    if (formData.correo && !formData.correo.includes("@")) {
-      newErrors.correo = "El correo debe contener @";
     }
+  });
 
-    // Validacion de contraseña
-    if (
-      formData.contraseña &&
-      formData.valContraseña &&
-      formData.contraseña !== formData.valContraseña
-    ) {
-      newErrors.valContraseña = "Las contraseñas no coinciden";
-    }
+  // Validación de correo
+  if (formData.correo && !formData.correo.includes("@")) {
+    newErrors.correo = "El correo debe contener @";
+  }
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  // Validación de contraseñas solo si estamos en modo creación
+  if (
+    !initialData?.id_usuario &&
+    formData.contraseña &&
+    formData.valContraseña &&
+    formData.contraseña !== formData.valContraseña
+  ) {
+    newErrors.valContraseña = "Las contraseñas no coinciden";
+  }
 
-  const handleSubmit = () => {
+  setErrors(newErrors);
+  return Object.keys(newErrors).length === 0;
+};
+ // Manejar el envío del formulario
+  const handleSubmit = async () => {
     if (validate()) {
-      onSubmit(formData);
+      try {
+        const payload = {
+          nombre: formData.nombre,
+          titulo: formData.titulo || null,
+          fecha_nacimiento: formData.fechaNacimiento,
+          correo: formData.correo,
+          contrasena: formData.contraseña,
+          unidad: formData.unidad,
+          sexo: formData.sexo,
+          ROL_id_rol: formData.ROL_id_rol,
+          fecha_registro: formData.fechaRegistro,
+          //fecha_baja: formData.fechaBaja || null,
+          // Solo incluir fecha_baja si tiene valor y estamos editando
+        ...(initialData?.id && { fecha_baja: formData.fechaBaja || null })
+        };
+
+        if (initialData?.id_usuario) {
+          const userId = JSON.parse(localStorage.getItem("user"))?.id_usuario;
+          console.log("userId enviado:", userId);
+          console.log("Payload enviado:", payload);
+
+          // Editar usuario existente
+          await axios.put(
+            `http://localhost:3001/api/usuarios/${initialData.id_usuario}`,
+            payload,
+            {
+              headers: {
+                "x-user-id": JSON.parse(localStorage.getItem("user"))
+                  ?.id_usuario,
+              },
+            }
+          );
+        } else {
+          const userId = JSON.parse(localStorage.getItem("user"))?.id_usuario;
+          console.log("userId enviado:", userId);
+          console.log("Payload enviado:", payload);
+
+          // Crear nuevo usuario
+          const response = await axios.post("http://localhost:3001/api/usuarios", payload, {
+            headers: {
+              "x-user-id": JSON.parse(localStorage.getItem("user"))?.id_usuario,
+            },
+          });
+          console.log("Usuario creado con ID:", response.data.id);
+          payload.id_usuario = response.data.id; // Agregar ID al payload
+          onSubmit(payload); // Llamar a onSubmit con el nuevo usuario
+          console.log("Nuevo usuario enviado:", payload);
+        }
+
+      } catch (error) {
+        console.error("Error al enviar datos:", error);
+      }
     }
   };
 
@@ -90,7 +176,7 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
     <Box sx={{ p: 2 }}>
       <Stack spacing={2}>
         <Typography variant="h6" textAlign="center" fontWeight="bold">
-          {initialData?.id ? "Editar Usuario" : "Registrar Usuario"}
+          {initialData?.id_usuario ? "Editar Usuario" : "Registrar Usuario"}
         </Typography>
 
         <TextField
@@ -122,6 +208,7 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
           label={getLabel("fechaNacimiento", "Fecha de nacimiento")}
           error={Boolean(errors.fechaNacimiento)}
         />
+        {!initialData?.id_usuario && (
         <TextField
           label="Edad"
           name="edad"
@@ -129,6 +216,7 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
           fullWidth
           disabled
         />
+        )}
         <TextField
           select
           label={getLabel("sexo", "Sexo")}
@@ -139,24 +227,23 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
           required
           error={Boolean(errors.sexo)}
         >
-          <MenuItem value="masculino">M</MenuItem>
-          <MenuItem value="femenino">F</MenuItem>
-          <MenuItem value="indefinido">--</MenuItem>
+          <MenuItem value="M">M</MenuItem>
+          <MenuItem value="F">F</MenuItem>
         </TextField>
         <TextField
           select
-          label={getLabel("rol", "Rol")}
-          name="rol"
-          value={formData.rol}
+          label={getLabel("ROL_id_rol", "Rol")}
+          name="ROL_id_rol"
+          value={formData.ROL_id_rol}
           onChange={handleChange}
           fullWidth
           required
-          error={Boolean(errors.rol)}
+          error={Boolean(errors.ROL_id_rol)}
         >
-          <MenuItem value="director">DIRECTOR</MenuItem>
-          <MenuItem value="subdirector">SUBDIRECTOR</MenuItem>
-          <MenuItem value="coordinador">COORDINADOR</MenuItem>
-          <MenuItem value="coordinador interino">COORDINADOR INTERINO</MenuItem>
+          <MenuItem value={1}>DIRECTOR</MenuItem>
+          <MenuItem value={2}>SUBDIRECTOR</MenuItem>
+          <MenuItem value={3}>COORDINADOR</MenuItem>
+          <MenuItem value={4}>COORDINADOR INTERINO</MenuItem>
         </TextField>
         <TextField
           select
@@ -168,10 +255,10 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
           required
           error={Boolean(errors.unidad)}
         >
-          <MenuItem value="dirección">
+          <MenuItem value="DIRECCION DE ORDENAMIENTO TERRITORIAL Y DESARROLLO MUNICIPAL">
             DIRECCIÓN DE ORDENAMIENTO TERRITORIAL Y DESARROLLO MUNICIPAL
           </MenuItem>
-          <MenuItem value="coordinador">
+          <MenuItem value="LICENCIAS DE CONSTRUCCION">
             PROYECTOS URBANOS - LICENCIAS DE CONSTRUCCIÓN
           </MenuItem>
         </TextField>
@@ -186,6 +273,7 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
           InputLabelProps={{ shrink: true }}
           error={Boolean(errors.fechaRegistro)}
         />
+        {initialData?.id_usuario && (
         <TextField
           type="date"
           name="fechaBaja"
@@ -195,6 +283,7 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
           fullWidth
           InputLabelProps={{ shrink: true }}
         />
+        )}
         <TextField
           type="email"
           name="correo"
@@ -209,31 +298,36 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
           required
           error={Boolean(errors.correo)}
         />
-        <TextField
-          type="password"
-          name="contraseña"
-          label={getLabel("contraseña", "Contraseña")}
-          value={formData.contraseña}
-          onChange={handleChange}
-          fullWidth
-          required
-          error={Boolean(errors.contraseña)}
-        />
-        <TextField
-          type="password"
-          name="valContraseña"
-          label={
-            errors.valContraseña === "Las contraseñas no coinciden"
-              ? "Las contraseñas no coinciden"
-              : getLabel("valContraseña", "Valida la contraseña")
-          }
-          value={formData.valContraseña}
-          onChange={handleChange}
-          fullWidth
-          required
-          error={Boolean(errors.valContraseña)}
-        />
-
+        {!initialData?.id_usuario && (
+          <>
+            <TextField
+              type="password"
+              name="contraseña"
+              label={getLabel("contraseña", "Contraseña")}
+              value={formData.contraseña || ""}
+              onChange={handleChange}
+              fullWidth
+              required
+              error={Boolean(errors.contraseña)}
+              
+            />
+            
+            <TextField
+              type="password"
+              name="valContraseña"
+              label={
+                errors.valContraseña === "Las contraseñas no coinciden"
+                  ? "Las contraseñas no coinciden"
+                  : getLabel("valContraseña", "Valida la contraseña")
+              }
+              value={formData.valContraseña || ""}
+              onChange={handleChange}
+              fullWidth
+              required
+              error={Boolean(errors.valContraseña)}
+            />
+          </>
+        )}
         <Stack direction="row" spacing={2} justifyContent="center">
           <Button onClick={onClose} variant="outlined">
             Cancelar

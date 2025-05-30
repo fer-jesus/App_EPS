@@ -1,0 +1,69 @@
+#version: '3'
+services:
+ # Servicio para la base de datos MySQL
+  # db:
+  #   image: mysql:5.7
+  #   container_name: mysql-db
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: 123456
+  #     MYSQL_DATABASE: expedientesBP
+  #   ports:
+  #     - "3306:3306"
+  #   volumes:
+  #     - db_data:/var/lib/mysql
+  #   networks:
+  #     - app-network
+
+  # Servicio para el backend (Node.js)
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      # - ./basededatos:/basededatos 
+      #- "E:/Expedientes:/app/Expedientes" # ruta de los expedientes
+      # - "C:/Users/JFGL/Desktop/Expedientes:/app/Expedientes"
+    environment:
+       - PORT=3000
+       - DB_HOST=db
+       - DB_PASSWORD=123456
+       - DB_NAME=expedientesBP
+       - DB_PORT=3306
+    networks:
+      - app-network
+    depends_on:
+      - db
+    command: sh -c "while ! nc -z db 3306 ; do sleep 1 ; done && npm run dev"
+
+# Servicio para el frontend (React)
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports: 
+      - "5173:5173"
+    volumes: 
+      - ./frontend:/app
+      - /app/node_modules
+    environment: 
+      - VITE_REACT_APP_BACKEND_URL=http://backend:3000 # Usa la URL del backend con Docker
+    networks: 
+      - app-network
+    depends_on: 
+      - backend
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  db_data:
+
+
+

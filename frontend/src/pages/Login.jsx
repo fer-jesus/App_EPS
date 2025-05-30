@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAuth } from "../context/AuthContext";
 import {
   Container,
   Box,
@@ -11,7 +12,6 @@ import {
   DialogActions,
   Snackbar,
   Avatar,
-
 } from "@mui/material";
 import MuiAlert from "@mui/material/Alert";
 import AccountCircle from "@mui/icons-material/AccountCircle";
@@ -29,6 +29,7 @@ const Login = () => {
   const [userError, setUserError] = useState(false);
   const [passError, setPassError] = useState(false);
   const [showErrorAlert, setShowErrorAlert] = useState(false);
+  const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -59,16 +60,31 @@ const Login = () => {
         username: user,
         password: pass,
       });
-      // Verificar la respuesta de la API
+      // // Verificar la respuesta de la API
+      // if (res.data.success) {
+      //   // Si la autenticación es exitosa, redirigir al menú
+      //   navigate("/menu");
+      // } else {
+      //   // Si la autenticación falla, mostrar un mensaje de error
+      //   setShowErrorAlert(true);
+      // }
       if (res.data.success) {
-        // Si la autenticación es exitosa, redirigir al menú
+        const usuario = res.data.usuario;
+
+        // Asegúrate de que se incluya `id_usuario` y demás datos relevantes
+        login({
+          id_usuario: usuario.id_usuario,
+          nombre: usuario.nombre,
+          rol: usuario.rol,
+          correo: usuario.correo, // u otros campos si lo necesitas
+        });
+
         navigate("/menu");
       } else {
-        // Si la autenticación falla, mostrar un mensaje de error
         setShowErrorAlert(true);
       }
     } catch (error) {
-      console.error("Error al autenticar:", error);
+      console.error("Error:", error.response?.data || error.message);
       setShowErrorAlert(true);
     }
   };
@@ -131,13 +147,11 @@ const Login = () => {
           boxShadow: "0px 8px 20px rgba(0, 0, 0, 0.2)",
           backdropFilter: "blur(8px)",
           WebkitBackdropFilter: "blur(8px)", // Soporte para Safari
-          
-
         }}
       >
-        <Avatar sx={{ bgcolor: "#922B21", margin: "0 auto", mb: 2, }}>
-              <AccountCircle />
-            </Avatar>
+        <Avatar sx={{ bgcolor: "#922B21", margin: "0 auto", mb: 2 }}>
+          <AccountCircle />
+        </Avatar>
         <form className="login-form" autoComplete="on" onSubmit={handleSubmit}>
           <TextField
             id="username"
@@ -151,7 +165,7 @@ const Login = () => {
             onChange={(e) => setUser(e.target.value)}
             error={userError}
             helperText={userError ? "Campo requerido" : ""}
-            sx={{backgroundColor: "white"}}
+            sx={{ backgroundColor: "white" }}
           />
           <TextField
             id="password"
@@ -166,7 +180,7 @@ const Login = () => {
             onChange={(e) => setPass(e.target.value)}
             error={passError}
             helperText={passError ? "Campo requerido" : ""}
-            sx={{backgroundColor: "white"}}
+            sx={{ backgroundColor: "white" }}
           />
           <Box
             sx={{
@@ -176,7 +190,10 @@ const Login = () => {
               mt: 1,
             }}
           >
-            <Box className="login-options" sx={{ fontFamily: "serif, Courier, monospace" }}>
+            <Box
+              className="login-options"
+              sx={{ fontFamily: "serif, Courier, monospace" }}
+            >
               <div className="recover-link" onClick={() => setOpenModal(true)}>
                 ¿Olvidaste tu contraseña?
               </div>

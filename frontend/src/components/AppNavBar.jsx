@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import {
   AppBar,
   Toolbar,
@@ -27,20 +27,23 @@ import logoMuni from "../assets/logoMuni.png";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import { Link } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
 
 // import { AuthContext } from "../context/AuthContext"; //
 
 const AppNavbar = () => {
   const [menuAnchorUser, setMenuAnchorUser] = useState(null);
   const [menuAnchorHistorial, setMenuAnchorHistorial] = useState(null);
-  //const [menuAnchorConfig, setMenuAnchorConfig] = useState(null);
   const [openHistorialDialog, setOpenHistorialDialog] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [configExpanded, setConfigExpanded] = useState(false);
   const navigate = useNavigate();
-
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const { auth } = useContext(AuthContext);
+  //console.log("Auth data:", auth);
+  const rol = auth?.user?.rol.toUpperCase();
+  const esAdmin = rol === "DIRECTOR" || rol === "SUBDIRECTOR";
 
   // const { logout } = useContext(AuthContext); //
 
@@ -82,6 +85,34 @@ const AppNavbar = () => {
       >
         <ListItemText primary="Historial" />
       </ListItem>
+      {esAdmin && (
+        <>
+          <ListItem button onClick={() => setConfigExpanded(!configExpanded)}>
+            <ListItemText primary="Configuración" />
+            {configExpanded ? <ExpandLess /> : <ExpandMore />}
+          </ListItem>
+          {configExpanded && (
+            <>
+              <ListItem
+                button
+                sx={{ pl: 4 }}
+                onClick={() => handleNavigate("/usuarios")}
+              >
+                <PersonIcon sx={{ mr: 1 }} />
+                <ListItemText primary="Usuarios" />
+              </ListItem>
+              <ListItem
+                button
+                sx={{ pl: 4 }}
+                onClick={() => handleNavigate("/tarifas")}
+              >
+                <AttachMoneyIcon sx={{ mr: 1 }} />
+                <ListItemText primary="Tarifas" />
+              </ListItem>
+            </>
+          )}
+        </>
+      )}
     </List>
   );
 
@@ -183,34 +214,39 @@ const AppNavbar = () => {
               open={Boolean(menuAnchorUser)}
               onClose={handleMenuClose(setMenuAnchorUser)}
             >
-              <MenuItem onClick={() => setConfigExpanded((prev) => !prev)}>
-                Configuración {configExpanded ? <ExpandLess /> : <ExpandMore />}
-              </MenuItem>
-
-              {configExpanded && (
+              {esAdmin && (
                 <>
-                  <MenuItem
-                    sx={{ pl: 5 }}
-                    onClick={() => {
-                      handleNavigate("/usuarios");
-                      setMenuAnchorUser(null);
-                      setConfigExpanded(false);
-                    }}
-                  >
-                    <PersonIcon fontSize="small" sx={{ mr: 1 }}  />
-                    Usuarios
+                  <MenuItem onClick={() => setConfigExpanded((prev) => !prev)}>
+                    Configuración{" "}
+                    {configExpanded ? <ExpandLess /> : <ExpandMore />}
                   </MenuItem>
-                  <MenuItem
-                    sx={{ pl: 5 }}
-                    onClick={() => {
-                      handleNavigate("/tarifas");
-                      setMenuAnchorUser(null);
-                      setConfigExpanded(false);
-                    }}
-                  >
-                    <AttachMoneyIcon fontSize="small" sx={{ mr: 1 }} />
-                    Tarifas
-                  </MenuItem>
+
+                  {configExpanded && (
+                    <>
+                      <MenuItem
+                        sx={{ pl: 5 }}
+                        onClick={() => {
+                          handleNavigate("/usuarios");
+                          setMenuAnchorUser(null);
+                          setConfigExpanded(false);
+                        }}
+                      >
+                        <PersonIcon fontSize="small" sx={{ mr: 1 }} />
+                        Usuarios
+                      </MenuItem>
+                      <MenuItem
+                        sx={{ pl: 5 }}
+                        onClick={() => {
+                          handleNavigate("/tarifas");
+                          setMenuAnchorUser(null);
+                          setConfigExpanded(false);
+                        }}
+                      >
+                        <AttachMoneyIcon fontSize="small" sx={{ mr: 1 }} />
+                        Tarifas
+                      </MenuItem>
+                    </>
+                  )}
                 </>
               )}
 
