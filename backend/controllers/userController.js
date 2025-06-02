@@ -61,36 +61,25 @@ const updateUser = async (req, res) => {
 
 const deleteUser = async (req, res) => {
   try {
-    const [rows] = await pool.query(
-      `
-      SELECT r.nombre_rol 
-      FROM USUARIOS u
-      JOIN ROL_NOMBRE r ON u.ROL_id_rol = r.ROL_id_rol AND u.sexo = r.sexo
-      WHERE u.id_usuario = ?
-    `,
-      [req.params.id]
-    );
-
-    const rolEliminar = rows[0]?.nombre_rol;
-
-    if (rolEliminar === "DIRECTOR") {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          error: "No se puede eliminar al usuario DIRECTOR",
-        });
-    }
-
-    await Usuario.eliminar(req.params.id);
-    res.json({ success: true });
+    const result = await Usuario.eliminar(req.params.id);
+    res.json(result);
   } catch (error) {
     console.error(error);
-    res
-      .status(500)
-      .json({ success: false, error: "Error al eliminar usuario" });
+
+    if (error.code === "NO_DELETE_PRIVILEGED_ROLE") {
+      return res.status(400).json({
+        success: false,
+        error: error.message,
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      error: "Error al eliminar usuario",
+    });
   }
 };
+
 
 const actualizarEstadoFuncion = async (req, res) => {
   try {

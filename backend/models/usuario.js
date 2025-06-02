@@ -17,9 +17,10 @@ const Usuario = {
 
   async obtenerTodos() {
     const [rows] = await pool.query(`
-      SELECT u.id_usuario, u.nombre, r.nombre_rol AS rol
+      SELECT u.id_usuario, u.nombre, r.nombre_rol AS rol, u.en_funciones
       FROM USUARIOS u
       JOIN ROL_NOMBRE r ON u.ROL_id_rol = r.ROL_id_rol AND u.sexo = r.sexo
+        where u.fecha_de_baja IS NULL
     `);
     return rows;
   },
@@ -97,20 +98,33 @@ const Usuario = {
   },
 
 
-  async eliminar(id) {
-    await pool.query(`DELETE FROM USUARIOS WHERE id_usuario = ?`, [id]);
-  },
+ async eliminar(id) {
+  // Verificamos si es DIRECTOR o SUBDIRECTOR
+  const [rows] = await pool.query(
+    `SELECT r.nombre_rol 
+     FROM USUARIOS u
+     JOIN ROL_NOMBRE r ON u.ROL_id_rol = r.ROL_id_rol AND u.sexo = r.sexo
+     WHERE u.id_usuario = ?`,
+    [id]
+  );
+
+  const rolUsuario = rows[0]?.nombre_rol;
+
+  if (rolUsuario === "DIRECTOR" || rolUsuario === "SUBDIRECTOR") {
+    const err = new Error("No se puede eliminar al usuario DIRECTOR o SUBDIRECTOR");
+    err.code = "NO_DELETE_PRIVILEGED_ROLE";
+    throw err;
+  }
+
+  // Eliminación lógica
+  await pool.query(
+    `UPDATE USUARIOS SET fecha_de_baja = NOW() WHERE id_usuario = ?`,
+    [id]
+  );
+
+  return { success: true };
+}
+
+
 };
 module.exports = Usuario;
-
-
-  //  async obtenerPorId(id_usuario) {
-  //   const [rows] = await pool.query(
-  //   `SELECT u.*, r.nombre_rol AS rol
-  //    FROM USUARIOS u
-  //    JOIN ROL_NOMBRE r ON u.ROL_id_rol = r.ROL_id_rol AND u.sexo = r.sexo
-  //    WHERE u.id_usuario = ?`,
-  //   [id_usuario]
-  // );
-  // return rows[0] || null;
-  // },

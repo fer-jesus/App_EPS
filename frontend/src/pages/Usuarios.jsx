@@ -154,12 +154,15 @@ const AdminUsuarios = () => {
       );
 
       Swal.fire({
-        icon: "success",
+        icon: estadoConfirmado ? "success" : "info",
         title: estadoConfirmado
-          ? "El usuario está en funciones"
-          : "El usuario ya no está en funciones",
-        timer: 2000,
+          ? "Usuario ACTIVADO en funciones"
+          : "Usuario DESACTIVADO de funciones",
         showConfirmButton: false,
+        timer: 2000,
+        customClass: {
+          icon: estadoConfirmado ? "swal-icon-success" : "swal-icon-info",
+        },
       });
     } catch (error) {
       console.error("Error al actualizar en_funciones:", error);
@@ -196,7 +199,6 @@ const AdminUsuarios = () => {
         ...u,
       }));
       setUsuarios(usuariosFormateados);
-      //Swal.fire("Eliminado", "El usuario fue eliminado correctamente.", "success");
     } catch (error) {
       if (
         error.response?.status === 400 &&
@@ -227,6 +229,7 @@ const AdminUsuarios = () => {
       headerName: "Acciones",
       renderCell: (params) => {
         const enFunciones = Boolean(params.row.en_funciones);
+        const rolUsuario = params.row.rol;
         return (
           <>
             <IconButton
@@ -248,12 +251,14 @@ const AdminUsuarios = () => {
             <IconButton color="primary" onClick={() => handleOpen(params.row)}>
               <EditIcon />
             </IconButton>
-            <IconButton
-              color="error"
-              onClick={() => handleDelete(params.row.id)}
-            >
-              <DeleteIcon />
-            </IconButton>
+            {rolUsuario !== "DIRECTOR" && rolUsuario !== "SUBDIRECTOR" && (
+              <IconButton
+                color="error"
+                onClick={() => handleDelete(params.row.id)}
+              >
+                <DeleteIcon />
+              </IconButton>
+            )}
           </>
         );
       },
