@@ -8,6 +8,7 @@ import {
   Box,
   useMediaQuery,
 } from "@mui/material";
+import Swal from "sweetalert2";
 import axios from "axios";
 import { useTheme } from "@mui/material/styles";
 import dayjs from "dayjs";
@@ -26,7 +27,7 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
     ROL_id_rol: "",
     unidad: "",
     fechaRegistro: "",
-    //fechaBaja: "",
+    fechaBaja: "",
     correo: "",
     contraseña: "",
     valContraseña: "",
@@ -34,11 +35,11 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
 
   const [errors, setErrors] = useState({});
 
-// Inicializar los datos del formulario si se proporcionan datos iniciales
+  // Inicializar los datos del formulario si se proporcionan datos iniciales
   useEffect(() => {
     if (initialData) {
       setFormData({
-         id: initialData.id_usuario,
+        id: initialData.id_usuario,
         nombre: initialData.nombre || "",
         titulo: initialData.titulo || "",
         fechaNacimiento: initialData.fecha_nacimiento
@@ -50,13 +51,13 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
         fechaRegistro: initialData.fecha_registro
           ? dayjs(initialData.fecha_registro).format("YYYY-MM-DD")
           : "",
-        fechaBaja: initialData.fecha_baja
-          ? dayjs(initialData.fecha_baja).format("YYYY-MM-DD")
+        fechaBaja: initialData.fecha_de_baja
+          ? dayjs(initialData.fecha_de_baja).format("YYYY-MM-DD")
           : "",
         correo: initialData.correo || "",
-        contraseña: "", 
+        contraseña: "",
         valContraseña: "",
-        edad: "", 
+        edad: "",
       });
     }
   }, [initialData]);
@@ -83,35 +84,38 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
 
   // Validar los campos del formulario
   const validate = () => {
-  const newErrors = {};
-  Object.entries(formData).forEach(([key, value]) => {
-    if (!value && key !== "edad" && key !== "fechaBaja" && key !== "titulo") {
-      // Aquí se validan también contraseña y valContraseña, incluso si están ocultos
-      if (!initialData?.id_usuario || (key !== "contraseña" && key !== "valContraseña")) {
-        newErrors[key] = true;
+    const newErrors = {};
+    Object.entries(formData).forEach(([key, value]) => {
+      if (!value && key !== "edad" && key !== "fechaBaja" && key !== "titulo") {
+        // Aquí se validan también contraseña y valContraseña, incluso si están ocultos
+        if (
+          !initialData?.id_usuario ||
+          (key !== "contraseña" && key !== "valContraseña")
+        ) {
+          newErrors[key] = true;
+        }
       }
+    });
+
+    // Validación de correo
+    if (formData.correo && !formData.correo.includes("@")) {
+      newErrors.correo = "El correo debe contener @";
     }
-  });
 
-  // Validación de correo
-  if (formData.correo && !formData.correo.includes("@")) {
-    newErrors.correo = "El correo debe contener @";
-  }
+    // Validación de contraseñas solo si estamos en modo creación
+    if (
+      !initialData?.id_usuario &&
+      formData.contraseña &&
+      formData.valContraseña &&
+      formData.contraseña !== formData.valContraseña
+    ) {
+      newErrors.valContraseña = "Las contraseñas no coinciden";
+    }
 
-  // Validación de contraseñas solo si estamos en modo creación
-  if (
-    !initialData?.id_usuario &&
-    formData.contraseña &&
-    formData.valContraseña &&
-    formData.contraseña !== formData.valContraseña
-  ) {
-    newErrors.valContraseña = "Las contraseñas no coinciden";
-  }
-
-  setErrors(newErrors);
-  return Object.keys(newErrors).length === 0;
-};
- // Manejar el envío del formulario
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+  // Manejar el envío del formulario
   const handleSubmit = async () => {
     if (validate()) {
       try {
@@ -125,9 +129,12 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
           sexo: formData.sexo,
           ROL_id_rol: formData.ROL_id_rol,
           fecha_registro: formData.fechaRegistro,
-          //fecha_baja: formData.fechaBaja || null,
+         // en_funciones: 1,
+          fecha_de_baja: formData.fechaBaja || null,
           // Solo incluir fecha_baja si tiene valor y estamos editando
-        ...(initialData?.id && { fecha_baja: formData.fechaBaja || null })
+          // ...(initialData?.id_usuario && {
+          //   fecha_de_baja: formData.fechaBaja || null,
+          // }),
         };
 
         if (initialData?.id_usuario) {
@@ -136,7 +143,7 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
           console.log("Payload enviado:", payload);
 
           // Editar usuario existente
-          await axios.put(
+          const response = await axios.put(
             `http://localhost:3001/api/usuarios/${initialData.id_usuario}`,
             payload,
             {
@@ -146,23 +153,45 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
               },
             }
           );
+          console.log("Código de estado:", response.status);
+          onClose();
+
+          // Muestra notificación
+          await Swal.fire({
+            icon: "success",
+            title: "¡Actualizado!",
+            text: "El usuario ha sido actualizado correctamente",
+            timer: 2000,
+            showConfirmButton: false,
+          });
+
+          // Actualiza la tabla con los nuevos datos
+          onSubmit({
+            ...initialData,
+            ...payload,
+            id_usuario: initialData.id_usuario,
+          });
         } else {
           const userId = JSON.parse(localStorage.getItem("user"))?.id_usuario;
           console.log("userId enviado:", userId);
           console.log("Payload enviado:", payload);
 
           // Crear nuevo usuario
-          const response = await axios.post("http://localhost:3001/api/usuarios", payload, {
-            headers: {
-              "x-user-id": JSON.parse(localStorage.getItem("user"))?.id_usuario,
-            },
-          });
+          const response = await axios.post(
+            "http://localhost:3001/api/usuarios",
+            payload,
+            {
+              headers: {
+                "x-user-id": JSON.parse(localStorage.getItem("user"))
+                  ?.id_usuario,
+              },
+            }
+          );
           console.log("Usuario creado con ID:", response.data.id);
-          payload.id_usuario = response.data.id; // Agregar ID al payload
-          onSubmit(payload); // Llamar a onSubmit con el nuevo usuario
+          payload.id_usuario = response.data.id;
+          onSubmit(payload); // Llamada a onSubmit con el nuevo usuario
           console.log("Nuevo usuario enviado:", payload);
         }
-
       } catch (error) {
         console.error("Error al enviar datos:", error);
       }
@@ -209,13 +238,13 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
           error={Boolean(errors.fechaNacimiento)}
         />
         {!initialData?.id_usuario && (
-        <TextField
-          label="Edad"
-          name="edad"
-          value={formData.edad}
-          fullWidth
-          disabled
-        />
+          <TextField
+            label="Edad"
+            name="edad"
+            value={formData.edad}
+            fullWidth
+            disabled
+          />
         )}
         <TextField
           select
@@ -274,15 +303,15 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
           error={Boolean(errors.fechaRegistro)}
         />
         {initialData?.id_usuario && (
-        <TextField
-          type="date"
-          name="fechaBaja"
-          label="Fecha de baja"
-          value={formData.fechaBaja || ""}
-          onChange={handleChange}
-          fullWidth
-          InputLabelProps={{ shrink: true }}
-        />
+          <TextField
+            type="date"
+            name="fechaBaja"
+            label="Fecha de baja"
+            value={formData.fechaBaja || ""}
+            onChange={handleChange}
+            fullWidth
+            InputLabelProps={{ shrink: true }}
+          />
         )}
         <TextField
           type="email"
@@ -309,9 +338,8 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
               fullWidth
               required
               error={Boolean(errors.contraseña)}
-              
             />
-            
+
             <TextField
               type="password"
               name="valContraseña"

@@ -23,7 +23,7 @@ const AdminUsuarios = () => {
   const [usuarios, setUsuarios] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [selectedUsers, setSelectedUsers] = useState([]);
+  //const [selectedUsers, setSelectedUsers] = useState([]);
   const { auth } = useAuth();
   const currentUserId = auth?.user?.id_usuario;
 
@@ -42,7 +42,8 @@ const AdminUsuarios = () => {
           sexo: u.sexo,
           ROL_id_rol: u.ROL_id_rol,
           fecha_registro: u.fecha_registro,
-          fecha_baja: u.fecha_baja,
+          fecha_de_baja: u.fecha_de_baja,
+          en_funciones: Boolean(u.en_funciones),
           rol: u.rol,
         }));
         setUsuarios(usuariosFormateados);
@@ -55,28 +56,35 @@ const AdminUsuarios = () => {
   }, []);
 
   const handleOpen = async (user = null) => {
-  if (user?.id) {
-    try {
-      const res = await axios.get(`http://localhost:3001/api/usuarios/${user.id}`, {
-        headers: {
-          "x-user-id": currentUserId
-        }
-      });
-      setSelectedUser(res.data.usuario);
-    } catch (error) {
-      console.error("Error al cargar usuario:", error);
-      // Muestra error al usuario
-      Swal.fire({
-        title: "Error",
-        text: "No se pudieron cargar los datos del usuario",
-        icon: "error"
-      });
+    if (user?.id) {
+      try {
+        const res = await axios.get(
+          `http://localhost:3001/api/usuarios/${user.id}`,
+          {
+            headers: {
+              "x-user-id": currentUserId,
+            },
+          }
+        );
+        console.log(res.data.usuarios);
+        // console.log("Respuesta completa de backend:", res.data);
+        // console.log("en_funciones recibido:", res.data.usuario?.en_funciones);
+
+        setSelectedUser(res.data.usuario);
+      } catch (error) {
+        console.error("Error al cargar usuario:", error);
+        // Muestra error al usuario
+        Swal.fire({
+          title: "Error",
+          text: "No se pudieron cargar los datos del usuario",
+          icon: "error",
+        });
+      }
+    } else {
+      setSelectedUser(null); // Para creación de nuevo usuario
     }
-  } else {
-    setSelectedUser(null); // Para creación de nuevo usuario
-  }
-  setOpenDialog(true);
-};
+    setOpenDialog(true);
+  };
 
   const handleClose = () => {
     setOpenDialog(false);
@@ -97,9 +105,9 @@ const AdminUsuarios = () => {
       };
 
       // Si existe ID, es edición
-      if (data.id) {
+      if (data.id_usuario) {
         await axios.put(
-          `http://localhost:3001/api/usuarios/${data.id}`,
+          `http://localhost:3001/api/usuarios/${data.id_usuario}`,
           data,
           headers
         );
@@ -121,6 +129,45 @@ const AdminUsuarios = () => {
       } else {
         console.error("Error al guardar usuario", error);
       }
+    }
+  };
+
+  const actualizarEstadoFuncion = async (id_usuario, nuevoEstado) => {
+    try {
+      const valorParaBackend = nuevoEstado ? 1 : 0;
+
+      const response = await axios.put(
+        `http://localhost:3001/api/usuarios/${id_usuario}/en-funciones`,
+        { en_funciones: valorParaBackend },
+        {
+          headers: {
+            "x-user-id": currentUserId,
+          },
+        }
+      );
+      const estadoConfirmado = Boolean(response.data.en_funciones);
+      // Actualizar el array de usuarios localmente
+      setUsuarios((prev) =>
+        prev.map((u) =>
+          u.id === id_usuario ? { ...u, en_funciones: estadoConfirmado } : u
+        )
+      );
+
+      Swal.fire({
+        icon: "success",
+        title: estadoConfirmado
+          ? "El usuario está en funciones"
+          : "El usuario ya no está en funciones",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    } catch (error) {
+      console.error("Error al actualizar en_funciones:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo actualizar el estado de funciones.",
+      });
     }
   };
 
@@ -178,41 +225,38 @@ const AdminUsuarios = () => {
     {
       field: "acciones",
       headerName: "Acciones",
-      renderCell: (params) => (
-        <>
-          <IconButton
-            color={
-              selectedUsers.includes(params.row.id) ? "success" : "default"
-            }
-            sx={{
-              color: selectedUsers.includes(params.row.id)
-                ? "#4caf50"
-                : "rgba(0, 0, 0, 0.54)",
-              "&:hover": {
-                color: selectedUsers.includes(params.row.id)
-                  ? "#388e3c"
-                  : "rgba(0, 0, 0, 0.74)",
-              },
-            }}
-            onClick={() => {
-              const userId = params.row.id;
-              setSelectedUsers((prev) =>
-                prev.includes(userId)
-                  ? prev.filter((id) => id !== userId)
-                  : [...prev, userId]
-              );
-            }}
-          >
-            <CheckCircleIcon />
-          </IconButton>
-          <IconButton color="primary" onClick={() => handleOpen(params.row)}>
-            <EditIcon />
-          </IconButton>
-          <IconButton color="error" onClick={() => handleDelete(params.row.id)}>
-            <DeleteIcon />
-          </IconButton>
-        </>
-      ),
+      renderCell: (params) => {
+        const enFunciones = Boolean(params.row.en_funciones);
+        return (
+          <>
+            <IconButton
+              color={enFunciones ? "success" : "default"}
+              sx={{
+                color: enFunciones ? "#4caf50" : "rgba(0, 0, 0, 0.54)",
+                "&:hover": {
+                  color: enFunciones ? "#388e3c" : "rgba(0, 0, 0, 0.74)",
+                },
+              }}
+              onClick={() => {
+                const userId = params.row.id;
+                //const nuevoEstado = !Boolean(params.row.en_funciones);
+                actualizarEstadoFuncion(userId, !enFunciones);
+              }}
+            >
+              <CheckCircleIcon />
+            </IconButton>
+            <IconButton color="primary" onClick={() => handleOpen(params.row)}>
+              <EditIcon />
+            </IconButton>
+            <IconButton
+              color="error"
+              onClick={() => handleDelete(params.row.id)}
+            >
+              <DeleteIcon />
+            </IconButton>
+          </>
+        );
+      },
       width: 160,
     },
   ];

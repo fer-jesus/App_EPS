@@ -8,6 +8,7 @@ router.get("/usuarios", userController.getAllUsers);
 router.get("/usuarios/:id", requireRole(["DIRECTOR", "SUBDIRECTOR"]), userController.getUserById);
 router.post("/usuarios", requireRole(["DIRECTOR", "SUBDIRECTOR"]), userController.createUser);
 router.put("/usuarios/:id_usuario", requireRole(["DIRECTOR", "SUBDIRECTOR"]), userController.updateUser);
+router.put('/usuarios/:id_usuario/en-funciones', userController.actualizarEstadoFuncion);
 router.delete("/usuarios/:id", requireRole(["DIRECTOR", "SUBDIRECTOR"]), userController.deleteUser);
 
 module.exports = router;

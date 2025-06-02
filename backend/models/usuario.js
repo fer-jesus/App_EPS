@@ -13,7 +13,7 @@ const Usuario = {
     );
     return rows[0] || null;
   },
- 
+
 
   async obtenerTodos() {
     const [rows] = await pool.query(`
@@ -35,7 +35,9 @@ const Usuario = {
       u.unidad, 
       u.sexo, 
       u.ROL_id_rol, 
-      u.fecha_registro, 
+      u.fecha_registro,
+      u.fecha_de_baja, 
+     CAST(u.en_funciones AS UNSIGNED) as en_funciones,
       r.nombre_rol AS rol
     FROM USUARIOS u
     JOIN ROL_NOMBRE r ON u.ROL_id_rol = r.ROL_id_rol AND u.sexo = r.sexo
@@ -55,24 +57,25 @@ const Usuario = {
   },
 
  async actualizar(id, data) {
-  
   const { 
     nombre, 
     titulo = null, 
     fecha_nacimiento, 
-    fecha_baja = null, 
+    fecha_registro,
+    fecha_de_baja = null, 
     correo, 
     unidad, 
-    sexo, 
-    ROL_id_rol 
+    sexo,
+    ROL_id_rol,
+    en_funciones = 1 
   } = data;
 
   const [result] = await pool.query(
     `UPDATE USUARIOS 
-     SET nombre = ?, titulo = ?, fecha_nacimiento = ?, fecha_baja = ?,
-         correo = ?, unidad = ?, sexo = ?, ROL_id_rol = ?
+     SET nombre = ?, titulo = ?, fecha_nacimiento = ?, fecha_registro = ?, fecha_de_baja = ?,
+         correo = ?, unidad = ?, sexo = ?, ROL_id_rol = ?, en_funciones = ?
      WHERE id_usuario = ?`,
-    [nombre, titulo, fecha_nacimiento, fecha_baja, correo, unidad, sexo, ROL_id_rol, id]
+    [nombre, titulo, fecha_nacimiento, fecha_registro, fecha_de_baja, correo, unidad, sexo, ROL_id_rol, en_funciones, id]
   );
 
   if (result.affectedRows === 0) {
@@ -81,6 +84,18 @@ const Usuario = {
 
   return result;
 },
+
+  async actualizarEstadoFuncion(id_usuario, en_funciones) {
+    try {
+      await pool.query(
+        "UPDATE USUARIOS SET en_funciones = ? WHERE id_usuario = ?",
+        [en_funciones, id_usuario]
+      );
+    } catch (error) {
+      throw error;
+    }
+  },
+
 
   async eliminar(id) {
     await pool.query(`DELETE FROM USUARIOS WHERE id_usuario = ?`, [id]);
