@@ -1,4 +1,3 @@
-const pool = require('../config/database');
 const Usuario = require("../models/usuario");
 
 //const isAuthorized = (rolNombre) => rolNombre === "DIRECTOR" || rolNombre === "SUBDIRECTOR"; // DIRECTOR o SUBDIRECTOR

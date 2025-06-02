@@ -43,7 +43,7 @@ const AppNavbar = () => {
   const { auth } = useContext(AuthContext);
   //console.log("Auth data:", auth);
   const rol = auth?.user?.rol.toUpperCase();
-  const esAdmin = rol === "DIRECTOR" || rol === "SUBDIRECTOR";
+  const esAdmin = rol === "DIRECTOR" || rol === "DIRECTORA" || rol === "SUBDIRECTOR" || rol === "SUBDIRECTORA";
 
   // const { logout } = useContext(AuthContext); //
 

@@ -251,7 +251,7 @@ const AdminUsuarios = () => {
             <IconButton color="primary" onClick={() => handleOpen(params.row)}>
               <EditIcon />
             </IconButton>
-            {rolUsuario !== "DIRECTOR" && rolUsuario !== "SUBDIRECTOR" && (
+            {rolUsuario !== "DIRECTOR" && rolUsuario !== "DIRECTORA" && rolUsuario !== "SUBDIRECTOR" && rolUsuario !== "SUBDIRECTORA" &&(
               <IconButton
                 color="error"
                 onClick={() => handleDelete(params.row.id)}
