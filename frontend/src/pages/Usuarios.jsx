@@ -43,7 +43,7 @@ const AdminUsuarios = () => {
           ROL_id_rol: u.ROL_id_rol,
           fecha_registro: u.fecha_registro,
           fecha_de_baja: u.fecha_de_baja,
-          en_funciones: Boolean(u.en_funciones),
+          en_funciones: u.en_funciones.data[0],
           rol: u.rol,
         }));
         setUsuarios(usuariosFormateados);
@@ -147,11 +147,28 @@ const AdminUsuarios = () => {
       );
       const estadoConfirmado = Boolean(response.data.en_funciones);
       // Actualizar el array de usuarios localmente
-      setUsuarios((prev) =>
-        prev.map((u) =>
-          u.id === id_usuario ? { ...u, en_funciones: estadoConfirmado } : u
-        )
-      );
+      // setUsuarios((prev) =>
+      //   prev.map((u) =>
+      //     u.id === id_usuario ? { ...u, en_funciones: estadoConfirmado } : u
+      //   )
+      // );
+       const res = await axios.get("http://localhost:3001/api/usuarios");
+      const usuariosFormateados = res.data.usuarios.map((u) => ({
+          id: u.id_usuario,
+          nombre: u.nombre,
+          titulo: u.titulo,
+          fecha_nacimiento: u.fecha_nacimiento,
+          correo: u.correo,
+          unidad: u.unidad,
+          sexo: u.sexo,
+          ROL_id_rol: u.ROL_id_rol,
+          fecha_registro: u.fecha_registro,
+          fecha_de_baja: u.fecha_de_baja,
+          en_funciones: u.en_funciones.data[0],
+          rol: u.rol,
+      }));
+      console.log("Usuarios actualizados:", usuariosFormateados);
+      setUsuarios(usuariosFormateados);
 
       Swal.fire({
         icon: estadoConfirmado ? "success" : "info",
@@ -229,6 +246,7 @@ const AdminUsuarios = () => {
       headerName: "Acciones",
       renderCell: (params) => {
         const enFunciones = Boolean(params.row.en_funciones);
+        console.log("Estado en funciones:", enFunciones);
         const rolUsuario = params.row.rol;
         return (
           <>
@@ -251,7 +269,7 @@ const AdminUsuarios = () => {
             <IconButton color="primary" onClick={() => handleOpen(params.row)}>
               <EditIcon />
             </IconButton>
-            {rolUsuario !== "DIRECTOR" && rolUsuario !== "DIRECTORA" && rolUsuario !== "SUBDIRECTOR" && rolUsuario !== "SUBDIRECTORA" &&(
+            {(rolUsuario !== "DIRECTOR" && rolUsuario !== "SUBDIRECTOR" && rolUsuario !== "DIRECTORA" && rolUsuario !== "SUBDIRECTORA") && (
               <IconButton
                 color="error"
                 onClick={() => handleDelete(params.row.id)}
@@ -259,6 +277,7 @@ const AdminUsuarios = () => {
                 <DeleteIcon />
               </IconButton>
             )}
+           
           </>
         );
       },

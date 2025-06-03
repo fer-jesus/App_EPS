@@ -102,7 +102,6 @@ const actualizarEstadoFuncion = async (req, res) => {
   }
 };
 
-
 module.exports = {
   getAllUsers,
   getUserById,

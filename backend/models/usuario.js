@@ -1,4 +1,3 @@
-
 const pool = require('../config/database');
 
 const Usuario = {
@@ -20,7 +19,8 @@ const Usuario = {
       SELECT u.id_usuario, u.nombre, r.nombre_rol AS rol, u.en_funciones
       FROM USUARIOS u
       JOIN ROL_NOMBRE r ON u.ROL_id_rol = r.ROL_id_rol AND u.sexo = r.sexo
-        where u.fecha_de_baja IS NULL
+      WHERE u.fecha_de_baja IS NULL
+       
     `);
     return rows;
   },
@@ -110,11 +110,11 @@ const Usuario = {
 
   const rolUsuario = rows[0]?.nombre_rol;
 
-  if (rolUsuario === "DIRECTOR" || rolUsuario === "SUBDIRECTOR") {
-    const err = new Error("No se puede eliminar al usuario DIRECTOR o SUBDIRECTOR");
-    err.code = "NO_DELETE_PRIVILEGED_ROLE";
-    throw err;
-  }
+  // if (rolUsuario === "DIRECTOR" || rolUsuario === "SUBDIRECTOR" ) {
+  //   const err = new Error("No se puede eliminar al usuario DIRECTOR o SUBDIRECTOR");
+  //   err.code = "NO_DELETE_PRIVILEGED_ROLE";
+  //   throw err;
+  // }
 
   // Eliminación lógica
   await pool.query(
@@ -128,3 +128,5 @@ const Usuario = {
 
 };
 module.exports = Usuario;
+
+

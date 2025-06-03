@@ -18,6 +18,7 @@ import AccountCircle from "@mui/icons-material/AccountCircle";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/login.css";
+import Swal from "sweetalert2";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -70,8 +71,9 @@ const Login = () => {
       // }
       if (res.data.success) {
         const usuario = res.data.usuario;
+        
+        if (usuario.fecha_de_baja === null) {
 
-        // Asegúrate de que se incluya `id_usuario` y demás datos relevantes
         login({
           id_usuario: usuario.id_usuario,
           nombre: usuario.nombre,
@@ -80,6 +82,14 @@ const Login = () => {
         });
 
         navigate("/menu");
+        }
+        else {
+          Swal.fire({
+            icon: "error",
+            title: "Cuenta inactiva",
+            text: "Tu cuenta ha sido desactivada. Por favor, contacta al administrador.",
+          });
+        }
       } else {
         setShowErrorAlert(true);
       }
