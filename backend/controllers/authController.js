@@ -29,7 +29,8 @@ const login = async (req, res) => {
         correo: usuario.correo,
         rol: usuario.nombre_rol,
         ROL_id_rol: usuario.ROL_id_rol, 
-        unidad: usuario.unidad
+        unidad: usuario.unidad,
+        fecha_de_baja: usuario.fecha_de_baja
       }
     });
 

@@ -5,9 +5,9 @@ const { requireRole } = require("../middleware/authMiddleware");
 
 router.get("/usuarios", userController.getAllUsers);
 // Solo DIRECTOR o SUBDIRECTOR (id rol 1 o 2) pueden crear, editar y eliminar
-router.get("/usuarios/:id", requireRole(["DIRECTOR", "SUBDIRECTOR"]), userController.getUserById);
+router.get("/usuarios/:id", requireRole(["DIRECTOR", "SUBDIRECTOR", "DIRECTORA", "SUBDIRECTORA"]), userController.getUserById);
 router.post("/usuarios", requireRole(["DIRECTOR", "SUBDIRECTOR"]), userController.createUser);
-router.put("/usuarios/:id_usuario", requireRole(["DIRECTOR", "SUBDIRECTOR"]), userController.updateUser);
+router.put("/usuarios/:id_usuario", requireRole(["DIRECTOR", "SUBDIRECTOR","DIRECTORA", "SUBDIRECTORA"]), userController.updateUser);
 router.put('/usuarios/:id_usuario/en-funciones', userController.actualizarEstadoFuncion);
 router.delete("/usuarios/:id", requireRole(["DIRECTOR", "SUBDIRECTOR"]), userController.deleteUser);
 
