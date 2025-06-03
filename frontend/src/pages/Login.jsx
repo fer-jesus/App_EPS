@@ -71,19 +71,19 @@ const Login = () => {
       // }
       if (res.data.success) {
         const usuario = res.data.usuario;
-        
+
         if (usuario.fecha_de_baja === null) {
+          login({
+            id_usuario: usuario.id_usuario,
+            nombre: usuario.nombre,
+            rol: usuario.rol,
+            correo: usuario.correo, // u otros campos si lo necesitas
+          });
 
-        login({
-          id_usuario: usuario.id_usuario,
-          nombre: usuario.nombre,
-          rol: usuario.rol,
-          correo: usuario.correo, // u otros campos si lo necesitas
-        });
-
-        navigate("/menu");
-        }
-        else {
+          navigate("/menu");
+        } else {
+          setUser("");
+          setPass("");
           Swal.fire({
             icon: "error",
             title: "Cuenta inactiva",

@@ -27,7 +27,7 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
     ROL_id_rol: "",
     unidad: "",
     fechaRegistro: "",
-    fechaBaja: "",
+    //fechaBaja: "",
     correo: "",
     contraseña: "",
     valContraseña: "",
@@ -51,9 +51,9 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
         fechaRegistro: initialData.fecha_registro
           ? dayjs(initialData.fecha_registro).format("YYYY-MM-DD")
           : "",
-        fechaBaja: initialData.fecha_de_baja
-          ? dayjs(initialData.fecha_de_baja).format("YYYY-MM-DD")
-          : "",
+        // fechaBaja: initialData.fecha_de_baja
+        //   ? dayjs(initialData.fecha_de_baja).format("YYYY-MM-DD")
+        //   : "",
         correo: initialData.correo || "",
         contraseña: "",
         valContraseña: "",
@@ -130,7 +130,7 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
           ROL_id_rol: formData.ROL_id_rol,
           fecha_registro: formData.fechaRegistro,
          // en_funciones: 1,
-          fecha_de_baja: formData.fechaBaja || null,
+          //fecha_de_baja: formData.fechaBaja || null,
           // Solo incluir fecha_baja si tiene valor y estamos editando
           // ...(initialData?.id_usuario && {
           //   fecha_de_baja: formData.fechaBaja || null,
@@ -302,7 +302,7 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
           InputLabelProps={{ shrink: true }}
           error={Boolean(errors.fechaRegistro)}
         />
-        {initialData?.id_usuario && (
+        {/* {initialData?.id_usuario && (
           <TextField
             type="date"
             name="fechaBaja"
@@ -312,7 +312,7 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
             fullWidth
             InputLabelProps={{ shrink: true }}
           />
-        )}
+        )} */}
         <TextField
           type="email"
           name="correo"
