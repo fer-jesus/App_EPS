@@ -1,44 +1,43 @@
-const Usuario = require('../models/usuario');
+const { verificarCredenciales } = require("../models/usuario/usuario.service");
 
 const login = async (req, res) => {
-  const { username, password } = req.body; 
+  const { username, password } = req.body;
 
   try {
-    // Buscar por username o correo
-    const usuario = await Usuario.verificarCredenciales(username, password);
-    
+    const usuario = await verificarCredenciales(username, password);
+
     if (!usuario) {
-      return res.status(401).json({ 
-        success: false, // Añadido para el frontend
-        error: 'Credenciales incorrectas' 
+      return res.status(401).json({
+        success: false,
+        error: "Credenciales incorrectas"
       });
     }
-
-    // if (usuario.ROL_id_rol !== 1 && usuario.ROL_id_rol !== 2) {
-    //   return res.status(403).json({ 
-    //     success: false,
-    //     error: 'Acceso restringido' 
-    //   });
-    // }
-
+    
+// let roles = usuario.Rol.RolNombres;
+// const rolEncontrado = roles.find(rol => rol.dataValues.sexo === usuario.sexo);
+const nombreRol = usuario.Rol && usuario.Rol.RolNombres
+  ? usuario.Rol.RolNombres.find(rn => rn.sexo === usuario.sexo)?.nombre_rol
+  : null;
+  
     res.json({
-      success: true, // Añadido para el frontend
+      
+      success: true,
       usuario: {
         id_usuario: usuario.id_usuario,
         nombre: usuario.nombre,
         correo: usuario.correo,
-        rol: usuario.nombre_rol,
-        ROL_id_rol: usuario.ROL_id_rol, 
+        rol: nombreRol,
+        //rol: rolEncontrado,
+        ROL_id_rol: usuario.ROL_id_rol,
         unidad: usuario.unidad,
         fecha_de_baja: usuario.fecha_de_baja
       }
     });
-
   } catch (error) {
-    console.error('Error en login:', error);
-    res.status(500).json({ 
+    console.error("Error en login:", error);
+    res.status(500).json({
       success: false,
-      error: 'Error en el servidor' 
+      error: "Error en el servidor"
     });
   }
 };

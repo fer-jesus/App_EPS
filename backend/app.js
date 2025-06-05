@@ -20,16 +20,16 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // Conexión a la base de datos (solo para verificación al iniciar)
-const pool = require('./config/database');
+const sequelize = require('./config/sequelize');
 
 // Verificar conexión a la BD al iniciar
 (async () => {
   try {
-    const [rows] = await pool.query('SELECT 1 + 1 AS result');
-    console.log(' Conexión a MySQL establecida correctamente');
+    await sequelize.authenticate();
+    console.log('Conexión a MySQL (Sequelize) establecida correctamente');
   } catch (error) {
-    console.error(' Error al conectar con MySQL:', error.message);
-    process.exit(1); // Salir si no hay conexión a la BD
+    console.error('Error al conectar con MySQL (Sequelize):', error.message);
+    process.exit(1);
   }
 })();
 

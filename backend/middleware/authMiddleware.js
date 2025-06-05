@@ -1,24 +1,39 @@
-const Usuario = require('../models/usuario');
+//const sequelize = require('../config/sequelize'); 
+const { Usuario, Rol, RolNombre } = require('../models/usuario');
 
 const requireRole = (rolesPermitidos) => {
   return async (req, res, next) => {
     try {
-      const userId = req.headers['x-user-id']; // se puede usar req.user.id si se implementa JWT o sesión
+      const userId = req.headers['x-user-id'];
+
       if (!userId) {
         return res.status(401).json({ success: false, error: 'Usuario no autenticado' });
-        
       }
 
-      // Obtener usuario con su rol desde la base de datos
-      const usuario = await Usuario.obtenerPorId(userId);
-       if (!usuario) {
+      const usuario = await Usuario.findByPk(userId, {
+        include: {
+          model: Rol,
+          as: 'rol',
+          include: {
+            model: RolNombre,
+            as: 'RolNombres'
+          }
+        }
+      });
+
+      if (!usuario) {
         return res.status(404).json({ success: false, error: 'Usuario no encontrado' });
       }
-      if (!rolesPermitidos.includes(usuario.rol)) {
+
+      const nombreRol = usuario.sexo === 'M'
+        ? usuario.rol?.RolNombres?.[0]?.nombre_masculino
+        : usuario.rol?.RolNombres?.[0]?.nombre_femenino;
+
+      if (!rolesPermitidos.includes(nombreRol)) {
         return res.status(403).json({ success: false, error: 'Acceso denegado' });
       }
 
-      req.usuario = usuario; // Guardamos al usuario en el request
+      req.usuario = usuario;
       next();
     } catch (error) {
       console.error('Error en middleware de autorización:', error);

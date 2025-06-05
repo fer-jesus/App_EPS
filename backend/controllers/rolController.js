@@ -1,4 +1,4 @@
-const Rol = require("../models/userRol");
+const { getRolesPorSexo } = require("../models/rol/rol.service");
 
 const getRolesBySexo = async (req, res) => {
   const { sexo } = req.query;
@@ -8,7 +8,7 @@ const getRolesBySexo = async (req, res) => {
   }
 
   try {
-    const roles = await Rol.obtenerPorSexo(sexo);
+    const roles = await getRolesPorSexo(sexo);
     res.json(roles);
   } catch (error) {
     console.error("Error al obtener roles:", error);

@@ -1,6 +1,7 @@
 const express = require('express');
-const  { getRolesBySexo }  = require('../controllers/rolController');
 const router = express.Router();
+const  { getRolesBySexo }  = require('../controllers/rolController');
+
 
 router.get("/", getRolesBySexo);
 

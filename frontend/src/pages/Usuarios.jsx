@@ -43,8 +43,8 @@ const AdminUsuarios = () => {
           ROL_id_rol: u.ROL_id_rol,
           fecha_registro: u.fecha_registro,
           fecha_de_baja: u.fecha_de_baja,
-          en_funciones: u.en_funciones.data[0],
-          rol: u.rol,
+          en_funciones: u.en_funciones,
+          rol: u.nombre_rol,
         }));
         setUsuarios(usuariosFormateados);
       } catch (error) {

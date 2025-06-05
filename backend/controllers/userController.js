@@ -1,22 +1,25 @@
-const Usuario = require("../models/usuario");
-
-//const isAuthorized = (rolNombre) => rolNombre === "DIRECTOR" || rolNombre === "SUBDIRECTOR"; // DIRECTOR o SUBDIRECTOR
+const {
+  getAllUsuarios,
+  getUsuarioById,
+  createUsuario,
+  updateUsuario,
+  deleteUsuario,
+  updateEnFunciones
+} = require("../models/usuario/usuario.service");
 
 const getAllUsers = async (req, res) => {
   try {
-    const usuarios = await Usuario.obtenerTodos();
+    const usuarios = await getAllUsuarios();
     res.json({ success: true, usuarios });
   } catch (error) {
     console.error(error);
-    res
-      .status(500)
-      .json({ success: false, error: "Error al obtener usuarios" });
+    res.status(500).json({ success: false, error: "Error al obtener usuarios" });
   }
 };
 
 const getUserById = async (req, res) => {
   try {
-    const usuario = await Usuario.obtenerPorId(req.params.id);
+    const usuario = await getUsuarioById(req.params.id);
     if (!usuario) {
       return res.status(404).json({ success: false, error: "Usuario no encontrado" });
     }
@@ -29,7 +32,7 @@ const getUserById = async (req, res) => {
 
 const createUser = async (req, res) => {
   try {
-    const id = await Usuario.crear(req.body);
+    const id = await createUsuario(req.body);
     console.log("Usuario creado con id:", id);
     res.json({ success: true, id });
   } catch (error) {
@@ -40,28 +43,23 @@ const createUser = async (req, res) => {
 
 const updateUser = async (req, res) => {
   try {
-     const { id_usuario } = req.params;
-     console.log("ID del usuario a actualizar:", req.body);
-    console.log("ID del usuario a actualizar:", id_usuario);
-    if (!id_usuario || id_usuario === 'NULL' || id_usuario === 'null') {
+    const { id_usuario } = req.params;
+    if (!id_usuario || id_usuario.toLowerCase() === "null") {
       return res.status(400).json({ success: false, error: "ID de usuario no válido" });
     }
-    //console.log("Actualizando usuario con id_usuario:", req.body);
-    await Usuario.actualizar(id_usuario, req.body);
-  
+
+    await updateUsuario(id_usuario, req.body);
     res.status(200).json({ message: "Usuario actualizado correctamente" });
   } catch (error) {
     console.error(error);
-    res
-      .status(500)
-      .json({ success: false, error: "Error al actualizar usuario" });
+    res.status(500).json({ success: false, error: "Error al actualizar usuario" });
   }
 };
 
 const deleteUser = async (req, res) => {
   try {
-    const result = await Usuario.eliminar(req.params.id);
-    res.json(result);
+    await deleteUsuario(req.params.id);
+    res.json({ success: true, message: "Usuario eliminado correctamente" });
   } catch (error) {
     console.error(error);
 
@@ -79,22 +77,18 @@ const deleteUser = async (req, res) => {
   }
 };
 
-
 const actualizarEstadoFuncion = async (req, res) => {
   try {
     const { id_usuario } = req.params;
     let { en_funciones } = req.body;
 
-    // Asegurar que en_funciones sea 0 o 1
     en_funciones = en_funciones ? 1 : 0;
+    await updateEnFunciones(id_usuario, en_funciones);
 
-    await Usuario.actualizarEstadoFuncion(id_usuario, en_funciones);
-
-    // Devuelve el nuevo estado para que el frontend pueda sincronizar
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       message: "Estado actualizado correctamente",
-      en_funciones 
+      en_funciones,
     });
   } catch (error) {
     console.error(error);
