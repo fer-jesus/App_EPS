@@ -31,7 +31,8 @@ module.exports = (sequelize) => {
   // Relaciones internas
   Rol.hasMany(RolNombre, {
     foreignKey: 'ROL_id_rol',
-    sourceKey: 'id_rol'
+    sourceKey: 'id_rol',
+    as: 'RolNombres'
   });
 
   RolNombre.belongsTo(Rol, {

@@ -13,7 +13,7 @@ const requireRole = (rolesPermitidos) => {
       const usuario = await Usuario.findByPk(userId, {
         include: {
           model: Rol,
-          as: 'rol',
+          as: 'Rol',
           include: {
             model: RolNombre,
             as: 'RolNombres'
@@ -25,9 +25,8 @@ const requireRole = (rolesPermitidos) => {
         return res.status(404).json({ success: false, error: 'Usuario no encontrado' });
       }
 
-      const nombreRol = usuario.sexo === 'M'
-        ? usuario.rol?.RolNombres?.[0]?.nombre_masculino
-        : usuario.rol?.RolNombres?.[0]?.nombre_femenino;
+      const nombreRol = usuario.Rol?.RolNombres?.find(rn => rn.sexo === usuario.sexo)?.nombre_rol;
+
 
       if (!rolesPermitidos.includes(nombreRol)) {
         return res.status(403).json({ success: false, error: 'Acceso denegado' });

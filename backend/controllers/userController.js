@@ -4,7 +4,7 @@ const {
   createUsuario,
   updateUsuario,
   deleteUsuario,
-  updateEnFunciones
+  actualizarEstadoEnFuncion:  updateEnFunciones
 } = require("../models/usuario/usuario.service");
 
 const getAllUsers = async (req, res) => {
@@ -34,7 +34,7 @@ const createUser = async (req, res) => {
   try {
     const id = await createUsuario(req.body);
     console.log("Usuario creado con id:", id);
-    res.json({ success: true, id });
+    res.json({ success: true, id });  
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, error: "Error al crear usuario" });
@@ -59,7 +59,7 @@ const updateUser = async (req, res) => {
 const deleteUser = async (req, res) => {
   try {
     await deleteUsuario(req.params.id);
-    res.json({ success: true, message: "Usuario eliminado correctamente" });
+    res.json({ success: true, message: "Usuario dado de baja correctamente" });
   } catch (error) {
     console.error(error);
 
@@ -72,18 +72,18 @@ const deleteUser = async (req, res) => {
 
     res.status(500).json({
       success: false,
-      error: "Error al eliminar usuario",
+      error: "Error al dar de baja al usuario",
     });
   }
 };
 
-const actualizarEstadoFuncion = async (req, res) => {
+const actualizarEstadoEnFuncion = async (req, res) => {
   try {
     const { id_usuario } = req.params;
     let { en_funciones } = req.body;
 
     en_funciones = en_funciones ? 1 : 0;
-    await updateEnFunciones(id_usuario, en_funciones);
+    await  updateEnFunciones(id_usuario, en_funciones);
 
     res.json({
       success: true,
@@ -96,11 +96,12 @@ const actualizarEstadoFuncion = async (req, res) => {
   }
 };
 
+
 module.exports = {
   getAllUsers,
   getUserById,
   createUser,
   updateUser,
   deleteUser,
-  actualizarEstadoFuncion
+  actualizarEstadoEnFuncion
 };

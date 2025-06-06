@@ -111,12 +111,13 @@ const AdminUsuarios = () => {
           data,
           headers
         );
-      }
+      } 
 
       // Recarga de usuarios después de crear o editar
       const res = await axios.get("http://localhost:3001/api/usuarios");
       const usuariosFormateados = res.data.usuarios.map((u) => ({
         id: u.id_usuario,
+        rol: u.nombre_rol,
         ...u,
       }));
       setUsuarios(usuariosFormateados);
@@ -164,8 +165,8 @@ const AdminUsuarios = () => {
         ROL_id_rol: u.ROL_id_rol,
         fecha_registro: u.fecha_registro,
         fecha_de_baja: u.fecha_de_baja,
-        en_funciones: u.en_funciones.data[0],
-        rol: u.rol,
+        en_funciones: u.en_funciones  ? 1 : 0,
+        rol: u.nombre_rol,
       }));
       console.log("Usuarios actualizados:", usuariosFormateados);
       setUsuarios(usuariosFormateados);
@@ -213,6 +214,7 @@ const AdminUsuarios = () => {
       const res = await axios.get("http://localhost:3001/api/usuarios");
       const usuariosFormateados = res.data.usuarios.map((u) => ({
         id: u.id_usuario,
+        rol: u.nombre_rol,
         ...u,
       }));
       setUsuarios(usuariosFormateados);
@@ -273,7 +275,7 @@ const AdminUsuarios = () => {
             )} */}
             {!(
               params.row.id === auth.user.id_usuario &&
-              (auth.user.rol === "DIRECTOR" || auth.user.rol === "SUBDIRECTOR")
+              (auth.user.rol === "DIRECTOR"  || auth.user.rol === "DIRECTORA" || auth.user.rol === "SUBDIRECTOR" || auth.user.rol === "SUBDIRECTORA")
             ) && (
               <IconButton
                 color="error"
