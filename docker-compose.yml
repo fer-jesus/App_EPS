@@ -1,62 +1,63 @@
-#version: '3'
-services:
- # Servicio para la base de datos MySQL
-  # db:
-  #   image: mysql:5.7
-  #   container_name: mysql-db
-  #   environment:
-  #     MYSQL_ROOT_PASSWORD: 123456
-  #     MYSQL_DATABASE: expedientesBP
-  #   ports:
-  #     - "3306:3306"
-  #   volumes:
-  #     - db_data:/var/lib/mysql
-  #   networks:
-  #     - app-network
+#version: '3.8'
 
-  # Servicio para el backend (Node.js)
+services:
+  db:
+    image: mysql:8.0
+    restart: always
+    container_name: mysql_db
+    environment:
+      MYSQL_ROOT_PASSWORD: 12345
+      MYSQL_DATABASE: lic_const_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./database:/docker-entrypoint-initdb.d
+    networks:
+      - app-network
+
   backend:
     build: 
       context: ./backend
       dockerfile: Dockerfile
-    container_name: backend
+    container_name: backend_node
     ports:
-      - "3000:3000"
+      - "3001:3001"
     volumes:
       - ./backend:/app
       - /app/node_modules
-      # - ./basededatos:/basededatos 
-      #- "E:/Expedientes:/app/Expedientes" # ruta de los expedientes
-      # - "C:/Users/JFGL/Desktop/Expedientes:/app/Expedientes"
     environment:
-       - PORT=3000
+       #- PORT=3000
+       - DB_USER=root
        - DB_HOST=db
-       - DB_PASSWORD=123456
-       - DB_NAME=expedientesBP
+       - DB_PASSWORD=12345
+       - DB_NAME=lic_const_db
        - DB_PORT=3306
     networks:
       - app-network
     depends_on:
       - db
+    restart: always
     command: sh -c "while ! nc -z db 3306 ; do sleep 1 ; done && npm run dev"
+    #command: sh -c "while ! nc -z host.docker.internal 3306 ; do sleep 1 ; done && npm run dev"
 
-# Servicio para el frontend (React)
   frontend:
     build: 
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: frontend
+    container_name: frontend_react
     ports: 
       - "5173:5173"
     volumes: 
       - ./frontend:/app
       - /app/node_modules
     environment: 
-      - VITE_REACT_APP_BACKEND_URL=http://backend:3000 # Usa la URL del backend con Docker
+      - VITE_REACT_APP_BACKEND_URL=http://backend:3000 
     networks: 
       - app-network
     depends_on: 
       - backend
+    restart: always
 
 networks:
   app-network:

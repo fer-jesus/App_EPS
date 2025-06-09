@@ -1,5 +1,5 @@
 const { Usuario, Rol, RolNombre, sequelize } = require("../../models/usuario");
-//const { Op } = require('sequelize');
+const { Op } = require("sequelize"); 
 
 // Verifica usuario por correo y contraseña (sin bcrypt por ahora)
 const verificarCredenciales = async (correo, contrasena) => {
@@ -122,7 +122,35 @@ const updateUsuario = async (id, data) => {
 // Eliminar usuario por ID
 const deleteUsuario = async (id) => {
   const usuario = await Usuario.findByPk(id);
+
   if (!usuario) throw new Error("Usuario no encontrado");
+
+    const rol = await Rol.findByPk(usuario.ROL_id_rol, {
+    include: {
+      model: RolNombre,
+      as: "RolNombres",
+      where: { sexo: usuario.sexo },
+    },
+  });
+
+  const nombreRol = rol?.RolNombres?.[0]?.nombre_rol?.toUpperCase() || null;
+
+  const esPrivilegiado = nombreRol === "DIRECTOR" || nombreRol === "SUBDIRECTOR";
+
+  if (esPrivilegiado) {
+    // Ver cuántos usuarios siguen activos con el mismo ROL_id_rol
+    const conteo = await Usuario.count({
+      where: {
+        ROL_id_rol: usuario.ROL_id_rol,
+        fecha_de_baja: null,
+        id_usuario: { [Op.ne]: id }
+      }
+    });
+
+    if (conteo === 0) {
+      throw new Error(`No se puede eliminar. Debe haber al menos un ${nombreRol} activo.`);
+    }
+  }
 
   await usuario.update({ fecha_de_baja: new Date() });
 

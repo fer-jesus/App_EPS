@@ -63,7 +63,7 @@ const deleteUser = async (req, res) => {
   } catch (error) {
     console.error(error);
 
-    if (error.code === "NO_DELETE_PRIVILEGED_ROLE") {
+    if (error.message.includes("No se puede eliminar")) {
       return res.status(400).json({
         success: false,
         error: error.message,

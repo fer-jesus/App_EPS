@@ -1,23 +1,19 @@
-# FROM node:20-alpine3.19
+FROM node:22-alpine3.21
 
-# RUN apk add --no-cache tzdata
+RUN apk add --no-cache tzdata
 
-# ENV TZ=America/Guatemala
+ENV TZ=America/Guatemala
 
-# RUN cp /usr/share/zoneinfo/America/Guatemala /etc/localtime && echo "America/Guatemala" > /etc/timezone
+#RUN cp /usr/share/zoneinfo/America/Guatemala /etc/localtime && echo "America/Guatemala" > /etc/timezone
 
-# WORKDIR /app
+WORKDIR /app
 
-# #COPY ./backend/package*.json ./
-# COPY package*.json ./
+COPY package*.json ./
 
-# RUN npm install
+RUN npm install
 
-# COPY . .
+COPY . .
 
-# # Expone el puerto 3000
-# EXPOSE 3000 
+EXPOSE 3000
 
-# #RUN npm run build
-
-# CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "dev"]

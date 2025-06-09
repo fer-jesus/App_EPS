@@ -111,7 +111,7 @@ const AdminUsuarios = () => {
           data,
           headers
         );
-      } 
+      }
 
       // Recarga de usuarios después de crear o editar
       const res = await axios.get("http://localhost:3001/api/usuarios");
@@ -165,7 +165,7 @@ const AdminUsuarios = () => {
         ROL_id_rol: u.ROL_id_rol,
         fecha_registro: u.fecha_registro,
         fecha_de_baja: u.fecha_de_baja,
-        en_funciones: u.en_funciones  ? 1 : 0,
+        en_funciones: u.en_funciones ? 1 : 0,
         rol: u.nombre_rol,
       }));
       console.log("Usuarios actualizados:", usuariosFormateados);
@@ -219,20 +219,29 @@ const AdminUsuarios = () => {
       }));
       setUsuarios(usuariosFormateados);
     } catch (error) {
+      const mensajeError = error.response?.data?.error;
+
       if (
-        error.response?.status === 400 &&
-        error.response.data.error === "No se puede eliminar al usuario DIRECTOR"
+        mensajeError?.startsWith("No se puede eliminar. Debe haber al menos un")
       ) {
         Swal.fire({
-          title: "Operación no permitida",
-          text: "No se puede eliminar al usuario DIRECTOR",
+          title: "No se puede eliminar",
+          text: mensajeError,
           icon: "error",
           confirmButtonText: "Entendido",
+        });
+      } else if (mensajeError === "Usuario no encontrado") {
+        Swal.fire({
+          title: "Usuario no encontrado",
+          text: "El usuario que intenta dar de baja ya no existe.",
+          icon: "warning",
+          confirmButtonText: "Aceptar",
         });
       } else {
         Swal.fire({
           title: "Error",
-          text: "Hubo un error al intentar dar de BAJA al usuario.",
+          text:
+            mensajeError || "Hubo un error al intentar dar de BAJA al usuario.",
           icon: "error",
           confirmButtonText: "Cerrar",
         });
@@ -275,7 +284,10 @@ const AdminUsuarios = () => {
             )} */}
             {!(
               params.row.id === auth.user.id_usuario &&
-              (auth.user.rol === "DIRECTOR"  || auth.user.rol === "DIRECTORA" || auth.user.rol === "SUBDIRECTOR" || auth.user.rol === "SUBDIRECTORA")
+              (auth.user.rol === "DIRECTOR" ||
+                auth.user.rol === "DIRECTORA" ||
+                auth.user.rol === "SUBDIRECTOR" ||
+                auth.user.rol === "SUBDIRECTORA")
             ) && (
               <IconButton
                 color="error"
