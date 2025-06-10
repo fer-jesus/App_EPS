@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Container,
   Typography,
@@ -16,22 +16,31 @@ import EditIcon from "@mui/icons-material/Edit";
 import AppNavbar from "../components/AppNavBar";
 
 const AdminTarifas = () => {
-  const [tarifas, setTarifas] = useState([
-    {
-      id: 1,
-      nombre: "Vivienda interes social",
-      tipo: "Viviendas",
-      costo: "Sin costo",
-      porcentaje: "Sin costo",
-    },
-    {
-      id: 2,
-      nombre: "Vivienda hasta 60m²",
-      tipo: "Vivienda techo de lamina",
-      costo: "Q.400.00",
-      porcentaje: "1.0%",
-    },
-  ]);
+  const [tarifas, setTarifas] = useState([]);
+
+  useEffect(() => {
+    const fetchTarifas = async () => {
+      try {
+        const response = await fetch("http://localhost:3001/api/tarifas");
+        const data = await response.json();
+
+        const tarifasConId = data.map((t) => ({
+          ...t,
+          id: t.id_nombreTarifa,
+          tipo: t.TipoConstruccionTarifa?.tipo_construccion || "", // según tu join en backend
+          nombre: t.nombre_tarifa,
+          costo: t.TarifaCostoDimension?.costo_tarifa || "", // ajustar según estructura
+          porcentaje: t.TarifaCostoDimension?.porcentaje || "",
+        }));
+
+        setTarifas(tarifasConId);
+      } catch (error) {
+        console.error("Error al cargar tarifas:", error);
+      }
+    };
+
+    fetchTarifas();
+  }, []);
 
   const [openDialog, setOpenDialog] = useState(false);
   const [tarifaEditando, setTarifaEditando] = useState(null);
@@ -97,9 +106,11 @@ const AdminTarifas = () => {
     },
   ];
 
-  const filteredRows = tarifas.filter((row) =>
-    row.nombre.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredRows = Array.isArray(tarifas)
+    ? tarifas.filter((row) =>
+        row.nombre?.toLowerCase().includes(search.toLowerCase())
+      )
+    : [];
 
   return (
     <>
@@ -128,7 +139,7 @@ const AdminTarifas = () => {
           }} // Permite scroll horizontal en móviles
         >
           <DataGrid
-            rows={tarifas && filteredRows}
+            rows={filteredRows}
             columns={columns}
             pageSize={5}
             density="standard"

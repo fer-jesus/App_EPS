@@ -6,6 +6,7 @@ const bodyParser = require('body-parser');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const rolRoutes = require('./routes/rolRoutes');
+const tarifaRoutes = require ('./routes/tarifaRoutes');
 
 
 // Configuración de middlewares
@@ -37,6 +38,7 @@ const sequelize = require('./config/sequelize');
 app.use('/api', authRoutes);
 app.use('/api', userRoutes);
 app.use('/api/rol', rolRoutes);
+app.use('/api/tarifas', tarifaRoutes);
 
 // Ruta de prueba
 app.get('/', (req, res) => {
