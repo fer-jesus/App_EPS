@@ -7,14 +7,16 @@ import {
   Stack,
   MenuItem,
 } from "@mui/material";
+import Autocomplete from "@mui/material/Autocomplete";
+import axios from "axios";
 
 const TasaForm = ({ onSubmit, onClose, initialData }) => {
   const [formData, setFormData] = useState({
     fechaRegistro: "",
-    dpi: "",
     direccionExacta: "",
+    dpi: "",
     nombrePropietario: "",
-    tipoConstruccion: "",
+    tipoConstruccion: [],
     cuentaNoAlineacion: "",
     anotaciones: "",
     areaConstruccion: "",
@@ -24,16 +26,82 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
     cantidadCancelar: "",
   });
 
+  const [tarifas, setTarifas] = useState([]);
   const [errors, setErrors] = useState({});
 
-  // Inicializar formulario con datos existentes si estamos editando
+  // Cargar tarifas desde el backend
   useEffect(() => {
-    if (initialData) {
-      setFormData({
-        nombrePropietario: initialData.nombrePropietario || "",
-      });
-    }
-  }, [initialData]);
+    const fetchTarifas = async () => {
+      try {
+        const res = await axios.get("http://localhost:3001/api/tarifas");
+        setTarifas(res.data);
+      } catch (error) {
+        console.error("Error al cargar tarifas:", error);
+      }
+    };
+    fetchTarifas();
+  }, []);
+
+  // Cargar datos iniciales para editar
+ useEffect(() => {
+    let valorPorcentaje = "";
+    let totalPresupuesto = 0;
+    let totalCancelar = 0;
+
+    // Converción del campo multilinea a un array de números
+    const areaList = formData.areaConstruccion
+      .split("\n")
+      .map((a) => parseFloat(a.trim()))
+      .filter((a) => !isNaN(a));
+
+    // Converción del campo multilinea de cantidad de demolición/movimiento a un número
+    const cantDemoMoviList = formData.cantDemoMovi
+      .split("\n")
+      .map((a) => parseFloat(a.trim()))
+      .filter((a) => !isNaN(a));
+
+    formData.tipoConstruccion.forEach((tipo) => {
+      if (!tipo || !tipo.TarifaCostoDimension) return;
+
+      const isEspecial = ["DEMOLICIÓN", "MOVIMIENTO DE TIERRA"].includes(
+        tipo.nombre_tarifa?.toUpperCase()
+      );
+
+      //const area = areaList[index];
+      const area = isEspecial ? cantDemoMoviList.shift() : areaList.shift();
+      const costo = parseFloat(tipo.TarifaCostoDimension?.costo_tarifa || 0);
+      const porcentaje = parseFloat(tipo.TarifaCostoDimension?.porcentaje || 0);
+
+      if (area && costo && porcentaje) {
+        const subtotal = area * costo;
+        const subtotalPorcentaje = subtotal * (porcentaje / 100);
+        totalPresupuesto += subtotal;
+        totalCancelar += subtotalPorcentaje;
+
+        valorPorcentaje += `${area}X${costo}=${subtotal.toLocaleString(
+          "es-GT"
+        )}X${porcentaje}%=${subtotalPorcentaje
+          .toFixed(2)
+          .toLocaleString("es-GT")}\n`;
+      }
+    });
+
+    setFormData((prev) => ({
+      ...prev,
+      valorPorcentaje: valorPorcentaje.trim(),
+      presupuestObra: `Q. ${totalPresupuesto
+        .toFixed(2)
+        .toLocaleString("es-GT")}`,
+      cantidadCancelar: `Q. ${totalCancelar
+        .toFixed(2)
+        .toLocaleString("es-GT")}`,
+    }));
+  }, [
+    formData.tipoConstruccion,
+    formData.areaConstruccion,
+    formData.cantDemoMovi,
+
+]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -60,9 +128,33 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
     setErrors(newErrors);
 
     if (!hasErrors) {
+      console.log("Datos del formulario:", formData);
       onSubmit(formData);
     }
   };
+
+  // const buscarPropietarioPorCUI = async (cui) => {
+  //   try {
+  //     const response = await axios.get(`http://localhost:3001/api/propietarios/${cui}`);
+  //     if (response.data && response.data.nombre) {
+  //       setFormData((prev) => ({
+  //         ...prev,
+  //         nombrePropietario: response.data.nombre,
+  //       }));
+  //     } else {
+  //       setFormData((prev) => ({
+  //         ...prev,
+  //         nombrePropietario: "",
+  //       }));
+  //     }
+  //   } catch (error) {
+  //     console.error("Error al buscar propietario:", error);
+  //     setFormData((prev) => ({
+  //       ...prev,
+  //       nombrePropietario: "",
+  //     }));
+  //   }
+  // };
 
   const getLabel = (name, label) =>
     errors[name] ? "Rellena este campo" : label;
@@ -85,15 +177,6 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           InputLabelProps={{ shrink: true }}
           error={Boolean(errors.fechaRegistro)}
         />
-         <TextField
-          name="dpi"
-          label={getLabel("dpi", "DPI")}
-          value={formData.dpi}
-          onChange={handleChange}
-          fullWidth
-          required
-          error={Boolean(errors.dpi)}
-        />
         <TextField
           name="direccionExacta"
           label={getLabel("direccionExacta", "DIRECCION EXACTA")}
@@ -104,6 +187,25 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           error={Boolean(errors.direccionExacta)}
         />
         <TextField
+          name="dpi"
+          label={getLabel("dpi", "DPI")}
+          value={formData.dpi}
+          onChange={handleChange}
+          fullWidth
+          required
+          error={Boolean(errors.dpi)}
+        />
+        {/* <TextField
+          name="dpi"
+          label={getLabel("dpi", "DPI")}
+          value={formData.dpi}
+          onChange={handleChange}
+          onBlur={() => buscarPropietarioPorCUI(formData.dpi)} // <- Aquí la llamada al backend
+          fullWidth
+          required
+          error={Boolean(errors.dpi)}
+        /> */}
+        <TextField
           name="nombrePropietario"
           label={getLabel("nombrePropietario", "NOMBRE DEL PROPIETARIO")}
           value={formData.nombrePropietario}
@@ -112,7 +214,38 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           required
           error={Boolean(errors.nombrePropietario)}
         />
-        <TextField
+
+        <Autocomplete
+          multiple
+          options={tarifas}
+          getOptionLabel={(option) => option.nombre_tarifa || ""}
+          isOptionEqualToValue={() => false} 
+          filterSelectedOptions={false} // evita que se oculten opciones ya seleccionadas
+          value={formData.tipoConstruccion}
+          onChange={(event, newValue) => {
+            setFormData((prev) => ({
+              ...prev,
+              tipoConstruccion: newValue,
+            }));
+            if (errors.tipoConstruccion) {
+              setErrors((prev) => ({ ...prev, tipoConstruccion: false }));
+            }
+          }}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label={getLabel(
+                "tipoConstruccion",
+                "TIPO DE CONSTRUCCIÓN SEGÚN REGLAMENTO"
+              )}
+              error={Boolean(errors.tipoConstruccion)}
+              required
+              fullWidth
+            />
+          )}
+        />
+
+        {/* <TextField
           name="tipoConstruccion"
           label={getLabel(
             "tipoConstruccion",
@@ -123,7 +256,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           fullWidth
           required
           error={Boolean(errors.tipoConstruccion)}
-        />
+        /> */}
         <TextField
           select
           name="cuentaNoAlineacion"
@@ -137,12 +270,8 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           required
           error={Boolean(errors.cuentaNoAlineacion)}
         >
-          <MenuItem value="si">
-            SI CUENTA CON ALINEACIÓN MUNICIPAL
-          </MenuItem>
-          <MenuItem value="no">
-            NO CUENTA CON ALINEACIÓN MUNICIPAL
-          </MenuItem>
+          <MenuItem value="si">SI CUENTA CON ALINEACIÓN MUNICIPAL</MenuItem>
+          <MenuItem value="no">NO CUENTA CON ALINEACIÓN MUNICIPAL</MenuItem>
         </TextField>
         <TextField
           name="anotaciones"
@@ -161,6 +290,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           onChange={handleChange}
           fullWidth
           required
+          multiline
           error={Boolean(errors.areaConstruccion)}
         />
         <TextField
@@ -172,6 +302,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           value={formData.cantDemoMovi}
           onChange={handleChange}
           fullWidth
+          multiline
         />
         <TextField
           name="valorPorcentaje"
@@ -183,6 +314,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           onChange={handleChange}
           fullWidth
           required
+          multiline
           error={Boolean(errors.valorPorcentaje)}
         />
         <TextField

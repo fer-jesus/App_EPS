@@ -7,7 +7,8 @@ const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const rolRoutes = require('./routes/rolRoutes');
 const tarifaRoutes = require ('./routes/tarifaRoutes');
-
+//const tasasRoutes = require("./routes/tasasRoutes");
+//const propietarioRoutes = require('./routes/propietarioRoutes');
 
 // Configuración de middlewares
 app.use(cors({
@@ -39,6 +40,8 @@ app.use('/api', authRoutes);
 app.use('/api', userRoutes);
 app.use('/api/rol', rolRoutes);
 app.use('/api/tarifas', tarifaRoutes);
+//app.use("/api/tasas", tasasRoutes);
+//app.use('/api/propietarios', propietarioRoutes);
 
 // Ruta de prueba
 app.get('/', (req, res) => {

@@ -1,4 +1,4 @@
-const { obtenerTarifas } = require("../models/tarifas/tarifas.service");
+const { obtenerTarifas, actualizarTarifa  } = require("../models/tarifas/tarifas.service");
 
 
 const getTarifas = async (req, res) => {
@@ -11,6 +11,18 @@ const getTarifas = async (req, res) => {
   }
 };
 
+const putTarifa = async (req, res) => {
+  const id = req.params.id;
+  try {
+    const resultado = await actualizarTarifa(id, req.body);
+    res.status(200).json({ message: "Tarifa actualizada correctamente", resultado });
+  } catch (error) {
+     console.error("Error real al actualizar tarifa:", error);
+    res.status(500).json({ message: "Error al actualizar la tarifa.", error: error.message });
+  }
+};
+
 module.exports = {
   getTarifas,
+  putTarifa,
 };

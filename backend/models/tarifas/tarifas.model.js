@@ -58,6 +58,25 @@ function defineTarifaModels(sequelize) {
     timestamps: false,
   });
 
+  const TarifaCostoProyecto = sequelize.define("TarifaCostoProyecto", {
+  TARIFA_id_nombreTarifa: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    allowNull: false,
+  },
+  porcentaje_costoProyecto: {
+    type: DataTypes.DOUBLE,
+    allowNull: false,
+  },
+  porcentaje: {
+    type: DataTypes.DECIMAL,
+    allowNull: false,
+  },
+}, {
+  tableName: "TARIFA_COSTO_PROYECTO",
+  timestamps: false,
+});
+
   // Relaciones
   Tarifa.belongsTo(TipoConstruccionTarifa, {
     foreignKey: "TIPO_CONSTRUCCION_TARIFA_id_tipoConstruccion",
@@ -71,10 +90,19 @@ function defineTarifaModels(sequelize) {
     foreignKey: "TARIFA_id_nombreTarifa",
   });
 
+  Tarifa.hasOne(TarifaCostoProyecto, {
+  foreignKey: "TARIFA_id_nombreTarifa",
+});
+
+TarifaCostoProyecto.belongsTo(Tarifa, {
+  foreignKey: "TARIFA_id_nombreTarifa",
+});
+
   return {
     TipoConstruccionTarifa,
     Tarifa,
     TarifaCostoDimension,
+    TarifaCostoProyecto,
   };
 }
 

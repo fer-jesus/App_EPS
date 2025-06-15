@@ -17,43 +17,49 @@ import AppNavbar from "../components/AppNavBar";
 
 const AdminTarifas = () => {
   const [tarifas, setTarifas] = useState([]);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [tarifaEditando, setTarifaEditando] = useState(null);
+  const [tipoEditado, setTipoEditado] = useState("");
+  const [nombreEditado, setNombreEditado] = useState("");
+  const [costoEditado, setCostoEditado] = useState("");
+  const [porcentajeEditado, setPorcentajeEditado] = useState("");
+
+  const [search, setSearch] = useState("");
+
+  const fetchTarifas = async () => {
+    try {
+      const response = await fetch("http://localhost:3001/api/tarifas");
+      const data = await response.json();
+
+      const tarifasConId = data.map((t) => ({
+        ...t,
+        id: t.id_nombreTarifa,
+        tipo: t.TipoConstruccionTarifa?.tipo_construccion || "",
+        nombre: t.nombre_tarifa,
+        costo: 
+        t.TarifaCostoDimension?.costo_tarifa ??
+        t.TarifaCostoProyecto?.porcentaje_costoProyecto ??  "",
+        porcentaje: 
+        t.TarifaCostoDimension?.porcentaje ??
+         t.TarifaCostoProyecto?.porcentaje ??"",
+      }));
+
+      setTarifas(tarifasConId);
+    } catch (error) {
+      console.error("Error al cargar tarifas:", error);
+    }
+  };
 
   useEffect(() => {
-    const fetchTarifas = async () => {
-      try {
-        const response = await fetch("http://localhost:3001/api/tarifas");
-        const data = await response.json();
-
-        const tarifasConId = data.map((t) => ({
-          ...t,
-          id: t.id_nombreTarifa,
-          tipo: t.TipoConstruccionTarifa?.tipo_construccion || "", // según tu join en backend
-          nombre: t.nombre_tarifa,
-          costo: t.TarifaCostoDimension?.costo_tarifa || "", // ajustar según estructura
-          porcentaje: t.TarifaCostoDimension?.porcentaje || "",
-        }));
-
-        setTarifas(tarifasConId);
-      } catch (error) {
-        console.error("Error al cargar tarifas:", error);
-      }
-    };
-
     fetchTarifas();
   }, []);
 
-  const [openDialog, setOpenDialog] = useState(false);
-  const [tarifaEditando, setTarifaEditando] = useState(null);
-  const [costoEditado, setCostoEditado] = useState("");
-  const [tipoEditado, setTipoEditado] = useState("");
-  const [nombreEditado, setNombreEditado] = useState("");
-  const [search, setSearch] = useState("");
-
   const handleOpenDialog = (tarifa) => {
     setTarifaEditando(tarifa);
-    setCostoEditado(tarifa.costo);
     setTipoEditado(tarifa.tipo);
     setNombreEditado(tarifa.nombre);
+    setCostoEditado(tarifa.costo);
+    setPorcentajeEditado(tarifa.porcentaje);
     setOpenDialog(true);
   };
 
@@ -63,24 +69,49 @@ const AdminTarifas = () => {
     setTipoEditado("");
     setNombreEditado("");
     setCostoEditado("");
+    setPorcentajeEditado("");
   };
 
-  const handleGuardarCambios = () => {
+  const handleGuardarCambios = async () => {
     if (tarifaEditando) {
-      setTarifas(
-        tarifas.map((t) =>
-          t.id === tarifaEditando.id
-            ? {
-                ...t,
-                costo: costoEditado,
-                tipo: tipoEditado,
-                nombre: nombreEditado,
-              }
-            : t
-        )
-      );
+      try {
+        await fetch(`http://localhost:3001/api/tarifas/${tarifaEditando.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            tipo_construccion: tipoEditado,
+            nombre_tarifa: nombreEditado,
+            costo_tarifa: costoEditado,
+            porcentaje: porcentajeEditado,
+            id_tipoConstruccion:
+              tarifaEditando.TIPO_CONSTRUCCION_TARIFA_id_tipoConstruccion ??
+              tarifaEditando.TipoConstruccionTarifa?.id_tipoConstruccion ??
+              1, // o permitir seleccionar
+          }),
+        });
+
+        setTarifas((prev) =>
+          prev.map((t) =>
+            t.id === tarifaEditando.id
+              ? {
+                  ...t,
+                  tipo: tipoEditado,
+                  nombre_tarifa: nombreEditado,
+                  TarifaCostoDimension: {
+                    ...t.TarifaCostoDimension,
+                    costo_tarifa: costoEditado,
+                    porcentaje: porcentajeEditado,
+                  },
+                }
+              : t
+          )
+        );
+        await fetchTarifas();
+        handleCloseDialog();
+      } catch (error) {
+        console.error("Error al guardar cambios:", error);
+      }
     }
-    handleCloseDialog();
   };
 
   const columns = [
@@ -190,6 +221,13 @@ const AdminTarifas = () => {
                   label="Costo"
                   value={costoEditado}
                   onChange={(e) => setCostoEditado(e.target.value)}
+                  fullWidth
+                  sx={{ mb: 2 }}
+                />
+                <TextField
+                  label="Porcentaje"
+                  value={porcentajeEditado}
+                  onChange={(e) => setPorcentajeEditado(e.target.value)}
                   fullWidth
                   sx={{ mb: 2 }}
                 />
