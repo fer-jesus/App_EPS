@@ -31,12 +31,14 @@ const getUserById = async (req, res) => {
 };
 
 const createUser = async (req, res) => {
+
   try {
-    const id = await createUsuario(req.body);
-    console.log("Usuario creado con id:", id);
-    res.json({ success: true, id });  
+    
+    const id_usuario = await createUsuario(req.body);
+    
+    res.json({ success: true, id_usuario });  
   } catch (error) {
-    console.error(error);
+    console.error("Error al crear usuario:", error);
     res.status(500).json({ success: false, error: "Error al crear usuario" });
   }
 };

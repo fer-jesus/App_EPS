@@ -19,7 +19,7 @@ INSERT INTO USUARIOS (
   fecha_registro, unidad, en_funciones, sexo, ROL_id_rol
 ) VALUES (
   'Jonatan Douglas Argueta Salazar', 'Ing.', '1990-01-01', 'jonatan.argueta7777@outlook.es', 
-  '1234',  
+  '$2a$12$Xf5WumLPvINK6wTdIx2zmOXtoru1CNYoDwhsfyJviQ6HOFdwvFyna',  
   NOW(),  
   'DIRECCION DE ORDENAMIENTO TERRITORIAL Y DESARROLLO MUNICIPAL', 
   1, 'M', 1  -- ROL_id_rol = 1 (DIRECTOR)

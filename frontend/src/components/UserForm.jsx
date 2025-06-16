@@ -124,7 +124,7 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
           titulo: formData.titulo || null,
           fecha_nacimiento: formData.fechaNacimiento,
           correo: formData.correo,
-          contrasena: formData.contraseña,
+          contrasena: formData.contraseña, 
           unidad: formData.unidad,
           sexo: formData.sexo,
           ROL_id_rol: formData.ROL_id_rol,
@@ -178,7 +178,7 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
 
           // Crear nuevo usuario
           const response = await axios.post(
-            "http://localhost:3001/api/usuarios",
+            "http://localhost:3001/api/crearusuarios",
             payload,
             {
               headers: {
@@ -187,7 +187,7 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
               },
             }
           );
-          console.log("Usuario creado con ID:", response.data.id);
+          console.log("Usuario creado con ID:", response.data);
           payload.id_usuario = response.data.id;
           onSubmit(payload); // Llamada a onSubmit con el nuevo usuario
           console.log("Nuevo usuario enviado:", payload);

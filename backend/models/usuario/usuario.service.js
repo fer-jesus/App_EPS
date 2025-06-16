@@ -1,10 +1,11 @@
-const { Usuario, Rol, RolNombre, sequelize } = require("../../models/usuario");
+const bcrypt = require("bcryptjs");
+const { Usuario, Rol, RolNombre, sequelize } = require("../../models/usuario/");
 const { Op } = require("sequelize"); 
 
 // Verifica usuario por correo y contraseña (sin bcrypt por ahora)
 const verificarCredenciales = async (correo, contrasena) => {
   const usuario = await Usuario.findOne({
-    where: { correo, contrasena },
+    where: { correo },
     include: [
       {
         model: Rol,
@@ -21,7 +22,12 @@ const verificarCredenciales = async (correo, contrasena) => {
     ],
   });
 
-  if (!usuario) return null;
+   // Si no se encuentra el usuario o no tiene contraseña
+  if (!usuario || !usuario.contrasena) return null;
+
+   // Comparar contraseñas
+  const match = await bcrypt.compare(contrasena, usuario.contrasena);
+  if (!match) return null;
 
   return {
     ...usuario.toJSON(),
@@ -98,13 +104,24 @@ const getUsuarioById = async (id) => {
 
 // Crear usuario con fecha_registro y en_funciones activado por defecto
 const createUsuario = async (data) => {
+
+  try {
+console.log("pass original", data);
+  const hashedPassword = await bcrypt.hash(data.contrasena, 10);
+  console.log("Contraseña hasheada:", hashedPassword);
+  
   const usuario = await Usuario.create({
     ...data,
+    contrasena: hashedPassword,
     fecha_registro: new Date(),
     en_funciones: true,
   });
 
   return usuario.id_usuario;
+    } catch (error) {
+    console.error("Error al crear usuario:", error);
+    throw error;
+  }
 };
 
 // Actualizar usuario existente

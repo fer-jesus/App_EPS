@@ -52,7 +52,7 @@ services:
       - ./frontend:/app
       - /app/node_modules
     environment: 
-      - VITE_REACT_APP_BACKEND_URL=http://backend:3000 
+      - VITE_REACT_APP_BACKEND_URL=http://backend:3001 
     networks: 
       - app-network
     depends_on: 
