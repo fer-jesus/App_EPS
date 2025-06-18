@@ -24,6 +24,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
     valorPorcentaje: "",
     presupuestObra: "",
     cantidadCancelar: "",
+    tarifaCambioUso: null,
   });
 
   const [tarifas, setTarifas] = useState([]);
@@ -43,34 +44,69 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
   }, []);
 
   // Cargar datos iniciales para editar
- useEffect(() => {
+  useEffect(() => {
     let valorPorcentaje = "";
     let totalPresupuesto = 0;
     let totalCancelar = 0;
 
-    // Converción del campo multilinea a un array de números
     const areaList = formData.areaConstruccion
       .split("\n")
       .map((a) => parseFloat(a.trim()))
       .filter((a) => !isNaN(a));
 
-    // Converción del campo multilinea de cantidad de demolición/movimiento a un número
     const cantDemoMoviList = formData.cantDemoMovi
       .split("\n")
       .map((a) => parseFloat(a.trim()))
       .filter((a) => !isNaN(a));
 
+    const areaListCopy = [...areaList];
+    const cantDemoMoviListCopy = [...cantDemoMoviList];
+
     formData.tipoConstruccion.forEach((tipo) => {
-      if (!tipo || !tipo.TarifaCostoDimension) return;
+      if (!tipo || !tipo.nombre_tarifa) return;
 
-      const isEspecial = ["DEMOLICIÓN", "MOVIMIENTO DE TIERRA"].includes(
-        tipo.nombre_tarifa?.toUpperCase()
-      );
+      const nombre = tipo.nombre_tarifa.toUpperCase();
 
-      //const area = areaList[index];
-      const area = isEspecial ? cantDemoMoviList.shift() : areaList.shift();
+      // Manejar CAMBIO DE USO de manera especial
+      if (nombre === "CAMBIO DE USO O REMODELACIONES") {
+        if (!formData.tarifaCambioUso || !formData.tarifaCambioUso.TarifaCostoDimension) return;
+
+        const baseCU = parseFloat(
+          formData.tarifaCambioUso.TarifaCostoDimension?.costo_tarifa || 0
+        );
+        const areaCU = areaListCopy.shift();
+
+        if (areaCU && baseCU) {
+          const subtotal1 = areaCU * baseCU;
+          const subtotal2 = subtotal1 * 0.25;
+          const subtotal3 = subtotal2 * 0.035;
+
+          valorPorcentaje += `${areaCU}X${baseCU}=${subtotal1.toLocaleString(
+            "es-GT"
+          )}X25%=${subtotal2.toFixed(2).toLocaleString("es-GT")}X3.5%=${subtotal3
+            .toFixed(2)
+            .toLocaleString("es-GT")}\n`;
+
+         
+          //totalPresupuesto += subtotal1;
+          totalPresupuesto += subtotal2;
+          totalCancelar += subtotal3;
+        }
+        return;
+      }
+
+      // Manejar otros tipos de construcción
+      if (!tipo.TarifaCostoDimension) return;
+
       const costo = parseFloat(tipo.TarifaCostoDimension?.costo_tarifa || 0);
       const porcentaje = parseFloat(tipo.TarifaCostoDimension?.porcentaje || 0);
+
+      const isDemoMovi = ["DEMOLICIÓN", "MOVIMIENTO DE TIERRA"].includes(
+        nombre
+      );
+      const area = isDemoMovi
+        ? cantDemoMoviListCopy.shift()
+        : areaListCopy.shift();
 
       if (area && costo && porcentaje) {
         const subtotal = area * costo;
@@ -100,13 +136,14 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
     formData.tipoConstruccion,
     formData.areaConstruccion,
     formData.cantDemoMovi,
+    formData.tarifaCambioUso,
+  ]);
 
-]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    // Limpiar error cuando el usuario escribe
+
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: false }));
     }
@@ -184,6 +221,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           onChange={handleChange}
           fullWidth
           required
+          multiline
           error={Boolean(errors.direccionExacta)}
         />
         <TextField
@@ -200,7 +238,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           label={getLabel("dpi", "DPI")}
           value={formData.dpi}
           onChange={handleChange}
-          onBlur={() => buscarPropietarioPorCUI(formData.dpi)} // <- Aquí la llamada al backend
+          onBlur={() => buscarPropietarioPorCUI(formData.dpi)} // 
           fullWidth
           required
           error={Boolean(errors.dpi)}
@@ -212,6 +250,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           onChange={handleChange}
           fullWidth
           required
+          multiline
           error={Boolean(errors.nombrePropietario)}
         />
 
@@ -219,7 +258,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           multiple
           options={tarifas}
           getOptionLabel={(option) => option.nombre_tarifa || ""}
-          isOptionEqualToValue={() => false} 
+          isOptionEqualToValue={() => false}
           filterSelectedOptions={false} // evita que se oculten opciones ya seleccionadas
           value={formData.tipoConstruccion}
           onChange={(event, newValue) => {
@@ -244,6 +283,48 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
             />
           )}
         />
+
+        {formData.tipoConstruccion.some(
+          (t) =>
+            t.nombre_tarifa?.toUpperCase() === "CAMBIO DE USO O REMODELACIONES"
+        ) && (
+          <Autocomplete
+            options={tarifas}
+            getOptionLabel={(option) => option.nombre_tarifa || ""}
+            isOptionEqualToValue={(option, value) =>
+              option.id_nombreTarifa === value.id_nombreTarifa
+            }
+            value={formData.tarifaCambioUso || null}
+            onChange={(event, newValue) => {
+              setFormData((prev) => ({
+                ...prev,
+                tarifaCambioUso: newValue,
+              }));
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="TARIFA BASE PARA CAMBIO DE USO O REMODELACIONES"
+                required
+                fullWidth
+                error={Boolean(errors.tarifaCambioUso)}
+              />
+            )}
+          />
+        )}
+
+        {/* <TextField
+          name="tipoConstruccion"
+          label={getLabel(
+            "tipoConstruccion",
+            "TIPO DE CONSTRUCCIÓN SEGÚN REGLAMENTO"
+          )}
+          value={formData.tipoConstruccion}
+          onChange={handleChange}
+          fullWidth
+          required
+          error={Boolean(errors.tipoConstruccion)}
+        /> */}
 
         {/* <TextField
           name="tipoConstruccion"
