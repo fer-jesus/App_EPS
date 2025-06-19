@@ -170,28 +170,29 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
     }
   };
 
-  // const buscarPropietarioPorCUI = async (cui) => {
-  //   try {
-  //     const response = await axios.get(`http://localhost:3001/api/propietarios/${cui}`);
-  //     if (response.data && response.data.nombre) {
-  //       setFormData((prev) => ({
-  //         ...prev,
-  //         nombrePropietario: response.data.nombre,
-  //       }));
-  //     } else {
-  //       setFormData((prev) => ({
-  //         ...prev,
-  //         nombrePropietario: "",
-  //       }));
-  //     }
-  //   } catch (error) {
-  //     console.error("Error al buscar propietario:", error);
-  //     setFormData((prev) => ({
-  //       ...prev,
-  //       nombrePropietario: "",
-  //     }));
-  //   }
-  // };
+  // Función para buscar propietario por CUI
+  const buscarPropietarioPorCUI = async (cui) => {
+    try {
+      const response = await axios.get(`http://localhost:3001/api/propietarios/${cui}`);
+      if (response.data && response.data.nombre_propietario) {
+        setFormData((prev) => ({
+          ...prev,
+          nombrePropietario: response.data.nombre_propietario,
+        }));
+      } else {
+        setFormData((prev) => ({
+          ...prev,
+          nombrePropietario: "",
+        }));
+      }
+    } catch (error) {
+      console.error("Error al buscar propietario:", error);
+      setFormData((prev) => ({
+        ...prev,
+        nombrePropietario: "",
+      }));
+    }
+  };
 
   const getLabel = (name, label) =>
     errors[name] ? "Rellena este campo" : label;
@@ -229,6 +230,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           label={getLabel("dpi", "DPI")}
           value={formData.dpi}
           onChange={handleChange}
+          onBlur={(e) => buscarPropietarioPorCUI(e.target.value)}
           fullWidth
           required
           error={Boolean(errors.dpi)}
@@ -362,6 +364,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           )}
           value={formData.anotaciones}
           onChange={handleChange}
+          multiline
           fullWidth
         />
         <TextField
