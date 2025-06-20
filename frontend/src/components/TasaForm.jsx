@@ -69,7 +69,11 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
 
       // Manejar CAMBIO DE USO de manera especial
       if (nombre === "CAMBIO DE USO O REMODELACIONES") {
-        if (!formData.tarifaCambioUso || !formData.tarifaCambioUso.TarifaCostoDimension) return;
+        if (
+          !formData.tarifaCambioUso ||
+          !formData.tarifaCambioUso.TarifaCostoDimension
+        )
+          return;
 
         const baseCU = parseFloat(
           formData.tarifaCambioUso.TarifaCostoDimension?.costo_tarifa || 0
@@ -83,11 +87,12 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
 
           valorPorcentaje += `${areaCU}X${baseCU}=${subtotal1.toLocaleString(
             "es-GT"
-          )}X25%=${subtotal2.toFixed(2).toLocaleString("es-GT")}X3.5%=${subtotal3
+          )}X25%=${subtotal2
+            .toFixed(2)
+            .toLocaleString("es-GT")}X3.5%=${subtotal3
             .toFixed(2)
             .toLocaleString("es-GT")}\n`;
 
-         
           //totalPresupuesto += subtotal1;
           totalPresupuesto += subtotal2;
           totalCancelar += subtotal3;
@@ -139,7 +144,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
     formData.tarifaCambioUso,
   ]);
 
-
+  // Cargar datos iniciales si se está editando
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -156,24 +161,46 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
     let hasErrors = false;
 
     Object.keys(formData).forEach((key) => {
-      if (!formData[key] && key !== "anotaciones" && key !== "cantDemoMovi") {
+      if (
+        !formData[key] &&
+        key !== "anotaciones" &&
+        key !== "cantDemoMovi" &&
+        key !== "tarifaCambioUso"
+      ) {
         newErrors[key] = true;
         hasErrors = true;
       }
     });
 
+    //Validar tarifaCambioUso solo si se selecciona ese tipo de construcción
+  const incluyeCambioUso = formData.tipoConstruccion.some(
+    (t) => t.nombre_tarifa?.toUpperCase() === "CAMBIO DE USO O REMODELACIONES"
+  );
+
+  if (incluyeCambioUso && !formData.tarifaCambioUso) {
+    newErrors.tarifaCambioUso = true;
+    hasErrors = true;
+  }
+    
     setErrors(newErrors);
 
     if (!hasErrors) {
       console.log("Datos del formulario:", formData);
-      onSubmit(formData);
+      enviarTasa(formData);
     }
+    else {
+    console.warn("Errores encontrados: ", newErrors);
+  }
   };
 
-  // Función para buscar propietario por CUI
+  //Función para buscar propietario por CUI
   const buscarPropietarioPorCUI = async (cui) => {
+    if (!cui || cui.trim() === "") return;
+
     try {
-      const response = await axios.get(`http://localhost:3001/api/propietarios/${cui}`);
+      const response = await axios.get(
+        `http://localhost:3001/api/propietarios/${cui}`
+      );
       if (response.data && response.data.nombre_propietario) {
         setFormData((prev) => ({
           ...prev,
@@ -186,13 +213,135 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
         }));
       }
     } catch (error) {
-      console.error("Error al buscar propietario:", error);
-      setFormData((prev) => ({
-        ...prev,
-        nombrePropietario: "",
-      }));
+      if (error.response?.status === 404) {
+        //console.error("Error al buscar propietario:", error);
+        setFormData((prev) => ({
+          ...prev,
+          nombrePropietario: "",
+        }));
+      } else {
+        console.error("Error al buscar propietario:", error);
+      }
     }
   };
+
+  const enviarTasa = async (form) => {
+  try {
+    console.log("Preparando datos para enviar al backend...");
+    if (!form.dpi || !form.fechaRegistro || !form.direccionExacta) {
+      throw new Error("Faltan datos requeridos");
+    }
+
+    //Verificación si el propietario existe
+    try {
+      await axios.get(`http://localhost:3001/api/propietarios/${form.dpi}`);
+    } catch (err) {
+      if (err.response?.status === 404) {
+        // Si no existe, crearlo con el nombre del formulario
+        if (!form.nombrePropietario || form.nombrePropietario.trim() === "") {
+          alert("Debe ingresar el nombre del propietario.");
+          return;
+        }
+
+        await axios.post("http://localhost:3001/api/propietarios", {
+          cui: parseInt(form.dpi),
+          nombre_propietario: form.nombrePropietario.trim(),
+        });
+      } else {
+        console.error("Error al verificar propietario:", err);
+        alert("Error al verificar el propietario");
+        return;
+      }
+    }
+
+    //Datos para la tasa
+    const tasaData = {
+      fecha_emisionT: form.fechaRegistro,
+      direccion_propiedad: form.direccionExacta,
+      alineacion_urban: form.cuentaNoAlineacion === "si",
+      anotaciones: form.anotaciones || null,
+      cant_dem_movTierra: parseFloat(form.cantDemoMovi) || null,
+      presupuesto_obra: parseFloat(form.presupuestObra.replace(/[Q,. ]/g, "")),
+      cantidad_cancelar: parseFloat(form.cantidadCancelar.replace(/[Q,. ]/g, "")),
+      documento: null,
+      PROPIETARIOS_cui: parseInt(form.dpi),
+      LICENCIAS_id_licencia_original: null,
+      LICENCIAS_fecha_emisionL_original: null,
+    };
+
+    //Tarifas asociadas
+    const tarifasData = [];
+
+    const areaList = form.areaConstruccion
+      .split("\n")
+      .map((a) => parseFloat(a.trim()))
+      .filter((a) => !isNaN(a));
+
+    const cantDemoList = form.cantDemoMovi
+      .split("\n")
+      .map((a) => parseFloat(a.trim()))
+      .filter((a) => !isNaN(a));
+
+    const areaCopy = [...areaList];
+    const cantCopy = [...cantDemoList];
+
+    for (const tipo of form.tipoConstruccion) {
+      const isCambioUso =
+        tipo.nombre_tarifa?.toUpperCase() === "CAMBIO DE USO O REMODELACIONES";
+
+      if (isCambioUso) {
+        const baseCU = parseFloat(
+          form.tarifaCambioUso?.TarifaCostoDimension?.costo_tarifa || 0
+        );
+        const areaCU = areaCopy.shift();
+        const subtotal1 = areaCU * baseCU;
+        const subtotal2 = subtotal1 * 0.25;
+        const subtotal3 = subtotal2 * 0.035;
+
+        tarifasData.push({
+          TARIFA_id_nombreTarifa: form.tarifaCambioUso.id_nombreTarifa,
+          dimension_construccion: areaCU,
+          formula: `${areaCU} x ${baseCU} x 25% x 3.5%`,
+          valor: subtotal3,
+        });
+      } else if (tipo.TarifaCostoDimension) {
+        const costo = parseFloat(tipo.TarifaCostoDimension.costo_tarifa);
+        const porcentaje = parseFloat(tipo.TarifaCostoDimension.porcentaje);
+        const nombre = tipo.nombre_tarifa?.toUpperCase();
+        const isDemo = ["DEMOLICIÓN", "MOVIMIENTO DE TIERRA"].includes(nombre);
+
+        const area = isDemo ? cantCopy.shift() : areaCopy.shift();
+        const subtotal = area * costo;
+        const valor = subtotal * (porcentaje / 100);
+
+        tarifasData.push({
+          TARIFA_id_nombreTarifa: tipo.id_nombreTarifa,
+          dimension_construccion: area,
+          formula: `${area} x ${costo} x ${porcentaje}%`,
+          valor,
+        });
+      }
+    }
+
+    //Envio al backend
+    const payload = { tasaData, tarifasData };
+    console.log("Datos a enviar:", payload);
+
+    const response = await axios.post(
+      "http://localhost:3001/api/tasas",
+      payload
+    );
+
+    console.log("Respuesta del servidor:", response.data);
+    alert("Tasa guardada con éxito");
+
+    if (onSubmit) onSubmit();
+  } catch (error) {
+    console.error("Error al guardar tasa:", error);
+    alert("Error al guardar la tasa");
+  }
+};
+
 
   const getLabel = (name, label) =>
     errors[name] ? "Rellena este campo" : label;
@@ -235,16 +384,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           required
           error={Boolean(errors.dpi)}
         />
-        {/* <TextField
-          name="dpi"
-          label={getLabel("dpi", "DPI")}
-          value={formData.dpi}
-          onChange={handleChange}
-          onBlur={() => buscarPropietarioPorCUI(formData.dpi)} // 
-          fullWidth
-          required
-          error={Boolean(errors.dpi)}
-        /> */}
+
         <TextField
           name="nombrePropietario"
           label={getLabel("nombrePropietario", "NOMBRE DEL PROPIETARIO")}
@@ -314,32 +454,6 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
             )}
           />
         )}
-
-        {/* <TextField
-          name="tipoConstruccion"
-          label={getLabel(
-            "tipoConstruccion",
-            "TIPO DE CONSTRUCCIÓN SEGÚN REGLAMENTO"
-          )}
-          value={formData.tipoConstruccion}
-          onChange={handleChange}
-          fullWidth
-          required
-          error={Boolean(errors.tipoConstruccion)}
-        /> */}
-
-        {/* <TextField
-          name="tipoConstruccion"
-          label={getLabel(
-            "tipoConstruccion",
-            "TIPO DE CONSTRUCCIÓN SEGÚN REGLAMENTO"
-          )}
-          value={formData.tipoConstruccion}
-          onChange={handleChange}
-          fullWidth
-          required
-          error={Boolean(errors.tipoConstruccion)}
-        /> */}
         <TextField
           select
           name="cuentaNoAlineacion"

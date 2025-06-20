@@ -37,7 +37,7 @@ CREATE TABLE PROPIETARIOS (
 
 -- Tabla: TASAS
 CREATE TABLE TASAS (
-  id_tasa INT NOT NULL PRIMARY KEY,
+  id_tasa INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
   fecha_emisionT DATE NOT NULL,
   direccion_propiedad VARCHAR(250) NOT NULL,
   alineacion_urban BIT(1) NOT NULL,

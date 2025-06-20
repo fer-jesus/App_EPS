@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Container,
@@ -9,19 +9,37 @@ import {
   Dialog,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
+import EditIcon from "@mui/icons-material/Edit";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import IconButton from "@mui/material/IconButton";
 import AppNavbar from "../components/AppNavBar";
 import TasaForm from "../components/TasaForm";
+import axios from "axios";
 
 const Registros = () => {
-  // datos hardcore
-  const [tasas, setTasas] = useState([
-    { id: 1, nombrePropietario: "Tasa A" },
-    { id: 2, nombrePropietario: "Tasa B" },
-  ]);
-
+  const [tasas, setTasas] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedTasa, setSelectedTasa] = useState(null);
   const [search, setSearch] = useState("");
+
+  const fetchTasas = async () => {
+    try {
+      const response = await axios.get("http://localhost:3001/api/tasas");
+      const datos = response.data.map((tasa) => ({
+        id: tasa.id,
+        nombrePropietario: tasa.nombre_propietario || "Desconocido",
+        tasa: "",
+        licencia: "",
+        nomenclatura: "",
+      }));
+      setTasas(datos);
+    } catch (error) {
+      console.error("Error al cargar tasas:", error);
+    }
+  };
+  useEffect(() => {
+    fetchTasas();
+  }, []);
 
   // Función para abrir el modal
   const handleOpen = (tasa = null) => {
@@ -30,16 +48,11 @@ const Registros = () => {
   };
 
   // Función para crear la tasa
-  const handleSaveTasa = (data) => {
-     const newTasa = {
-    id: Date.now(),
-    nombrePropietario: data.nombrePropietario // Solo guarda este campo
-  };
-  setTasas(prev => [...prev, newTasa]);
-  setOpenDialog(false);
+  const handleSaveTasa = async () => {
+    await fetchTasas();
+    setOpenDialog(false);
   };
 
- 
   // Función para cerrar el modal
   const handleClose = () => {
     setSelectedTasa(null);
@@ -48,12 +61,50 @@ const Registros = () => {
 
   const columns = [
     { field: "id", headerName: "REGISTRO. G", flex: 0.8 },
-    { field: "nombrePropietario", headerName: "NOMBRE DEL PROPIETARIO", flex: 2.5 },
-    { field: "tasa", headerName: "TASA", flex: 1 },
-    { field: "licencia", headerName: "LICENCIA", flex: 1 },
-    { field: "nomenclatura", headerName: "NOMENCLATURA", flex: 1 },
+    {
+      field: "nombrePropietario",
+      headerName: "NOMBRE DEL PROPIETARIO",
+      flex: 2.5,
+    },
+    { field: "tasa", headerName: "TASA", flex: 1,
+      
+      renderCell: (params) => (
+      <Box display="flex" gap={1}>
+        <IconButton size="small" color="primary" onClick={() => console.log("Editar TASA", params.row)}>
+          <EditIcon fontSize="small" />
+        </IconButton>
+        <IconButton size="small" disabled>
+          <VisibilityIcon fontSize="small" color="disabled" />
+        </IconButton>
+      </Box>
+    ),
+  },
 
-    
+    { field: "licencia", headerName: "LICENCIA", flex: 1,
+      renderCell: (params) => (
+      <Box display="flex" gap={1}>
+        <IconButton size="small" color="primary" onClick={() => console.log("Editar LICENCIA", params.row)}>
+          <EditIcon fontSize="small" />
+        </IconButton>
+        <IconButton size="small" disabled>
+          <VisibilityIcon fontSize="small" color="disabled" />
+        </IconButton>
+      </Box>
+    ),
+     },
+
+    { field: "nomenclatura", headerName: "NOMENCLATURA", flex: 1,
+       renderCell: (params) => (
+      <Box display="flex" gap={1}>
+        <IconButton size="small" color="primary" onClick={() => console.log("Editar NOMENCLATURA", params.row)}>
+          <EditIcon fontSize="small" />
+        </IconButton>
+        <IconButton size="small" disabled>
+          <VisibilityIcon fontSize="small" color="disabled" />
+        </IconButton>
+      </Box>
+    ),
+     },
   ];
 
   // Filtro
