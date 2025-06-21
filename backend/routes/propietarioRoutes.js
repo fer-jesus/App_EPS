@@ -4,5 +4,6 @@ const propietarioController = require("../controllers/propietarioController");
 
 router.get('/:cui', propietarioController.obtenerPorCUI);
 router.post('/', propietarioController.crearPropietarioHandler);
+router.put('/:cui', propietarioController.editarPropietarioHandler);
 
 module.exports = router;

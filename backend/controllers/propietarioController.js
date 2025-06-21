@@ -1,4 +1,8 @@
-const { buscarPropietarioPorCUI, crearPropietario } = require("../models/tasas/propietario.service");
+const {
+  buscarPropietarioPorCUI,
+  crearPropietario,
+  editarPropietario,
+} = require("../models/tasas/propietario.service");
 
 const obtenerPorCUI = async (req, res) => {
   const { cui } = req.params;
@@ -31,5 +35,23 @@ const crearPropietarioHandler = async (req, res) => {
   }
 };
 
+const editarPropietarioHandler = async (req, res) => {
+  const { cui } = req.params;
+  const { nombre_propietario } = req.body;
 
-module.exports = { obtenerPorCUI, crearPropietarioHandler };
+  try {
+    const resultado = await editarPropietario(cui, nombre_propietario);
+    res
+      .status(200)
+      .json({ mensaje: "Propietario actualizado", data: resultado });
+  } catch (error) {
+    console.error("Error al editar propietario:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+};
+
+module.exports = {
+  obtenerPorCUI,
+  crearPropietarioHandler,
+  editarPropietarioHandler,
+};

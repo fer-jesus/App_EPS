@@ -8,10 +8,13 @@ const crearPropietario = async (cui, nombre_propietario) => {
   return await Propietario.create({ cui, nombre_propietario });
 };
 
-const actualizarPropietario = async (cui, nombre_propietario) => {
-  return await Propietario.upsarte({ cui, nombre_propietario });
+const editarPropietario = async (cui, nombre_propietario) => {
+  return await Propietario.upsert({ cui, nombre_propietario });
 };
+
+
 module.exports = {
   buscarPropietarioPorCUI,
-  crearPropietario
+  crearPropietario,
+  editarPropietario
 };

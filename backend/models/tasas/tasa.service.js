@@ -3,7 +3,7 @@ const { Tasa, TasaTarifa, Propietario } = require(".");
 
 const crearTasa = async (tasaData, tarifasData) => {
     console.log("Creando tasa:", tasaData);
-
+   try{
   const result = await Tasa.sequelize.transaction(async (t) => {
     //console.log("Insertando tarifa:", tarifa);
     const nuevaTasa = await Tasa.create(tasaData, { transaction: t });
@@ -26,6 +26,10 @@ const crearTasa = async (tasaData, tarifasData) => {
   });
 
   return result;
+    } catch (error) {
+    console.error("Error al crear tasa:", error);
+    throw new Error("No se pudo crear la tasa");
+  }
 };
 
 const obtenerRegistros = async () => {

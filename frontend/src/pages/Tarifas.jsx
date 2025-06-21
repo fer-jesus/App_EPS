@@ -115,14 +115,15 @@ const AdminTarifas = () => {
   };
 
   const columns = [
-    { field: "tipo", headerName: "Tipo", flex: 4 },
-    { field: "nombre", headerName: "Nombre", flex: 4 },
-    { field: "costo", headerName: "Costo", flex: 1 },
-    { field: "porcentaje", headerName: "Porcentaje", flex: 1 },
+    { field: "tipo", headerName: "Tipo", flex: 4, minWidth: 100 },
+    { field: "nombre", headerName: "Nombre", flex: 4, minWidth: 100 },
+    { field: "costo", headerName: "Costo", flex: 1, minWidth: 100 },
+    { field: "porcentaje", headerName: "Porcentaje", flex: 1, minWidth: 120 },
     {
       field: "accion",
       headerName: "Acción",
       flex: 0.7,
+      minWidth: 100,
       renderCell: (params) => (
         <>
           <IconButton

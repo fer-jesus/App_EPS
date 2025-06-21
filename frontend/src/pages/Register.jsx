@@ -60,13 +60,14 @@ const Registros = () => {
   };
 
   const columns = [
-    { field: "id", headerName: "REGISTRO. G", flex: 0.8 },
+    { field: "id", headerName: "REGISTRO. G", flex: 0.8, minWidth: 100 },
     {
       field: "nombrePropietario",
       headerName: "NOMBRE DEL PROPIETARIO",
       flex: 2.5,
+      minWidth: 200,
     },
-    { field: "tasa", headerName: "TASA", flex: 1,
+    { field: "tasa", headerName: "TASA", flex: 1,  minWidth: 150,
       
       renderCell: (params) => (
       <Box display="flex" gap={1}>
@@ -80,7 +81,7 @@ const Registros = () => {
     ),
   },
 
-    { field: "licencia", headerName: "LICENCIA", flex: 1,
+    { field: "licencia", headerName: "LICENCIA", flex: 1,  minWidth: 130,
       renderCell: (params) => (
       <Box display="flex" gap={1}>
         <IconButton size="small" color="primary" onClick={() => console.log("Editar LICENCIA", params.row)}>
@@ -93,7 +94,7 @@ const Registros = () => {
     ),
      },
 
-    { field: "nomenclatura", headerName: "NOMENCLATURA", flex: 1,
+    { field: "nomenclatura", headerName: "NOMENCLATURA", flex: 1, minWidth: 150,
        renderCell: (params) => (
       <Box display="flex" gap={1}>
         <IconButton size="small" color="primary" onClick={() => console.log("Editar NOMENCLATURA", params.row)}>

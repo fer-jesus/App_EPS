@@ -6,16 +6,17 @@ import {
   Typography,
   Button,
   Box,
-  useMediaQuery,
+  //useMediaQuery,
 } from "@mui/material";
+import PropTypes from "prop-types";
 import Swal from "sweetalert2";
 import axios from "axios";
-import { useTheme } from "@mui/material/styles";
+//import { useTheme } from "@mui/material/styles";
 import dayjs from "dayjs";
 
 const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
-  const theme = useTheme();
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+  //const theme = useTheme();
+  //const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
   // Estado para manejar los datos del formulario
   const [formData, setFormData] = useState({
@@ -374,6 +375,12 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
       </Stack>
     </Box>
   );
+};
+
+UserForm.propTypes = {
+  onSubmit: PropTypes.func.isRequired,
+  onClose: PropTypes.func,
+  initialData: PropTypes.object,
 };
 
 export default UserForm;
