@@ -77,7 +77,8 @@ const Login = () => {
             id_usuario: usuario.id_usuario,
             nombre: usuario.nombre,
             rol: usuario.rol,
-            correo: usuario.correo, // u otros campos si lo necesitas
+            correo: usuario.correo, 
+            token: res.data.token,
           });
 
           navigate("/menu");

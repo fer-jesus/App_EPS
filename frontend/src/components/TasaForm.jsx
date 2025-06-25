@@ -30,12 +30,21 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
 
   const [tarifas, setTarifas] = useState([]);
   const [errors, setErrors] = useState({});
+  const token = localStorage.getItem("token");
 
+  const headers = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
   // Cargar tarifas desde el backend
   useEffect(() => {
     const fetchTarifas = async () => {
       try {
-        const res = await axios.get("http://localhost:3001/api/tarifas");
+        const res = await axios.get(
+          "http://localhost:3001/api/tarifas",
+          headers
+        );
         setTarifas(res.data);
       } catch (error) {
         console.error("Error al cargar tarifas:", error);
@@ -195,8 +204,11 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
 
   const mantenimientoPropietario = async () => {
     try {
+      //Verificar si el propietario ya existe
+
       const response = await axios.get(
-        `http://localhost:3001/api/propietarios/${formData.dpi}`
+        `http://localhost:3001/api/propietarios/${formData.dpi}`,
+        headers
       );
       const nombreBD = response.data.nombre_propietario?.trim().toLowerCase();
       const nombreFormulario = formData.nombrePropietario?.trim().toLowerCase();
@@ -207,16 +219,21 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           `http://localhost:3001/api/propietarios/${formData.dpi}`,
           {
             nombre_propietario: formData.nombrePropietario.trim(),
-          }
+          },
+          headers
         );
       }
     } catch (err) {
       if (err.response?.status === 404) {
         // No existe propietario, crear
-        await axios.post(`http://localhost:3001/api/propietarios`, {
-          cui: parseInt(formData.dpi),
-          nombre_propietario: formData.nombrePropietario.trim(),
-        });
+        await axios.post(
+          `http://localhost:3001/api/propietarios`,
+          {
+            cui: parseInt(formData.dpi),
+            nombre_propietario: formData.nombrePropietario.trim(),
+          },
+          headers
+        );
       } else {
         throw err;
       }
@@ -229,7 +246,8 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
 
     try {
       const response = await axios.get(
-        `http://localhost:3001/api/propietarios/${cui}`
+        `http://localhost:3001/api/propietarios/${cui}`,
+        headers
       );
       if (response.data && response.data.nombre_propietario) {
         setFormData((prev) => ({
@@ -345,7 +363,8 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
 
       const response = await axios.post(
         "http://localhost:3001/api/tasas",
-        payload
+        payload,
+        headers
       );
 
       console.log("Respuesta del servidor:", response.data);
@@ -553,9 +572,6 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
         />
 
         <Stack direction="row" spacing={2} justifyContent="center">
-          <Button onClick={onClose} variant="outlined">
-            Cancelar
-          </Button>
           <Button
             onClick={handleSubmit}
             variant="contained"
@@ -565,6 +581,9 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
             }}
           >
             Guardar
+          </Button>
+          <Button onClick={onClose} variant="outlined">
+            Cancelar
           </Button>
         </Stack>
       </Stack>

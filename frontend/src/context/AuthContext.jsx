@@ -1,12 +1,11 @@
 import { createContext, useContext, useState, useEffect } from "react";
 
-
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [auth, setAuth] = useState({
     isAuthenticated: false,
-    user: null, // ← aquí debe estar nombre_rol, correo, etc.
+    user: null, 
   });
 
   // Cargar usuario desde localStorage (si ya inició sesión antes)
@@ -19,18 +18,20 @@ export const AuthProvider = ({ children }) => {
 
   const login = (userData) => {
     //console.log("Datos del usuario al hacer login:", userData);
-   if (!userData?.id_usuario) {
-    console.error("Datos de usuario incompletos en login:", userData);
-    return;
-  }
-  
-  console.log("Datos del usuario al hacer login:", userData);
-  localStorage.setItem("user", JSON.stringify(userData));
-  setAuth({ isAuthenticated: true, user: userData });
+    if (!userData?.id_usuario) {
+      console.error("Datos de usuario incompletos en login:", userData);
+      return;
+    }
+
+    console.log("Datos del usuario al hacer login:", userData);
+    localStorage.setItem("user", JSON.stringify(userData));
+    localStorage.setItem("token", userData.token); //Guarda el token
+    setAuth({ isAuthenticated: true, user: userData });
   };
 
   const logout = () => {
     localStorage.removeItem("user");
+    localStorage.removeItem("token"); //Limpia el token
     setAuth({ isAuthenticated: false, user: null });
   };
 

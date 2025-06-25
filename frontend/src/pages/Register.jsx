@@ -12,19 +12,29 @@ import { DataGrid } from "@mui/x-data-grid";
 import EditIcon from "@mui/icons-material/Edit";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import IconButton from "@mui/material/IconButton";
+import AssignmentIcon from "@mui/icons-material/Assignment";
 import AppNavbar from "../components/AppNavBar";
 import TasaForm from "../components/TasaForm";
+import LicenciaForm from "../components/LicenciaForm";
 import axios from "axios";
 
 const Registros = () => {
   const [tasas, setTasas] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedTasa, setSelectedTasa] = useState(null);
+  const [openLicenciaDialog, setOpenLicenciaDialog] = useState(false);
+  const [selectedLicencia, setSelectedLicencia] = useState(null);
   const [search, setSearch] = useState("");
+  const token = localStorage.getItem("token");
 
   const fetchTasas = async () => {
     try {
-      const response = await axios.get("http://localhost:3001/api/tasas");
+      const response = await axios.get("http://localhost:3001/api/tasas", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
       const datos = response.data.map((tasa) => ({
         id: tasa.id,
         nombrePropietario: tasa.nombre_propietario || "Desconocido",
@@ -59,6 +69,16 @@ const Registros = () => {
     setOpenDialog(false);
   };
 
+  const handleOpenLicencia = (tasa) => {
+    setSelectedLicencia(tasa);
+    setOpenLicenciaDialog(true);
+  };
+
+  const handleCloseLicencia = () => {
+    setSelectedLicencia(null);
+    setOpenLicenciaDialog(false);
+  };
+
   const columns = [
     { field: "id", headerName: "REGISTRO. G", flex: 0.8, minWidth: 100 },
     {
@@ -67,45 +87,69 @@ const Registros = () => {
       flex: 2.5,
       minWidth: 200,
     },
-    { field: "tasa", headerName: "TASA", flex: 1,  minWidth: 150,
-      
-      renderCell: (params) => (
-      <Box display="flex" gap={1}>
-        <IconButton size="small" color="primary" onClick={() => console.log("Editar TASA", params.row)}>
-          <EditIcon fontSize="small" />
-        </IconButton>
-        <IconButton size="small" disabled>
-          <VisibilityIcon fontSize="small" color="disabled" />
-        </IconButton>
-      </Box>
-    ),
-  },
+    {
+      field: "tasa",
+      headerName: "TASA",
+      flex: 1,
+      minWidth: 150,
 
-    { field: "licencia", headerName: "LICENCIA", flex: 1,  minWidth: 130,
       renderCell: (params) => (
-      <Box display="flex" gap={1}>
-        <IconButton size="small" color="primary" onClick={() => console.log("Editar LICENCIA", params.row)}>
-          <EditIcon fontSize="small" />
-        </IconButton>
-        <IconButton size="small" disabled>
-          <VisibilityIcon fontSize="small" color="disabled" />
-        </IconButton>
-      </Box>
-    ),
-     },
+        <Box display="flex" gap={1}>
+          <IconButton
+            size="small"
+            color="primary"
+            onClick={() => console.log("Editar TASA", params.row)}
+          >
+            <AssignmentIcon fontSize="small" />
+          </IconButton>
+          <IconButton size="small" disabled>
+            <VisibilityIcon fontSize="small" color="disabled" />
+          </IconButton>
+        </Box>
+      ),
+    },
 
-    { field: "nomenclatura", headerName: "NOMENCLATURA", flex: 1, minWidth: 150,
-       renderCell: (params) => (
-      <Box display="flex" gap={1}>
-        <IconButton size="small" color="primary" onClick={() => console.log("Editar NOMENCLATURA", params.row)}>
-          <EditIcon fontSize="small" />
-        </IconButton>
-        <IconButton size="small" disabled>
-          <VisibilityIcon fontSize="small" color="disabled" />
-        </IconButton>
-      </Box>
-    ),
-     },
+    {
+      field: "licencia",
+      headerName: "LICENCIA",
+      flex: 1,
+      minWidth: 130,
+      renderCell: (params) => (
+        <Box display="flex" gap={1}>
+          <IconButton
+            size="small"
+            color="primary"
+            onClick={() => handleOpenLicencia(params.row)}
+          >
+            <EditIcon fontSize="small" />
+          </IconButton>
+          <IconButton size="small" disabled>
+            <VisibilityIcon fontSize="small" color="disabled" />
+          </IconButton>
+        </Box>
+      ),
+    },
+
+    {
+      field: "nomenclatura",
+      headerName: "NOMENCLATURA",
+      flex: 1,
+      minWidth: 150,
+      renderCell: (params) => (
+        <Box display="flex" gap={1}>
+          <IconButton
+            size="small"
+            color="primary"
+            onClick={() => console.log("Editar NOMENCLATURA", params.row)}
+          >
+            <EditIcon fontSize="small" />
+          </IconButton>
+          <IconButton size="small" disabled>
+            <VisibilityIcon fontSize="small" color="disabled" />
+          </IconButton>
+        </Box>
+      ),
+    },
   ];
 
   // Filtro
@@ -159,7 +203,7 @@ const Registros = () => {
               "&:hover": { backgroundColor: "#d9aa2e" },
               width: { xs: "50%", sm: "auto" },
             }}
-            onClick={() => handleOpen()} // Reemplazar con navegación o modal
+            onClick={() => handleOpen()} 
           >
             Crear Tasa
           </Button>
@@ -218,6 +262,31 @@ const Registros = () => {
               onSubmit={handleSaveTasa}
               onClose={handleClose}
               initialData={selectedTasa}
+            />
+          </DialogContent>
+        </Dialog>
+
+        <Dialog
+          open={openLicenciaDialog}
+          onClose={handleCloseLicencia}
+          fullWidth
+          maxWidth="sm"
+          PaperProps={{
+            sx: {
+              mx: { xs: 2, sm: "auto" },
+              width: {
+                xs: "100%",
+                sm: "90%",
+                md: "70%",
+                lg: "600px",
+              },
+            },
+          }}
+        >
+          <DialogContent>
+            <LicenciaForm
+              initialData={selectedLicencia}
+              onClose={handleCloseLicencia}
             />
           </DialogContent>
         </Dialog>

@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
+import ProtectedRoute from "./routes/ProtectedRoute";
 import Login from './pages/Login';
 import Menu from './pages/Menu';
 import Registros from './pages/Register';
@@ -16,14 +17,14 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Login />} />
-        <Route path="/menu" element={<Menu />} />
-        <Route path="/registros" element={<Registros />} />
-         <Route path="/reportes" element={<Reportes />} />
-        <Route path="/usuarios" element={<Usuarios />} />
-        <Route path="/tarifas" element={<Tarifas />} />
+        <Route path="/menu" element={ <ProtectedRoute><Menu /></ProtectedRoute>} />
+        <Route path="/registros" element={<ProtectedRoute><Registros /></ProtectedRoute>} />
+         <Route path="/reportes" element={<ProtectedRoute><Reportes /></ProtectedRoute>} />
+        <Route path="/usuarios" element={<ProtectedRoute><Usuarios /></ProtectedRoute>} />
+        <Route path="/tarifas" element={<ProtectedRoute><Tarifas /></ProtectedRoute>} />
         <Route path="/historial-tasas" element={<TasaHistorial />} />
-        <Route path="/historial-licencias" element={<LicenciaHistorial />} />
-         <Route path="/historial-nomenclaturas" element={<NomenclaturaHistorial />} />
+        <Route path="/historial-licencias" element={<ProtectedRoute><LicenciaHistorial /></ProtectedRoute>} />
+         <Route path="/historial-nomenclaturas" element={<ProtectedRoute><NomenclaturaHistorial /></ProtectedRoute>} />
         {/* <Route path="/tasaForm" element={<TasaForm />} /> */}
         
       </Routes>

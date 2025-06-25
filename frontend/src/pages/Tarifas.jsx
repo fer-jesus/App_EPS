@@ -23,12 +23,16 @@ const AdminTarifas = () => {
   const [nombreEditado, setNombreEditado] = useState("");
   const [costoEditado, setCostoEditado] = useState("");
   const [porcentajeEditado, setPorcentajeEditado] = useState("");
-
   const [search, setSearch] = useState("");
+  const token = localStorage.getItem("token");
 
   const fetchTarifas = async () => {
     try {
-      const response = await fetch("http://localhost:3001/api/tarifas");
+      const response = await fetch("http://localhost:3001/api/tarifas", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       const data = await response.json();
 
       const tarifasConId = data.map((t) => ({
@@ -36,12 +40,14 @@ const AdminTarifas = () => {
         id: t.id_nombreTarifa,
         tipo: t.TipoConstruccionTarifa?.tipo_construccion || "",
         nombre: t.nombre_tarifa,
-        costo: 
-        t.TarifaCostoDimension?.costo_tarifa ??
-        t.TarifaCostoProyecto?.porcentaje_costoProyecto ??  "",
-        porcentaje: 
-        t.TarifaCostoDimension?.porcentaje ??
-         t.TarifaCostoProyecto?.porcentaje ??"",
+        costo:
+          t.TarifaCostoDimension?.costo_tarifa ??
+          t.TarifaCostoProyecto?.porcentaje_costoProyecto ??
+          "",
+        porcentaje:
+          t.TarifaCostoDimension?.porcentaje ??
+          t.TarifaCostoProyecto?.porcentaje ??
+          "",
       }));
 
       setTarifas(tarifasConId);
@@ -77,7 +83,10 @@ const AdminTarifas = () => {
       try {
         await fetch(`http://localhost:3001/api/tarifas/${tarifaEditando.id}`, {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify({
             tipo_construccion: tipoEditado,
             nombre_tarifa: nombreEditado,

@@ -120,17 +120,25 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
   const handleSubmit = async () => {
     if (validate()) {
       try {
+        // Obtener el token de localStorage y configuración de los headers
+        const token = localStorage.getItem("token");
+        const headers = {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        };
+
         const payload = {
           nombre: formData.nombre,
           titulo: formData.titulo || null,
           fecha_nacimiento: formData.fechaNacimiento,
           correo: formData.correo,
-          contrasena: formData.contraseña, 
+          contrasena: formData.contraseña,
           unidad: formData.unidad,
           sexo: formData.sexo,
           ROL_id_rol: formData.ROL_id_rol,
           fecha_registro: formData.fechaRegistro,
-         // en_funciones: 1,
+          // en_funciones: 1,
           //fecha_de_baja: formData.fechaBaja || null,
           // Solo incluir fecha_baja si tiene valor y estamos editando
           // ...(initialData?.id_usuario && {
@@ -139,25 +147,24 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
         };
 
         if (initialData?.id_usuario) {
-          const userId = JSON.parse(localStorage.getItem("user"))?.id_usuario;
-          console.log("userId enviado:", userId);
-          console.log("Payload enviado:", payload);
+          //const userId = JSON.parse(localStorage.getItem("user"))?.id_usuario;
+          // console.log("userId enviado:", userId);
+          // console.log("Payload enviado:", payload);
 
           // Editar usuario existente
           const response = await axios.put(
             `http://localhost:3001/api/usuarios/${initialData.id_usuario}`,
             payload,
-            {
-              headers: {
-                "x-user-id": JSON.parse(localStorage.getItem("user"))
-                  ?.id_usuario,
-              },
-            }
+            headers
+            // {
+            //   headers: {
+            //     "x-user-id": JSON.parse(localStorage.getItem("user"))
+            //       ?.id_usuario,
+            //   },
+            // }
           );
           console.log("Código de estado:", response.status);
           onClose();
-
-          // Muestra notificación
           await Swal.fire({
             icon: "success",
             title: "¡Actualizado!",
@@ -173,21 +180,22 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
             id_usuario: initialData.id_usuario,
           });
         } else {
-          const userId = JSON.parse(localStorage.getItem("user"))?.id_usuario;
-          console.log("userId enviado:", userId);
-          console.log("Payload enviado:", payload);
+          // const userId = JSON.parse(localStorage.getItem("user"))?.id_usuario;
+          // console.log("userId enviado:", userId);
+          // console.log("Payload enviado:", payload);
 
           // Crear nuevo usuario
           const response = await axios.post(
             "http://localhost:3001/api/crearusuarios",
-            payload,
-            {
-              headers: {
-                "x-user-id": JSON.parse(localStorage.getItem("user"))
-                  ?.id_usuario,
-              },
-            }
+            payload, headers
+            // {
+            //   headers: {
+            //     "x-user-id": JSON.parse(localStorage.getItem("user"))
+            //       ?.id_usuario,
+            //   },
+            // }
           );
+          
           console.log("Usuario creado con ID:", response.data);
           payload.id_usuario = response.data.id;
           onSubmit(payload); // Llamada a onSubmit con el nuevo usuario

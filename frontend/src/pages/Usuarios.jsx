@@ -19,6 +19,7 @@ import AppNavbar from "../components/AppNavBar";
 import UserForm from "../components/UserForm";
 import { useAuth } from "../context/AuthContext";
 
+
 const AdminUsuarios = () => {
   const [usuarios, setUsuarios] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
@@ -26,12 +27,19 @@ const AdminUsuarios = () => {
   //const [selectedUsers, setSelectedUsers] = useState([]);
   const { auth } = useAuth();
   const currentUserId = auth?.user?.id_usuario;
+  const token = localStorage.getItem("token");
+
+  const headers = {
+  headers: {
+    Authorization: `Bearer ${token}`,
+  },
+};
 
   // Obtener usuarios desde la API
   useEffect(() => {
     const fetchUsuarios = async () => {
       try {
-        const res = await axios.get("http://localhost:3001/api/usuarios");
+        const res = await axios.get("http://localhost:3001/api/usuarios", headers);
         const usuariosFormateados = res.data.usuarios.map((u) => ({
           id: u.id_usuario,
           nombre: u.nombre,
@@ -59,12 +67,12 @@ const AdminUsuarios = () => {
     if (user?.id) {
       try {
         const res = await axios.get(
-          `http://localhost:3001/api/usuarios/${user.id}`,
-          {
-            headers: {
-              "x-user-id": currentUserId,
-            },
-          }
+          `http://localhost:3001/api/usuarios/${user.id}`, headers
+          // {
+          //   headers: {
+          //     "x-user-id": currentUserId,
+          //   },
+          // }
         );
         console.log(res.data.usuarios);
         // console.log("Respuesta completa de backend:", res.data);
@@ -74,11 +82,12 @@ const AdminUsuarios = () => {
       } catch (error) {
         console.error("Error al cargar usuario:", error);
         // Muestra error al usuario
-        Swal.fire({
-          title: "Error",
-          text: "No se pudieron cargar los datos del usuario",
-          icon: "error",
-        });
+        // Swal.fire({
+        //   title: "Error",
+        //   text: "No se pudieron cargar los datos del usuario",
+        //   icon: "error",
+        // });
+        alert("Error al cargar usuario: " + error.message);
       }
     } else {
       setSelectedUser(null); // Para creación de nuevo usuario
@@ -98,11 +107,12 @@ const AdminUsuarios = () => {
         return;
       }
 
-      const headers = {
-        headers: {
-          "x-user-id": currentUserId,
-        },
-      };
+      // const headers = {
+      //   headers: {
+     
+      //     "x-user-id": currentUserId,
+      //   },
+      // };
 
       // Si existe ID, es edición
       if (data.id_usuario) {
@@ -114,7 +124,7 @@ const AdminUsuarios = () => {
       }
 
       // Recarga de usuarios después de crear o editar
-      const res = await axios.get("http://localhost:3001/api/usuarios");
+      const res = await axios.get("http://localhost:3001/api/usuarios", headers);
       const usuariosFormateados = res.data.usuarios.map((u) => ({
         id: u.id_usuario,
         rol: u.nombre_rol,
@@ -140,11 +150,12 @@ const AdminUsuarios = () => {
       const response = await axios.put(
         `http://localhost:3001/api/usuarios/${id_usuario}/en-funciones`,
         { en_funciones: valorParaBackend },
-        {
-          headers: {
-            "x-user-id": currentUserId,
-          },
-        }
+        // {
+        //   headers: {
+        //     "x-user-id": currentUserId,
+        //   },
+        // }
+        headers
       );
       const estadoConfirmado = Boolean(response.data.en_funciones);
       // Actualizar el array de usuarios localmente
@@ -153,7 +164,7 @@ const AdminUsuarios = () => {
       //     u.id === id_usuario ? { ...u, en_funciones: estadoConfirmado } : u
       //   )
       // );
-      const res = await axios.get("http://localhost:3001/api/usuarios");
+      const res = await axios.get("http://localhost:3001/api/usuarios", headers);
       const usuariosFormateados = res.data.usuarios.map((u) => ({
         id: u.id_usuario,
         nombre: u.nombre,
@@ -204,14 +215,16 @@ const AdminUsuarios = () => {
     if (!confirmResult.isConfirmed) return;
     try {
       // Llamada al backend para eliminar el usuario
-      await axios.delete(`http://localhost:3001/api/usuarios/${id}`, {
-        headers: {
-          "x-user-id": auth.user.id_usuario,
-        },
-      });
+      await axios.delete(`http://localhost:3001/api/usuarios/${id}`, headers
+      //   {
+      //   headers: {
+      //     "x-user-id": auth.user.id_usuario,
+      //   },
+      // }
+    );
 
       // Actualizar el listado tras eliminar
-      const res = await axios.get("http://localhost:3001/api/usuarios");
+      const res = await axios.get("http://localhost:3001/api/usuarios", headers);
       const usuariosFormateados = res.data.usuarios.map((u) => ({
         id: u.id_usuario,
         rol: u.nombre_rol,

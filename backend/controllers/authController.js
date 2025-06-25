@@ -1,4 +1,5 @@
 const { verificarCredenciales } = require("../models/usuario/usuario.service");
+const jwtMiddleware = require('../middleware/jwtMiddleware');
 
 const login = async (req, res) => {
   const { username, password } = req.body;
@@ -18,10 +19,17 @@ const login = async (req, res) => {
 const nombreRol = usuario.Rol && usuario.Rol.RolNombres
   ? usuario.Rol.RolNombres.find(rn => rn.sexo === usuario.sexo)?.nombre_rol
   : null;
-  
+
+    // Generar token JWT
+    const token = jwtMiddleware.generateToken({
+      ...usuario,
+      nombre_rol: nombreRol
+    });
+
+
     res.json({
-      
       success: true,
+      token,
       usuario: {
         id_usuario: usuario.id_usuario,
         nombre: usuario.nombre,

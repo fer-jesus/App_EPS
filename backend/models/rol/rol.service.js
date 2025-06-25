@@ -6,7 +6,7 @@ const getRolesPorSexo = async (sexo) => {
       where: { sexo },
       include: {
         model: ROL,
-        as: "rol", // Asegúrate que este alias coincida con la asociación
+        as: "rol", 
         attributes: ["id_rol"]
       },
       attributes: ["id_rol_nombre", "nombre"]
