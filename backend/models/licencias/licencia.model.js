@@ -3,12 +3,12 @@ module.exports = (sequelize, DataTypes) => {
     id_licencia: {
       type: DataTypes.INTEGER,
       primaryKey: true,
-      allowNull: true,
+      allowNull: false,
     },
     fecha_emisionL: {
       type: DataTypes.DATEONLY,
       primaryKey: true,
-      allowNull: true,
+      allowNull: false,
     },
     fecha_vencimiento: {
       type: DataTypes.DATEONLY,

@@ -1,6 +1,8 @@
 const {
   crearLicencia,
   obtenerDatosTasaPorId,
+  obtenerLicenciaPorTasa, 
+  actualizarRotulo,
 } = require("../models/licencias/licencia.service");
 
 const postLicencia = async (req, res) => {
@@ -32,6 +34,19 @@ const getLicenciaPorTasa = async (req, res) => {
     if (!licencia) return res.status(404).json({ error: "Licencia no encontrada" });
     res.json(licencia);
   } catch (error) {
+    console.error("Error en getLicenciaPorTasa:", error); 
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const updateRotulo = async (req, res) => {
+  const { id_licencia, fecha_emisionL } = req.params;
+  const { rotulo } = req.body;
+
+  try {
+    const resultado = await actualizarRotulo(id_licencia, fecha_emisionL, rotulo);
+    res.json(resultado);
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
@@ -40,4 +55,5 @@ module.exports = {
   postLicencia,
   getDatosTasa,
   getLicenciaPorTasa,
+  updateRotulo,
 };

@@ -85,6 +85,7 @@ const obtenerDatosTasaPorId = async (id_tasa) => {
 };
 
 const obtenerLicenciaPorTasa = async (id_tasa) => {
+  try {
   const licencia = await Licencia.findOne({
     where: { TASAS_id_tasa: id_tasa },
     attributes: [
@@ -96,12 +97,59 @@ const obtenerLicenciaPorTasa = async (id_tasa) => {
   });
 
   if (!licencia) return null;
+  const { id_licencia, fecha_emisionL, ...resto } = licencia.get();
 
-  return licencia.get();
+  // Construir el campo "registro_general"
+   let registro_general = null;
+    if (id_licencia && fecha_emisionL) {
+      const idStr = id_licencia.toString().padStart(4, "0");
+
+      const fecha = new Date(fecha_emisionL);
+      if (!isNaN(fecha)) {
+        const [year, month, day] = fecha.toISOString().split("T")[0].split("-");
+        registro_general = `${idStr}${day}${month}${year}`; 
+      }
+    }
+
+  return {
+    id_licencia,
+    fecha_emisionL,
+    fecha_vencimiento: resto.fecha_vencimiento,
+    rotulo: resto.rotulo,
+    registro_general,
+  };
+  } catch (error) {
+    console.error("Error en obtenerLicenciaPorTasa:", error);
+    throw error;
+  }
+};
+
+const actualizarRotulo = async (id_licencia, fecha_emisionL, nuevoRotulo) => {
+  try {
+    const [filasActualizadas] = await Licencia.update(
+      { rotulo: nuevoRotulo },
+      {
+        where: {
+          id_licencia,
+          fecha_emisionL,
+        },
+      }
+    );
+
+    if (filasActualizadas === 0) {
+      throw new Error("No se encontró la licencia para actualizar");
+    }
+
+    return { message: "Rótulo actualizado correctamente" };
+  } catch (error) {
+    console.error("Error al actualizar el rótulo:", error);
+    throw error;
+  }
 };
 
 module.exports = {
   crearLicencia,
   obtenerDatosTasaPorId,
   obtenerLicenciaPorTasa,
+  actualizarRotulo,
 };

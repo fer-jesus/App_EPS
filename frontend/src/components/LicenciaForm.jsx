@@ -28,6 +28,54 @@ const LicenciaForm = ({ initialData, onClose }) => {
   const token = localStorage.getItem("token");
   const [guardando, setGuardando] = useState(false);
   const [guardadoExitoso, setGuardadoExitoso] = useState(false);
+  const [rotuloOriginal, setRotuloOriginal] = useState("");
+
+  // Función para manejar los cambios en los campos del formulario
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
+  };
+
+  // Función para formatear la fecha en formato YYYY-MM-DD
+  const formatDate = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  // Función para obtener la licencia existente por TASAS_id_tasa
+  const fetchLicencia = async (idTasa) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:3001/api/licencias/por-tasa/${idTasa}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const licencia = response.data;
+
+      // Construir el campo registroGeneral
+      setForm((prev) => ({
+        ...prev,
+        id_licencia: licencia.id_licencia,
+        fechaEmision: licencia.fecha_emisionL,
+        fechaVencimiento: licencia.fecha_vencimiento,
+        rotulo: licencia.rotulo,
+        registroGeneral: licencia.registro_general,
+        TASAS_id_tasa: idTasa,
+      }));
+
+      setRotuloOriginal(licencia.rotulo || "");
+      setGuardadoExitoso(true);
+    } catch (error) {
+      console.error("No se encontró licencia existente:", error);
+      setGuardadoExitoso(false); // permitir crear una nueva si no existe
+    }
+  };
 
   // Inicializar fechas de emisión y vencimiento
   useEffect(() => {
@@ -35,13 +83,6 @@ const LicenciaForm = ({ initialData, onClose }) => {
       const today = new Date();
       const vencimiento = new Date(today);
       vencimiento.setMonth(vencimiento.getMonth() + 18); // suma 18 meses
-
-      const formatDate = (date) => {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const day = String(date.getDate()).padStart(2, "0");
-        return `${year}-${month}-${day}`;
-      };
 
       setForm((prev) => ({
         ...prev,
@@ -51,11 +92,7 @@ const LicenciaForm = ({ initialData, onClose }) => {
     }
   }, [initialData]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
-  };
-
+  // Efecto para cargar los datos iniciales del formulario
   useEffect(() => {
     if (initialData) {
       setForm((prev) => ({
@@ -67,6 +104,10 @@ const LicenciaForm = ({ initialData, onClose }) => {
         rotulo: initialData.rotulo || prev.rotulo,
         registroGeneral: initialData.registroGeneral || prev.registroGeneral,
       }));
+
+      // Guardar el rótulo original para comparar cambios
+      setRotuloOriginal(initialData.rotulo || "");
+
       if (initialData.registroGeneral || initialData.id_licencia) {
         setGuardadoExitoso(true);
       } else {
@@ -75,6 +116,24 @@ const LicenciaForm = ({ initialData, onClose }) => {
     }
   }, [initialData]);
 
+  
+  // Efecto para cargar la licencia al montar el componente o cambiar TASAS_id_tasa
+  useEffect(() => {
+    if (initialData?.TASAS_id_tasa) {
+      fetchLicencia(initialData.TASAS_id_tasa);
+    }
+  }, [initialData, token]);
+
+// Efecto para habilitar o deshabilitar el botón de guardar
+  useEffect(() => {
+    if (form.rotulo && form.rotulo !== rotuloOriginal) {
+      setGuardadoExitoso(false); // se habilita el botón
+    } else if (form.rotulo === rotuloOriginal && rotuloOriginal !== "") {
+      setGuardadoExitoso(true); // deshabilita si no hay cambios
+    }
+  }, [form.rotulo, rotuloOriginal]);
+
+  // Función para manejar el envío del formulario
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -86,38 +145,58 @@ const LicenciaForm = ({ initialData, onClose }) => {
     setGuardando(true);
 
     try {
-      // Envio de datos al backend
-      console.log("Enviando TASAS_id_tasa:", initialData.TASAS_id_tasa);
-      const response = await axios.post(
-        "http://localhost:3001/api/licencias",
-        {
-          fecha_emisionL: form.fechaEmision,
-          fecha_vencimiento: form.fechaVencimiento,
-          estado: "ACTIVO",
-          rotulo: form.rotulo,
-          TASAS_id_tasa: initialData.TASAS_id_tasa,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
+      if (form.id_licencia && form.rotulo !== rotuloOriginal) {
+        //Si existe, actualizar (rotulo)
+        await axios.put(
+          `http://localhost:3001/api/licencias/${form.id_licencia}/${form.fechaEmision}`,
+          { rotulo: form.rotulo },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        alert("Rótulo actualizado");
+        await fetchLicencia(form.TASAS_id_tasa);
+      } else {
+        //console.log("Enviando TASAS_id_tasa:", form.TASAS_id_tasa);
+        //Crear licencia
+        const response = await axios.post(
+          "http://localhost:3001/api/licencias",
+          {
+            fecha_emisionL: form.fechaEmision,
+            fecha_vencimiento: form.fechaVencimiento,
+            estado: "ACTIVO",
+            rotulo: form.rotulo,
+            TASAS_id_tasa: form.TASAS_id_tasa,
           },
-        }
-      );
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
-      const licencia = response.data;
-      //Generación del registro general
-      const idLicencia = String(licencia.id_licencia).padStart(4, "0");
-      const [anio, mes, dia] = licencia.fecha_emisionL.split("-");
-      const registroGeneral = `${idLicencia}${dia}${mes}${anio}`;
+        const licencia = response.data;
+        //Generación del registro general
+        const idLicencia = String(licencia.id_licencia).padStart(4, "0");
+        const [anio, mes, dia] = licencia.fecha_emisionL.split("-");
+        const registroGeneral = `${idLicencia}${dia}${mes}${anio}`;
 
-      // Mostrar el resultado actualizado en el formulario
-      setForm((prev) => ({
-        ...prev,
-        registroGeneral,
-      }));
+        // Mostrar el resultado actualizado en el formulario
+        setForm((prev) => ({
+          ...prev,
+          id_licencia: licencia.id_licencia,
+          registroGeneral,
+        }));
 
-      alert("Licencia guardada");
+        alert("Licencia guardada");
+        await fetchLicencia(form.TASAS_id_tasa);
+      }
+
       setGuardadoExitoso(true);
+      setRotuloOriginal(form.rotulo);
     } catch (error) {
       console.error("Error al guardar licencia:", error);
       alert("Error al guardar la licencia");
@@ -143,6 +222,7 @@ const LicenciaForm = ({ initialData, onClose }) => {
         onChange={handleChange}
         InputLabelProps={{ shrink: true }}
         fullWidth
+        disabled={!!form.id_licencia}
       />
       <TextField
         label="REGISTRO GENERAL"
@@ -161,6 +241,7 @@ const LicenciaForm = ({ initialData, onClose }) => {
         onChange={handleChange}
         InputLabelProps={{ shrink: true }}
         fullWidth
+        disabled={!!form.id_licencia}
       />
       <TextField
         label="SOLICITANTE"
@@ -232,7 +313,6 @@ const LicenciaForm = ({ initialData, onClose }) => {
       <Stack direction="row" spacing={2} justifyContent="center">
         <Button
           type="submit"
-          //onClick={handleSubmit}
           variant="contained"
           disabled={guardando || guardadoExitoso}
           sx={{
