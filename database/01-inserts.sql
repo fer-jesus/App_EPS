@@ -1,3 +1,5 @@
+USE lic_const_db;
+
 INSERT INTO ROL (id_rol) VALUES 
 (1), -- DIRECTOR
 (2), -- SUBDIRECTOR
@@ -152,7 +154,7 @@ VALUES (28, 25.00, 3.50);
 
 
 -- Tarifas actualizadas
-/*INSERT INTO TIPO_CONSTRUCCION_TARIFA (id_tipoConstruccion, tipo_construccion) VALUES
+/* INSERT INTO TIPO_CONSTRUCCION_TARIFA (id_tipoConstruccion, tipo_construccion) VALUES
 (1, 'Viviendas'),
 (2, 'Vivienda techo de lamina'),
 (3, 'Vivienda losa de concreto'),
@@ -179,8 +181,8 @@ INSERT INTO TARIFA (id_nombreTarifa, nombre_tarifa, TIPO_CONSTRUCCION_TARIFA_id_
 (10, 'Vivienda de 201 a 300 m²', 3),
 (11, 'Vivienda de 301 a 400 m²', 3),
 (12, 'Vivienda mayor a 401 m²', 3),
-(13, 'Un nivel techo de losa', 4),--preguntar si colocar "local comercial"
-(14, 'Dos niveles o mas', 4),--preguntar si colocar "local comercial"
+(13, 'Un nivel techo de losa', 4),-- preguntar si colocar "local comercial"
+(14, 'Dos niveles o mas', 4),-- preguntar si colocar "local comercial"
 (15, 'Trabajos de asfalto o Pavimento', 4),
 (16, 'Trabajos de adoquinado', 4),
 (17, 'Trabajos de Jardinización', 4),
@@ -280,5 +282,5 @@ INSERT INTO TARIFA_COSTO_DIMENSION (TARIFA_id_nombreTarifa, costo_tarifa, unidad
 (53, 1800.00, 'm²', 4.5),
 (54, 1200.00, 'm²', 4.5),
 (55, 50.00, 'm²', 3),
-(56, 50.00, 'm²', 3);*/
+(56, 50.00, 'm²', 3); */
 

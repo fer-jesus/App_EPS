@@ -69,9 +69,29 @@ const Registros = () => {
     setOpenDialog(false);
   };
 
-  const handleOpenLicencia = (tasa) => {
-    setSelectedLicencia(tasa);
-    setOpenLicenciaDialog(true);
+  // Función para abrir el modal de licencia
+  const handleOpenLicencia = async (tasa) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:3001/api/licencias/datos-tasa/${tasa.id}`,
+
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log("Datos licencia recibidos:", response.data);
+
+      setSelectedLicencia({
+        ...response.data,
+        TASAS_id_tasa: tasa.id,
+      });
+
+      setOpenLicenciaDialog(true);
+    } catch (error) {
+      console.error("Error al cargar datos de la tasa:", error);
+    }
   };
 
   const handleCloseLicencia = () => {
@@ -203,7 +223,7 @@ const Registros = () => {
               "&:hover": { backgroundColor: "#d9aa2e" },
               width: { xs: "50%", sm: "auto" },
             }}
-            onClick={() => handleOpen()} 
+            onClick={() => handleOpen()}
           >
             Crear Tasa
           </Button>

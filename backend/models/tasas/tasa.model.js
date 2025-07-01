@@ -28,11 +28,11 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true
     },
     presupuesto_obra: {
-      type: DataTypes.DOUBLE,
+      type: DataTypes.DECIMAL,
       allowNull: false
     },
     cantidad_cancelar: {
-      type: DataTypes.DOUBLE,
+      type: DataTypes.DECIMAL,
       allowNull: false
     },
     documento: {

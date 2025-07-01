@@ -4,6 +4,7 @@ const { DataTypes } = require("sequelize");
 const Tasa = require("./tasa.model")(sequelize, DataTypes);
 const TasaTarifa = require("./tasaTarifa.model")(sequelize, DataTypes); 
 const Propietario = require("./propietario.model")(sequelize, DataTypes);
+const { Tarifa } = require("../tarifas/tarifas.model")(sequelize);
 
 // Relaciones
 Tasa.belongsTo(Propietario, {
@@ -25,9 +26,16 @@ TasaTarifa.belongsTo(Tasa, {
    as: "tasa"
 });
 
+TasaTarifa.belongsTo(Tarifa, {
+  foreignKey: "TARIFA_id_nombreTarifa",
+  as: "tarifa"
+});
+
+
 module.exports = {
   Tasa,
   TasaTarifa,
   Propietario,
+  Tarifa,
   sequelize
 };

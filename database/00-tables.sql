@@ -42,9 +42,9 @@ CREATE TABLE TASAS (
   direccion_propiedad VARCHAR(250) NOT NULL,
   alineacion_urban BIT(1) NOT NULL,
   anotaciones VARCHAR(45) NULL,
-  cant_dem_movTierra DECIMAL NULL,
-  presupuesto_obra DOUBLE NOT NULL,
-  cantidad_cancelar DOUBLE NOT NULL,
+  cant_dem_movTierra DECIMAL (5,2) NULL,
+  presupuesto_obra DECIMAL (10,2) NOT NULL,
+  cantidad_cancelar DECIMAL (10,2) NOT NULL,
   documento BLOB NULL,
   PROPIETARIOS_cui BIGINT(15) NOT NULL,
   LICENCIAS_id_licencia_original INT NULL,
@@ -119,7 +119,7 @@ CREATE TABLE HISTORIAL_CAMBIOS (
 CREATE TABLE TIPO_CONSTRUCCION_TARIFA (
   id_tipoConstruccion INT NOT NULL PRIMARY KEY,
   tipo_construccion VARCHAR(200) NOT NULL
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 -- ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 
 -- Tabla: TARIFA
@@ -130,7 +130,7 @@ CREATE TABLE TARIFA (
   CONSTRAINT fk_NOMBRE_TARIFA_TIPO_CONSTRUCCION_TARIFA1
     FOREIGN KEY (TIPO_CONSTRUCCION_TARIFA_id_tipoConstruccion)
     REFERENCES TIPO_CONSTRUCCION_TARIFA (id_tipoConstruccion)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 -- ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 
 -- Tabla: RECURSOS
@@ -158,7 +158,7 @@ CREATE TABLE PERMISOS (
 CREATE TABLE TASAS_TARIFA (
   tarifa_correlativo INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,
   TASAS_id_tasa INT NOT NULL,
-  dimension_construccion DECIMAL NULL,
+  dimension_construccion DECIMAL (5,2) NULL,
   formula VARCHAR(250) NOT NULL,
   valor DECIMAL NOT NULL,
   TARIFA_id_nombreTarifa INT NOT NULL,
@@ -242,19 +242,19 @@ CREATE TABLE HISTORIAL_TASAS (
 CREATE TABLE HISTORIAL_TASAS_TARIFA (
   HISTORIAL_CAMBIOS_id_cambios INT NOT NULL,
   tarifa_correlativo INT NOT NULL,
-  --TASAS_TARIFA_TASAS_id_tasa INT NOT NULL,
-  --TASAS_TARIFA_TARIFA_id_nombreTarifa INT NOT NULL,
+  /* TASAS_TARIFA_TASAS_id_tasa INT NOT NULL,
+  TASAS_TARIFA_TARIFA_id_nombreTarifa INT NOT NULL, */
   dimension_construccion DECIMAL NULL,
   formula VARCHAR(250) NOT NULL,
   valor DECIMAL NOT NULL,
-  --PRIMARY KEY (HISTORIAL_CAMBIOS_id_cambios, TASAS_TARIFA_TASAS_id_tasa, TASAS_TARIFA_TARIFA_id_nombreTarifa),
+  -- PRIMARY KEY (HISTORIAL_CAMBIOS_id_cambios, TASAS_TARIFA_TASAS_id_tasa, TASAS_TARIFA_TARIFA_id_nombreTarifa),
   PRIMARY KEY (HISTORIAL_CAMBIOS_id_cambios, tarifa_correlativo),
   CONSTRAINT fk_HISTORIAL_TASAS_TARIFA_HISTORIAL_CAMBIOS1
     FOREIGN KEY (HISTORIAL_CAMBIOS_id_cambios)
     REFERENCES HISTORIAL_CAMBIOS (id_cambios),
   CONSTRAINT fk_HISTORIAL_TASAS_TARIFA_TASAS_TARIFA1
-    /*FOREIGN KEY (TASAS_TARIFA_TASAS_id_tasa, TASAS_TARIFA_TARIFA_id_nombreTarifa)
-    REFERENCES TASAS_TARIFA (TASAS_id_tasa, TARIFA_id_nombreTarifa)*/
+    /* FOREIGN KEY (TASAS_TARIFA_TASAS_id_tasa, TASAS_TARIFA_TARIFA_id_nombreTarifa)
+    REFERENCES TASAS_TARIFA (TASAS_id_tasa, TARIFA_id_nombreTarifa) */
     FOREIGN KEY (tarifa_correlativo)
 	  REFERENCES TASAS_TARIFA (tarifa_correlativo)
 );

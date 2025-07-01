@@ -9,6 +9,7 @@ const rolRoutes = require('./routes/rolRoutes');
 const tarifaRoutes = require ('./routes/tarifaRoutes');
 const tasaRoutes = require("./routes/tasaRoutes");
 const propietarioRoutes = require('./routes/propietarioRoutes');
+const licenciaRoutes = require('./routes/licenciaRoutes');
 
 // Configuración de middlewares
 app.use(cors({
@@ -42,6 +43,7 @@ app.use('/api/rol', rolRoutes);
 app.use('/api/tarifas', tarifaRoutes);
 app.use("/api/tasas", tasaRoutes);
 app.use('/api/propietarios', propietarioRoutes);
+app.use('/api/licencias', licenciaRoutes);
 
 // Ruta de prueba
 app.get('/', (req, res) => {

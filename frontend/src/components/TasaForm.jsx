@@ -37,6 +37,15 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
       Authorization: `Bearer ${token}`,
     },
   };
+
+  const formatoMonedaGT = (valor) => {
+  const numero = Number(valor);
+  if (isNaN(numero)) return "Q. 0.00";
+  return `Q. ${numero.toLocaleString("es-GT", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+};
   // Cargar tarifas desde el backend
   useEffect(() => {
     const fetchTarifas = async () => {
@@ -140,12 +149,8 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
     setFormData((prev) => ({
       ...prev,
       valorPorcentaje: valorPorcentaje.trim(),
-      presupuestObra: `Q. ${totalPresupuesto
-        .toFixed(2)
-        .toLocaleString("es-GT")}`,
-      cantidadCancelar: `Q. ${totalCancelar
-        .toFixed(2)
-        .toLocaleString("es-GT")}`,
+      presupuestObra: totalPresupuesto.toFixed(2),
+      cantidadCancelar: totalCancelar.toFixed(2),
     }));
   }, [
     formData.tipoConstruccion,
@@ -281,6 +286,11 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
       }
       await mantenimientoPropietario();
 
+      const parseMonedaToFloat = (valor) => {
+        if (!valor) return 0;
+        return parseFloat(valor.replace(/[Q,\s]/g, ""));
+      };
+
       //Datos para la tasa
       const tasaData = {
         fecha_emisionT: form.fechaRegistro,
@@ -288,12 +298,8 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
         alineacion_urban: form.cuentaNoAlineacion === "si",
         anotaciones: form.anotaciones || null,
         cant_dem_movTierra: parseFloat(form.cantDemoMovi) || null,
-        presupuesto_obra: parseFloat(
-          form.presupuestObra.replace(/[Q,. ]/g, "")
-        ),
-        cantidad_cancelar: parseFloat(
-          form.cantidadCancelar.replace(/[Q,. ]/g, "")
-        ),
+        presupuesto_obra: parseMonedaToFloat(form.presupuestObra),
+        cantidad_cancelar: parseMonedaToFloat(form.cantidadCancelar),
         documento: null,
         PROPIETARIOS_cui: parseInt(form.dpi),
         LICENCIAS_id_licencia_original: null,
@@ -545,17 +551,17 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           value={formData.valorPorcentaje}
           onChange={handleChange}
           fullWidth
-          required
+          disabled
           multiline
           error={Boolean(errors.valorPorcentaje)}
         />
         <TextField
           name="presupuestObra"
           label={getLabel("presupuestObra", "PRESUPUESTO DE LA OBRA")}
-          value={formData.presupuestObra}
+          value={formatoMonedaGT(formData.presupuestObra)}
           onChange={handleChange}
           fullWidth
-          required
+          disabled
           error={Boolean(errors.presupuestObra)}
         />
         <TextField
@@ -564,10 +570,10 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
             "cantidadCancelar",
             "CANTIDAD A CANCELAR POR LICENCIA DE CONSTRUCCIÓN"
           )}
-          value={formData.cantidadCancelar}
+          value={formatoMonedaGT(formData.cantidadCancelar)}
           onChange={handleChange}
           fullWidth
-          required
+          disabled
           error={Boolean(errors.cantidadCancelar)}
         />
 
