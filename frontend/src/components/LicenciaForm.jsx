@@ -10,7 +10,7 @@ import {
 import PropTypes from "prop-types";
 import axios from "axios";
 
-const LicenciaForm = ({ initialData, onClose }) => {
+const LicenciaForm = ({ initialData, onClose, onSubmit }) => {
   const [form, setForm] = useState({
     fechaEmision: "",
     registroGeneral: "",
@@ -197,6 +197,12 @@ const LicenciaForm = ({ initialData, onClose }) => {
 
       setGuardadoExitoso(true);
       setRotuloOriginal(form.rotulo);
+
+       if (onSubmit) {
+        onSubmit();
+      }
+
+    
     } catch (error) {
       console.error("Error al guardar licencia:", error);
       alert("Error al guardar la licencia");
@@ -337,6 +343,7 @@ const LicenciaForm = ({ initialData, onClose }) => {
 LicenciaForm.propTypes = {
   initialData: PropTypes.object,
   onClose: PropTypes.func.isRequired,
+  onSubmit: PropTypes.func,
 };
 
 export default LicenciaForm;

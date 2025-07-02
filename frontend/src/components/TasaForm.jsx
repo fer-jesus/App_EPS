@@ -39,13 +39,13 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
   };
 
   const formatoMonedaGT = (valor) => {
-  const numero = Number(valor);
-  if (isNaN(numero)) return "Q. 0.00";
-  return `Q. ${numero.toLocaleString("es-GT", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
-};
+    const numero = Number(valor);
+    if (isNaN(numero)) return "Q. 0.00";
+    return `Q. ${numero.toLocaleString("es-GT", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+  };
   // Cargar tarifas desde el backend
   useEffect(() => {
     const fetchTarifas = async () => {
@@ -132,7 +132,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
         ? cantDemoMoviListCopy.shift()
         : areaListCopy.shift();
 
-      if (area && costo && porcentaje) {
+      if (!isNaN(area)) {
         const subtotal = area * costo;
         const subtotalPorcentaje = subtotal * (porcentaje / 100);
         totalPresupuesto += subtotal;
@@ -171,29 +171,61 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Validar campos requeridos
+
     const newErrors = {};
     let hasErrors = false;
+
+    //Validación de campos requeridos
+
+    const incluyeCambioUso = formData.tipoConstruccion.some(
+      (t) => t.nombre_tarifa?.toUpperCase() === "CAMBIO DE USO O REMODELACIONES"
+    );
+
+    const requiereCantDemo = formData.tipoConstruccion.some((t) =>
+      ["DEMOLICIÓN", "MOVIMIENTO DE TIERRA"].includes(
+        t.nombre_tarifa?.toUpperCase()
+      )
+    );
 
     Object.keys(formData).forEach((key) => {
       if (
         !formData[key] &&
-        key !== "anotaciones" &&
-        key !== "cantDemoMovi" &&
-        key !== "tarifaCambioUso"
+        ![
+          "anotaciones",
+          "tarifaCambioUso",
+          "cantDemoMovi",
+          "areaConstruccion",
+        ].includes(key)
       ) {
         newErrors[key] = true;
         hasErrors = true;
       }
     });
 
-    //Validar tarifaCambioUso solo si se selecciona ese tipo de construcción
-    const incluyeCambioUso = formData.tipoConstruccion.some(
-      (t) => t.nombre_tarifa?.toUpperCase() === "CAMBIO DE USO O REMODELACIONES"
-    );
-
     if (incluyeCambioUso && !formData.tarifaCambioUso) {
       newErrors.tarifaCambioUso = true;
+      hasErrors = true;
+    }
+
+    if (requiereCantDemo && !formData.cantDemoMovi.trim()) {
+      newErrors.cantDemoMovi = true;
+      hasErrors = true;
+    }
+
+    // Validar campo de área de construcción si aplica
+    const requiereAreaConstruccion = formData.tipoConstruccion.some(
+      (t) =>{
+  const nombre = t.nombre_tarifa?.toUpperCase();
+        return ![
+          "DEMOLICIÓN",
+          "MOVIMIENTO DE TIERRA",
+          "CAMBIO DE USO O REMODELACIONES",
+        ].includes(nombre);
+  });
+
+  
+    if (requiereAreaConstruccion && !formData.areaConstruccion.trim()) {
+      newErrors.areaConstruccion = true;
       hasErrors = true;
     }
 

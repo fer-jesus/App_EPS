@@ -1,4 +1,6 @@
+SET NAMES utf8mb4;
 USE lic_const_db;
+
 
 INSERT INTO ROL (id_rol) VALUES 
 (1), -- DIRECTOR
@@ -150,7 +152,8 @@ INSERT INTO TARIFA_COSTO_DIMENSION (TARIFA_id_nombreTarifa, costo_tarifa, unidad
 (52, 50.00, 'm²', 3);
 
 INSERT INTO TARIFA_COSTO_PROYECTO (TARIFA_id_nombreTarifa, porcentaje_costoProyecto, porcentaje)
-VALUES (28, 25.00, 3.50);
+VALUES (28, 25.00, 3.50); 
+
 
 
 -- Tarifas actualizadas

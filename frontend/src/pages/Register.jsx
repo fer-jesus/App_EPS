@@ -38,6 +38,7 @@ const Registros = () => {
       const datos = response.data.map((tasa) => ({
         id: tasa.id,
         nombrePropietario: tasa.nombre_propietario || "Desconocido",
+        registro_general: tasa.registro_general || "En proceso",
         tasa: "",
         licencia: "",
         nomenclatura: "",
@@ -99,8 +100,18 @@ const Registros = () => {
     setOpenLicenciaDialog(false);
   };
 
+  const handleSaveLicencia = async () => {
+    await fetchTasas();
+    setOpenLicenciaDialog(false);
+  };
+
   const columns = [
-    { field: "id", headerName: "REGISTRO. G", flex: 0.8, minWidth: 100 },
+    {
+      field: "registro_general",
+      headerName: "REGISTRO. G",
+      flex: 0.8,
+      minWidth: 100,
+    },
     {
       field: "nombrePropietario",
       headerName: "NOMBRE DEL PROPIETARIO",
@@ -307,6 +318,7 @@ const Registros = () => {
             <LicenciaForm
               initialData={selectedLicencia}
               onClose={handleCloseLicencia}
+              onSubmit={handleSaveLicencia}
             />
           </DialogContent>
         </Dialog>
