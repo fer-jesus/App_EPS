@@ -7,8 +7,57 @@ const crearLicencia = async (licenciaData) => {
     //const { id_licencia, ...camposLicencia } = licenciaData;
 
     const nuevaLicencia = await Licencia.create({
-      ...licenciaData,
+      //...licenciaData,
+      id_licencia: licenciaData.id_licencia,
+      fecha_emisionL: licenciaData.fecha_emisionL,
+      fecha_vencimiento: licenciaData.fecha_vencimiento,
+      estado: licenciaData.estado,
+      rotulo: licenciaData.rotulo,
+      TASAS_id_tasa: licenciaData.TASAS_id_tasa,
+       LICENCIAS_id_licencia_ampliacion: licenciaData.LICENCIAS_id_licencia_ampliacion || null,
+      LICENCIAS_fecha_emisionL_ampliacion: licenciaData.LICENCIAS_fecha_emisionL_ampliacion || null,
     });
+
+    console.log("Nueva licencia creada:", nuevaLicencia);
+    // Verificar si esta licencia es una ampliación (se enviaron los campos de referencia)
+    if (
+      licenciaData.LICENCIAS_id_licencia_original &&
+      licenciaData.LICENCIAS_fecha_emisionL_original
+    ) {
+      // Actualizar la licencia original con los datos de ampliación
+
+      console.log(
+        "Actualizando licencia original con datos de ampliación:",
+        nuevaLicencia.id_licencia,
+        nuevaLicencia.fecha_emisionL
+      );
+      await Licencia.update(
+        {
+          LICENCIAS_id_licencia_ampliacion: nuevaLicencia.id_licencia,
+          LICENCIAS_fecha_emisionL_ampliacion: nuevaLicencia.fecha_emisionL,
+        },
+        {
+          where: {
+            id_licencia: licenciaData.LICENCIAS_id_licencia_original,
+            fecha_emisionL: new Date(
+              licenciaData.LICENCIAS_fecha_emisionL_original
+            ),
+          },
+        }
+      );
+      // **Actualizar la tasa para que tenga referencia a la licencia original**
+      await Tasa.update(
+        {
+          LICENCIAS_id_licencia_original:
+            licenciaData.LICENCIAS_id_licencia_original,
+          LICENCIAS_fecha_emisionL_original:
+            licenciaData.LICENCIAS_fecha_emisionL_original,
+        },
+        {
+          where: { id_tasa: nuevaLicencia.TASAS_id_tasa },
+        }
+      );
+    }
 
     //Consultar la licencia usando `TASAS_id_tasa` y `fecha_emisionL`
     const licenciaFinal = await Licencia.findOne({
@@ -86,38 +135,38 @@ const obtenerDatosTasaPorId = async (id_tasa) => {
 
 const obtenerLicenciaPorTasa = async (id_tasa) => {
   try {
-  const licencia = await Licencia.findOne({
-    where: { TASAS_id_tasa: id_tasa },
-    attributes: [
-      "id_licencia",
-      "fecha_emisionL",
-      "fecha_vencimiento",
-      "rotulo",
-    ],
-  });
+    const licencia = await Licencia.findOne({
+      where: { TASAS_id_tasa: id_tasa },
+      attributes: [
+        "id_licencia",
+        "fecha_emisionL",
+        "fecha_vencimiento",
+        "rotulo",
+      ],
+    });
 
-  if (!licencia) return null;
-  const { id_licencia, fecha_emisionL, ...resto } = licencia.get();
+    if (!licencia) return null;
+    const { id_licencia, fecha_emisionL, ...resto } = licencia.get();
 
-  // Construir el campo "registro_general"
-   let registro_general = null;
+    // Construir el campo "registro_general"
+    let registro_general = null;
     if (id_licencia && fecha_emisionL) {
       const idStr = id_licencia.toString().padStart(4, "0");
 
       const fecha = new Date(fecha_emisionL);
       if (!isNaN(fecha)) {
         const [year, month, day] = fecha.toISOString().split("T")[0].split("-");
-        registro_general = `${idStr}${day}${month}${year}`; 
+        registro_general = `${idStr}${day}${month}${year}`;
       }
     }
 
-  return {
-    id_licencia,
-    fecha_emisionL,
-    fecha_vencimiento: resto.fecha_vencimiento,
-    rotulo: resto.rotulo,
-    registro_general,
-  };
+    return {
+      id_licencia,
+      fecha_emisionL,
+      fecha_vencimiento: resto.fecha_vencimiento,
+      rotulo: resto.rotulo,
+      registro_general,
+    };
   } catch (error) {
     console.error("Error en obtenerLicenciaPorTasa:", error);
     throw error;

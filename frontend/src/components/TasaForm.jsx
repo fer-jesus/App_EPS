@@ -11,9 +11,11 @@ import PropTypes from "prop-types";
 import Autocomplete from "@mui/material/Autocomplete";
 import axios from "axios";
 
+const today = new Date().toISOString().split("T")[0];
+
 const TasaForm = ({ onSubmit, onClose, initialData }) => {
   const [formData, setFormData] = useState({
-    fechaRegistro: "",
+    fechaRegistro: today,
     direccionExacta: "",
     dpi: "",
     nombrePropietario: "",
@@ -26,6 +28,9 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
     presupuestObra: "",
     cantidadCancelar: "",
     tarifaCambioUso: null,
+    esAmpliacion: false,
+    LICENCIAS_id_licencia_original: null,
+    LICENCIAS_fecha_emisionL_original: null,
   });
 
   const [tarifas, setTarifas] = useState([]);
@@ -169,6 +174,26 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
     }
   };
 
+  useEffect(() => {
+    if (initialData) {
+       console.log("initialData en TasaForm:", initialData);
+      setFormData((prev) => ({
+        ...prev,
+        ...initialData,
+        fechaRegistro: initialData.fechaRegistro || today,
+        direccionExacta: initialData.direccionExacta || "",
+        dpi: initialData.dpi || "",
+        nombrePropietario: initialData.nombrePropietario || "",
+        esAmpliacion: !!initialData.esAmpliacion,
+        LICENCIAS_id_licencia_original:
+          initialData.LICENCIAS_id_licencia_original ?? null,
+        LICENCIAS_fecha_emisionL_original:
+          initialData.LICENCIAS_fecha_emisionL_original ?? null,
+      }));
+    }
+  }, [initialData]);
+
+  console.log("esAmpliacion actual:", formData.esAmpliacion);
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -176,7 +201,6 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
     let hasErrors = false;
 
     //Validación de campos requeridos
-
     const incluyeCambioUso = formData.tipoConstruccion.some(
       (t) => t.nombre_tarifa?.toUpperCase() === "CAMBIO DE USO O REMODELACIONES"
     );
@@ -188,19 +212,25 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
     );
 
     Object.keys(formData).forEach((key) => {
-      if (
-        !formData[key] &&
-        ![
-          "anotaciones",
-          "tarifaCambioUso",
-          "cantDemoMovi",
-          "areaConstruccion",
-        ].includes(key)
-      ) {
-        newErrors[key] = true;
-        hasErrors = true;
-      }
-    });
+      const excepciones = [
+        "anotaciones",
+        "tarifaCambioUso",
+        "cantDemoMovi",
+        "areaConstruccion",
+        "esAmpliacion",
+        "LICENCIAS_id_licencia_original",
+        "LICENCIAS_fecha_emisionL_original",
+      ];
+
+       const value = formData[key];
+    const isEmpty = value === null || value === undefined || value === "";
+
+    if (isEmpty && !excepciones.includes(key)) {
+      console.log("Campo inválido:", key, "valor:", value);
+      newErrors[key] = true;
+      hasErrors = true;
+    }
+  });
 
     if (incluyeCambioUso && !formData.tarifaCambioUso) {
       newErrors.tarifaCambioUso = true;
@@ -213,21 +243,36 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
     }
 
     // Validar campo de área de construcción si aplica
-    const requiereAreaConstruccion = formData.tipoConstruccion.some(
-      (t) =>{
-  const nombre = t.nombre_tarifa?.toUpperCase();
-        return ![
-          "DEMOLICIÓN",
-          "MOVIMIENTO DE TIERRA",
-          "CAMBIO DE USO O REMODELACIONES",
-        ].includes(nombre);
-  });
+    const requiereAreaConstruccion = formData.tipoConstruccion.some((t) => {
+      const nombre = t.nombre_tarifa?.toUpperCase();
+      return ![
+        "DEMOLICIÓN",
+        "MOVIMIENTO DE TIERRA",
+        "CAMBIO DE USO O REMODELACIONES",
+      ].includes(nombre);
+    });
 
-  
     if (requiereAreaConstruccion && !formData.areaConstruccion.trim()) {
       newErrors.areaConstruccion = true;
       hasErrors = true;
     }
+
+    //Validaciones si es ampliación
+  if (formData.esAmpliacion) {
+    if (
+      !formData.LICENCIAS_id_licencia_original &&
+      formData.LICENCIAS_id_licencia_original !== 0
+    ) {
+      newErrors.LICENCIAS_id_licencia_original = true;
+      hasErrors = true;
+    }
+    if (!formData.LICENCIAS_fecha_emisionL_original) {
+      newErrors.LICENCIAS_fecha_emisionL_original = true;
+      hasErrors = true;
+    }
+  }
+
+    console.log("formData", formData);
 
     setErrors(newErrors);
 
@@ -334,8 +379,10 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
         cantidad_cancelar: parseMonedaToFloat(form.cantidadCancelar),
         documento: null,
         PROPIETARIOS_cui: parseInt(form.dpi),
-        LICENCIAS_id_licencia_original: null,
-        LICENCIAS_fecha_emisionL_original: null,
+        LICENCIAS_id_licencia_original:
+          form.LICENCIAS_id_licencia_original || null,
+        LICENCIAS_fecha_emisionL_original:
+          form.LICENCIAS_fecha_emisionL_original || null,
       };
 
       //Tarifas asociadas
@@ -398,6 +445,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
       //Envio al backend
       const payload = { tasaData, tarifasData };
       console.log("Datos a enviar:", payload);
+      console.log("Enviando tasaData:", tasaData);
 
       const response = await axios.post(
         "http://localhost:3001/api/tasas",
@@ -422,7 +470,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
     <Box sx={{ p: 2 }}>
       <Stack spacing={2}>
         <Typography variant="h6" textAlign="center" fontWeight="bold">
-          {initialData ? "Editar Tasa" : "Crear Nueva Tasa"}
+          {initialData?.esAmpliacion ? "Ampliación" : "Crear Nueva Tasa"}
         </Typography>
 
         <TextField
@@ -443,6 +491,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           onChange={handleChange}
           fullWidth
           required
+          disabled={formData.esAmpliacion}
           multiline
           error={Boolean(errors.direccionExacta)}
         />
@@ -454,6 +503,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           onBlur={(e) => buscarPropietarioPorCUI(e.target.value)}
           fullWidth
           required
+          disabled={formData.esAmpliacion}
           error={Boolean(errors.dpi)}
         />
 
@@ -464,6 +514,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           onChange={handleChange}
           fullWidth
           required
+          disabled={formData.esAmpliacion}
           multiline
           error={Boolean(errors.nombrePropietario)}
         />
@@ -607,6 +658,16 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           fullWidth
           disabled
           error={Boolean(errors.cantidadCancelar)}
+        />
+        <input
+          type="hidden"
+          name="LICENCIAS_id_licencia_original"
+          value={formData.LICENCIAS_id_licencia_original || ""}
+        />
+        <input
+          type="hidden"
+          name="LICENCIAS_fecha_emisionL_original"
+          value={formData.LICENCIAS_fecha_emisionL_original || ""}
         />
 
         <Stack direction="row" spacing={2} justifyContent="center">

@@ -22,6 +22,8 @@ const LicenciaForm = ({ initialData, onClose, onSubmit }) => {
     presupuestoObra: "",
     rotulo: "",
     areaConstruccion: "",
+    LICENCIAS_id_licencia_ampliacion: "",
+    LICENCIAS_fecha_emisionL_ampliacion: "",
     ...initialData,
   });
 
@@ -72,7 +74,11 @@ const LicenciaForm = ({ initialData, onClose, onSubmit }) => {
       setRotuloOriginal(licencia.rotulo || "");
       setGuardadoExitoso(true);
     } catch (error) {
-      console.error("No se encontró licencia existente:", error);
+      if (error.response?.status === 404) {
+        console.log("No hay licencia registrada aún para esta tasa.");
+      } else {
+        console.error("Error al buscar licencia:", error);
+      }
       setGuardadoExitoso(false); // permitir crear una nueva si no existe
     }
   };
@@ -82,7 +88,7 @@ const LicenciaForm = ({ initialData, onClose, onSubmit }) => {
     if (!initialData?.fechaEmision) {
       const today = new Date();
       const vencimiento = new Date(today);
-      vencimiento.setMonth(vencimiento.getMonth() + 18); // suma 18 meses
+      vencimiento.setMonth(vencimiento.getMonth() + 12); // suma 18 meses
 
       setForm((prev) => ({
         ...prev,
@@ -103,6 +109,8 @@ const LicenciaForm = ({ initialData, onClose, onSubmit }) => {
           initialData.fecha_vencimiento || prev.fechaVencimiento,
         rotulo: initialData.rotulo || prev.rotulo,
         registroGeneral: initialData.registroGeneral || prev.registroGeneral,
+        LICENCIAS_id_licencia_ampliacion: initialData.LICENCIAS_id_licencia_ampliacion || "",
+      LICENCIAS_fecha_emisionL_ampliacion: initialData.LICENCIAS_fecha_emisionL_ampliacion || "",
       }));
 
       // Guardar el rótulo original para comparar cambios
@@ -116,7 +124,6 @@ const LicenciaForm = ({ initialData, onClose, onSubmit }) => {
     }
   }, [initialData]);
 
-  
   // Efecto para cargar la licencia al montar el componente o cambiar TASAS_id_tasa
   useEffect(() => {
     if (initialData?.TASAS_id_tasa) {
@@ -124,7 +131,7 @@ const LicenciaForm = ({ initialData, onClose, onSubmit }) => {
     }
   }, [initialData, token]);
 
-// Efecto para habilitar o deshabilitar el botón de guardar
+  // Efecto para habilitar o deshabilitar el botón de guardar
   useEffect(() => {
     if (form.rotulo && form.rotulo !== rotuloOriginal) {
       setGuardadoExitoso(false); // se habilita el botón
@@ -160,8 +167,22 @@ const LicenciaForm = ({ initialData, onClose, onSubmit }) => {
         alert("Rótulo actualizado");
         await fetchLicencia(form.TASAS_id_tasa);
       } else {
-        //console.log("Enviando TASAS_id_tasa:", form.TASAS_id_tasa);
         //Crear licencia
+
+        // console.log("Enviando licencia:", {
+        //   LICENCIAS_id_licencia_original: form.LICENCIAS_id_licencia_original,
+        //   LICENCIAS_fecha_emisionL_original:
+        //     form.LICENCIAS_fecha_emisionL_original,
+        // });
+        console.log("Datos que se enviarán al backend:", {
+          fecha_emisionL: form.fechaEmision,
+          fecha_vencimiento: form.fechaVencimiento,
+          estado: "ACTIVO",
+          rotulo: form.rotulo,
+          TASAS_id_tasa: form.TASAS_id_tasa,
+          LICENCIAS_id_licencia_ampliacion: form.LICENCIAS_id_licencia_ampliacion,
+          LICENCIAS_fecha_emisionL_ampliacion: form.LICENCIAS_fecha_emisionL_ampliacion 
+        });
         const response = await axios.post(
           "http://localhost:3001/api/licencias",
           {
@@ -170,6 +191,10 @@ const LicenciaForm = ({ initialData, onClose, onSubmit }) => {
             estado: "ACTIVO",
             rotulo: form.rotulo,
             TASAS_id_tasa: form.TASAS_id_tasa,
+            LICENCIAS_id_licencia_ampliacion:
+              form.LICENCIAS_id_licencia_ampliacion || null,
+            LICENCIAS_fecha_emisionL_ampliacion:
+              form.LICENCIAS_fecha_emisionL_ampliacion || null,
           },
           {
             headers: {
@@ -198,11 +223,9 @@ const LicenciaForm = ({ initialData, onClose, onSubmit }) => {
       setGuardadoExitoso(true);
       setRotuloOriginal(form.rotulo);
 
-       if (onSubmit) {
+      if (onSubmit) {
         onSubmit();
       }
-
-    
     } catch (error) {
       console.error("Error al guardar licencia:", error);
       alert("Error al guardar la licencia");
@@ -218,8 +241,17 @@ const LicenciaForm = ({ initialData, onClose, onSubmit }) => {
       sx={{ display: "grid", gap: 2 }}
     >
       <Typography variant="h6" sx={{ textAlign: "center", fontWeight: "bold" }}>
-        FORMULARIO DE LICENCIA
+        REGISTRO DE LICENCIA
       </Typography>
+      {/* <TextField
+        label="BOLETA DE PAGO"
+        name="boletaPago"
+        value={form.boletaPago}
+        onChange={handleChange}
+        fullWidth
+        required
+        inputProps={{ style: { textTransform: "uppercase" } }}
+      /> */}
       <TextField
         label="FECHA DE EMISION"
         name="fechaEmision"

@@ -35,7 +35,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
     },
     LICENCIAS_fecha_emisionL_ampliacion: {
-      type: DataTypes.DATE,
+      type: DataTypes.DATEONLY,
       allowNull: true,
     },
   }, {

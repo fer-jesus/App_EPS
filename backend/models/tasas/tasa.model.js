@@ -7,7 +7,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false
     },
     fecha_emisionT: {
-      type: DataTypes.DATE,
+      type: DataTypes.DATEONLY,
       allowNull: false
      
     },
@@ -48,7 +48,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true
     },
     LICENCIAS_fecha_emisionL_original: {
-      type: DataTypes.DATE,
+      type: DataTypes.DATEONLY,
       allowNull: true
     }
   }, {

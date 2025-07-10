@@ -1,11 +1,13 @@
-const { crearTasa, obtenerRegistros } = require("../models/tasas/tasa.service");
+const { crearTasa, obtenerRegistros, obtenerDatosTasaPorId  } = require("../models/tasas/tasa.service");
 
 const crearTasaHandler = async (req, res) => {
   try {
     console.log("Datos recibidos en el backend:", req.body);
     const { tasaData, tarifasData } = req.body;
     console.log("Datos de tasa:", tasaData);
+    console.log("Datos recibidos para crear tasa:", tasaData);
     console.log("Datos de tarifas:", tarifasData);
+    
 
     if (!tasaData || !tarifasData) {
       console.error("Datos incompletos en la solicitud");
@@ -40,7 +42,32 @@ const listarRegistros = async (req, res) => {
   }
 };
 
+const obtenerDatosAmpliacionHandler = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const tasa = await obtenerDatosTasaPorId(id);
+
+    if (!tasa) {
+      return res.status(404).json({ error: "Tasa no encontrada" });
+    }
+
+    // res.json({
+    //   direccionExacta: tasa.direccion_propiedad,
+    //   nombrePropietario: tasa.propietario?.nombre_propietario || "",
+    //   dpi: tasa.propietario?.cui || "",
+    //   LICENCIAS_id_licencia_original: tasa.LICENCIAS_id_licencia_original,
+    //   LICENCIAS_fecha_emisionL_original: tasa.LICENCIAS_fecha_emisionL_original,
+    // });
+    res.json(tasa);
+  } catch (error) {
+    console.error("Error al obtener datos de la tasa:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+};
+
 module.exports = {
   crearTasaHandler,
   listarRegistros,
+  obtenerDatosAmpliacionHandler,
 };

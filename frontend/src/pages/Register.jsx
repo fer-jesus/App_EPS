@@ -14,6 +14,7 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import IconButton from "@mui/material/IconButton";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import AppNavbar from "../components/AppNavBar";
+import Swal from "sweetalert2";
 import TasaForm from "../components/TasaForm";
 import LicenciaForm from "../components/LicenciaForm";
 import axios from "axios";
@@ -36,12 +37,18 @@ const Registros = () => {
       });
 
       const datos = response.data.map((tasa) => ({
-        id: tasa.id,
+        ...tasa,
+        id: tasa.id || tasa.id_tasa,
         nombrePropietario: tasa.nombre_propietario || "Desconocido",
         registro_general: tasa.registro_general || "En proceso",
         tasa: "",
         licencia: "",
         nomenclatura: "",
+        // campos de ampliación:
+        LICENCIAS_id_licencia_original:
+          tasa.LICENCIAS_id_licencia_original || null,
+        LICENCIAS_fecha_emisionL_original:
+          tasa.LICENCIAS_fecha_emisionL_original || null,
       }));
       setTasas(datos);
     } catch (error) {
@@ -87,6 +94,11 @@ const Registros = () => {
       setSelectedLicencia({
         ...response.data,
         TASAS_id_tasa: tasa.id,
+
+        LICENCIAS_id_licencia_ampliacion:
+          tasa.LICENCIAS_id_licencia_original || null,
+        LICENCIAS_fecha_emisionL_ampliacion:
+          tasa.LICENCIAS_fecha_emisionL_original || null,
       });
 
       setOpenLicenciaDialog(true);
@@ -105,11 +117,58 @@ const Registros = () => {
     setOpenLicenciaDialog(false);
   };
 
+  const handleAmpliacionClick = async (row) => {
+    if (row.registro_general === "En proceso") {
+      Swal.fire({
+        icon: "info",
+        title: "Aún no existe la licencia",
+        text: "No puedes crear una ampliación hasta que se haya generado la licencia.",
+        confirmButtonText: "Entendido",
+      });
+      return;
+    }
+
+    try {
+      const response = await axios.get(
+        `http://localhost:3001/api/tasas/ampliacion/${row.id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const datosTasa = response.data;
+      console.log("Ampliación - datos recibidos:", datosTasa);
+      console.log("Datos para ampliación:", {
+        ...datosTasa,
+        id_licencia: datosTasa.LICENCIAS_id_licencia_original,
+        fecha_emisionL: datosTasa.LICENCIAS_fecha_emisionL_original,
+      });
+      handleOpen({
+        direccionExacta: datosTasa.direccionExacta || "",
+        nombrePropietario: datosTasa.nombrePropietario || "",
+        dpi: datosTasa.dpi || "",
+        fechaRegistro: new Date().toISOString().split("T")[0],
+        esAmpliacion: true, // se usará dentro de TasaForm
+        LICENCIAS_id_licencia_original:
+          datosTasa.LICENCIAS_id_licencia_original,
+        LICENCIAS_fecha_emisionL_original:
+          datosTasa.LICENCIAS_fecha_emisionL_original,
+      });
+    } catch (error) {
+      console.error("Error al obtener datos de ampliación:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo obtener los datos para la ampliación.",
+      });
+    }
+  };
+
   const columns = [
     {
       field: "registro_general",
       headerName: "REGISTRO. G",
-      flex: 0.8,
+      flex: 1,
       minWidth: 100,
     },
     {
@@ -124,20 +183,24 @@ const Registros = () => {
       flex: 1,
       minWidth: 150,
 
-      renderCell: (params) => (
-        <Box display="flex" gap={1}>
-          <IconButton
-            size="small"
-            color="primary"
-            onClick={() => console.log("Editar TASA", params.row)}
-          >
-            <AssignmentIcon fontSize="small" />
-          </IconButton>
-          <IconButton size="small" disabled>
-            <VisibilityIcon fontSize="small" color="disabled" />
-          </IconButton>
-        </Box>
-      ),
+      renderCell: (params) => {
+        const yaAmpliada = params.row.registro_general?.startsWith("AMP-");
+        return (
+          <Box display="flex" gap={1}>
+            <IconButton
+              size="small"
+              color="primary"
+              onClick={() => handleAmpliacionClick(params.row)}
+              disabled={yaAmpliada}
+            >
+              <AssignmentIcon fontSize="small" />
+            </IconButton>
+            <IconButton size="small" disabled>
+              <VisibilityIcon fontSize="small" color="disabled" />
+            </IconButton>
+          </Box>
+        );
+      },
     },
 
     {
@@ -145,12 +208,15 @@ const Registros = () => {
       headerName: "LICENCIA",
       flex: 1,
       minWidth: 130,
-      renderCell: (params) => (
+      renderCell: (params) => {
+         const yaAmpliada = params.row.registro_general?.startsWith("AMP-");
+         return (
         <Box display="flex" gap={1}>
           <IconButton
             size="small"
             color="primary"
             onClick={() => handleOpenLicencia(params.row)}
+            disabled={yaAmpliada}
           >
             <EditIcon fontSize="small" />
           </IconButton>
@@ -158,7 +224,8 @@ const Registros = () => {
             <VisibilityIcon fontSize="small" color="disabled" />
           </IconButton>
         </Box>
-      ),
+      );
+      }
     },
 
     {
@@ -234,7 +301,13 @@ const Registros = () => {
               "&:hover": { backgroundColor: "#d9aa2e" },
               width: { xs: "50%", sm: "auto" },
             }}
-            onClick={() => handleOpen()}
+            onClick={() =>
+              handleOpen({
+                esAmpliacion: false,
+                LICENCIAS_id_licencia_original: null,
+                LICENCIAS_fecha_emisionL_original: null,
+              })
+            }
           >
             Crear Tasa
           </Button>
