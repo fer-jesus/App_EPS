@@ -1,25 +1,25 @@
 module.exports = (sequelize, DataTypes) => {
-  const TasaTarifa = sequelize.define(
-    "TasaTarifa",
+  const TasaTarifaVariosNiveles = sequelize.define(
+    "TasaTarifaVariosNiveles",
     {
-      tarifa_correlativo: {
+      TASAS_TARIFA_TASAS_id_tasa: {
         type: DataTypes.INTEGER,
         primaryKey: true,
-        allowNull: false,
-        autoIncrement: false,
       },
-      TASAS_id_tasa: {
+      TASAS_TARIFA_tarifa_correlativo: {
         type: DataTypes.INTEGER,
         primaryKey: true,
-        allowNull: false,
       },
-      TARIFA_id_nombreTarifa: {
+      TASAS_TARIFA_TARIFA_id_nombreTarifa: {
         type: DataTypes.INTEGER,
         primaryKey: true,
-        allowNull: false,
+      },
+      nivel: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
       },
       dimension_construccion: {
-        type: DataTypes.DECIMAL,
+        type: DataTypes.DECIMAL(5, 2),
         allowNull: true,
       },
       formula: {
@@ -32,10 +32,10 @@ module.exports = (sequelize, DataTypes) => {
       },
     },
     {
-      tableName: "TASAS_TARIFA",
+      tableName: "TASAS_TARIFA_VARIOS_NIVELES",
       timestamps: false,
     }
   );
 
-  return TasaTarifa;
+  return TasaTarifaVariosNiveles;
 };

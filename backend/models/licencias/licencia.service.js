@@ -8,6 +8,7 @@ const crearLicencia = async (licenciaData) => {
 
     const nuevaLicencia = await Licencia.create({
       //...licenciaData,
+      boleta_pago: licenciaData.boleta_pago || null,
       id_licencia: licenciaData.id_licencia,
       fecha_emisionL: licenciaData.fecha_emisionL,
       fecha_vencimiento: licenciaData.fecha_vencimiento,
@@ -138,6 +139,7 @@ const obtenerLicenciaPorTasa = async (id_tasa) => {
     const licencia = await Licencia.findOne({
       where: { TASAS_id_tasa: id_tasa },
       attributes: [
+        "boleta_pago",
         "id_licencia",
         "fecha_emisionL",
         "fecha_vencimiento",
@@ -162,6 +164,7 @@ const obtenerLicenciaPorTasa = async (id_tasa) => {
 
     return {
       id_licencia,
+      boleta_pago: resto.boleta_pago || "",
       fecha_emisionL,
       fecha_vencimiento: resto.fecha_vencimiento,
       rotulo: resto.rotulo,

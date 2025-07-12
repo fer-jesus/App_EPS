@@ -1,4 +1,10 @@
-const { Tasa, TasaTarifa, Propietario, Licencia } = require(".");
+const {
+  Tasa,
+  TasaTarifa,
+  Propietario,
+  Licencia,
+  TasaTarifaVariosNiveles,
+} = require(".");
 //const { TasaTarifa } = require("./tasaTarifa.model");
 
 const crearTasa = async (tasaData, tarifasData) => {
@@ -7,21 +13,58 @@ const crearTasa = async (tasaData, tarifasData) => {
     const result = await Tasa.sequelize.transaction(async (t) => {
       //console.log("Insertando tarifa:", tarifa);
       const nuevaTasa = await Tasa.create(tasaData, { transaction: t });
+      const idTasa = nuevaTasa.id_tasa;
       console.log("ID de nueva tasa:", nuevaTasa?.id_tasa);
 
+      // if (tarifasData && tarifasData.length > 0) {
+      //   for (const tarifa of tarifasData) {
+      //     console.log("Insertando tarifa:", tarifa);
+      //     await TasaTarifa.create(
+      //       {
+      //         TASAS_id_tasa: nuevaTasa.id_tasa,
+      //         dimension_construccion: tarifa.dimension_construccion,
+      //         formula: tarifa.formula,
+      //         valor: tarifa.valor,
+      //         TARIFA_id_nombreTarifa: tarifa.TARIFA_id_nombreTarifa,
+      //       },
+      //       { transaction: t }
+      //     );
+      //   }
+      // }
+
       if (tarifasData && tarifasData.length > 0) {
-        for (const tarifa of tarifasData) {
+        for (let i = 0; i < tarifasData.length; i++) {
+          const tarifa = tarifasData[i];
+          const correlativo = i + 1; // empieza en 1
+
           console.log("Insertando tarifa:", tarifa);
+
           await TasaTarifa.create(
             {
+              tarifa_correlativo: correlativo,
               TASAS_id_tasa: nuevaTasa.id_tasa,
+              TARIFA_id_nombreTarifa: tarifa.TARIFA_id_nombreTarifa,
               dimension_construccion: tarifa.dimension_construccion,
               formula: tarifa.formula,
               valor: tarifa.valor,
-              TARIFA_id_nombreTarifa: tarifa.TARIFA_id_nombreTarifa,
             },
             { transaction: t }
           );
+
+          // Insertar niveles adicionales si existen
+if (Array.isArray(tarifa.niveles) && tarifa.niveles.length > 0) {
+            for (const nivel of tarifa.niveles) {
+              await TasaTarifaVariosNiveles.create({
+                TASAS_TARIFA_TASAS_id_tasa: idTasa,
+                TASAS_TARIFA_tarifa_correlativo: correlativo,
+                TASAS_TARIFA_TARIFA_id_nombreTarifa: tarifa.TARIFA_id_nombreTarifa,
+                nivel: nivel.nivel,
+                dimension_construccion: nivel.dimension_construccion || null,
+                formula: nivel.formula,
+                valor: nivel.valor,
+              }, { transaction: t });
+            }
+          }
         }
       }
 
@@ -54,10 +97,9 @@ const obtenerRegistros = async () => {
       "LICENCIAS_id_licencia_original",
       "LICENCIAS_fecha_emisionL_original",
     ],
-
   });
 
-   // Identificar licencias que ya fueron ampliadas
+  // Identificar licencias que ya fueron ampliadas
   const licenciasAmpliadas = new Set(
     tasas
       .filter(
@@ -129,26 +171,25 @@ const obtenerRegistros = async () => {
   datos.sort((a, b) => {
     if (a.registro_general === "En proceso") return -1;
     if (b.registro_general === "En proceso") return 1;
-  // Quitar el prefijo AMP- si lo tiene para comparar la fecha base
-  const cleanA = a.registro_general.replace("AMP-", "");
-  const cleanB = b.registro_general.replace("AMP-", "");
+    // Quitar el prefijo AMP- si lo tiene para comparar la fecha base
+    const cleanA = a.registro_general.replace("AMP-", "");
+    const cleanB = b.registro_general.replace("AMP-", "");
 
-  // Comparar por fecha (string en formato: id + ddmmaaaa)
-  if (cleanA !== cleanB) {
-    return cleanA.localeCompare(cleanB);
-  }
+    // Comparar por fecha (string en formato: id + ddmmaaaa)
+    if (cleanA !== cleanB) {
+      return cleanA.localeCompare(cleanB);
+    }
 
-  // Si son de la misma base, AMP va antes que el registro original
-  const isAmpA = a.registro_general.startsWith("AMP-");
-  const isAmpB = b.registro_general.startsWith("AMP-");
+    // Si son de la misma base, AMP va antes que el registro original
+    const isAmpA = a.registro_general.startsWith("AMP-");
+    const isAmpB = b.registro_general.startsWith("AMP-");
 
-  if (isAmpA && !isAmpB) return -1;
-  if (!isAmpA && isAmpB) return 1;
-  return 0;
-});
+    if (isAmpA && !isAmpB) return -1;
+    if (!isAmpA && isAmpB) return 1;
+    return 0;
+  });
   return datos;
 };
-
 
 //Obtiene datos necesarios para una ampliación
 const obtenerDatosTasaPorId = async (idTasa) => {

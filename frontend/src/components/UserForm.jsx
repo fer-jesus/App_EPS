@@ -281,6 +281,8 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
           <MenuItem value={1}>DIRECTOR</MenuItem>
           <MenuItem value={2}>SUBDIRECTOR</MenuItem>
           <MenuItem value={3}>COORDINADOR</MenuItem>
+          <MenuItem value={5}>DIRECTOR INTERINO</MenuItem>
+          <MenuItem value={6}>SUBDIRECTOR INTERINO</MenuItem>
           <MenuItem value={4}>COORDINADOR INTERINO</MenuItem>
         </TextField>
         <TextField

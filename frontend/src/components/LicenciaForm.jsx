@@ -12,6 +12,7 @@ import axios from "axios";
 
 const LicenciaForm = ({ initialData, onClose, onSubmit }) => {
   const [form, setForm] = useState({
+    boleta_pago: "",
     fechaEmision: "",
     registroGeneral: "",
     fechaVencimiento: "",
@@ -60,10 +61,11 @@ const LicenciaForm = ({ initialData, onClose, onSubmit }) => {
 
       const licencia = response.data;
 
-      // Construir el campo registroGeneral
+      // carga los datos de la licencia en el formulario
       setForm((prev) => ({
         ...prev,
         id_licencia: licencia.id_licencia,
+        boleta_pago: licencia.boleta_pago || "",
         fechaEmision: licencia.fecha_emisionL,
         fechaVencimiento: licencia.fecha_vencimiento,
         rotulo: licencia.rotulo,
@@ -109,8 +111,10 @@ const LicenciaForm = ({ initialData, onClose, onSubmit }) => {
           initialData.fecha_vencimiento || prev.fechaVencimiento,
         rotulo: initialData.rotulo || prev.rotulo,
         registroGeneral: initialData.registroGeneral || prev.registroGeneral,
-        LICENCIAS_id_licencia_ampliacion: initialData.LICENCIAS_id_licencia_ampliacion || "",
-      LICENCIAS_fecha_emisionL_ampliacion: initialData.LICENCIAS_fecha_emisionL_ampliacion || "",
+        LICENCIAS_id_licencia_ampliacion:
+          initialData.LICENCIAS_id_licencia_ampliacion || "",
+        LICENCIAS_fecha_emisionL_ampliacion:
+          initialData.LICENCIAS_fecha_emisionL_ampliacion || "",
       }));
 
       // Guardar el rótulo original para comparar cambios
@@ -180,12 +184,15 @@ const LicenciaForm = ({ initialData, onClose, onSubmit }) => {
           estado: "ACTIVO",
           rotulo: form.rotulo,
           TASAS_id_tasa: form.TASAS_id_tasa,
-          LICENCIAS_id_licencia_ampliacion: form.LICENCIAS_id_licencia_ampliacion,
-          LICENCIAS_fecha_emisionL_ampliacion: form.LICENCIAS_fecha_emisionL_ampliacion 
+          LICENCIAS_id_licencia_ampliacion:
+            form.LICENCIAS_id_licencia_ampliacion,
+          LICENCIAS_fecha_emisionL_ampliacion:
+            form.LICENCIAS_fecha_emisionL_ampliacion,
         });
         const response = await axios.post(
           "http://localhost:3001/api/licencias",
           {
+            boleta_pago: form.boleta_pago,
             fecha_emisionL: form.fechaEmision,
             fecha_vencimiento: form.fechaVencimiento,
             estado: "ACTIVO",
@@ -243,15 +250,15 @@ const LicenciaForm = ({ initialData, onClose, onSubmit }) => {
       <Typography variant="h6" sx={{ textAlign: "center", fontWeight: "bold" }}>
         REGISTRO DE LICENCIA
       </Typography>
-      {/* <TextField
+      <TextField
         label="BOLETA DE PAGO"
-        name="boletaPago"
-        value={form.boletaPago}
+        name="boleta_pago"
+        value={form.boleta_pago}
         onChange={handleChange}
         fullWidth
-        required
+        disabled={!!form.id_licencia}
         inputProps={{ style: { textTransform: "uppercase" } }}
-      /> */}
+      />
       <TextField
         label="FECHA DE EMISION"
         name="fechaEmision"

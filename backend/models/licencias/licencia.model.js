@@ -5,6 +5,10 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       allowNull: false,
     },
+     boleta_pago: {
+      type: DataTypes.STRING(45),
+      allowNull: true
+    },
     fecha_emisionL: {
       type: DataTypes.DATEONLY,
       primaryKey: true,

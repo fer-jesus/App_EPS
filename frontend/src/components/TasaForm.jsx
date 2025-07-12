@@ -29,6 +29,8 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
     cantidadCancelar: "",
     tarifaCambioUso: null,
     esAmpliacion: false,
+    nivelesConstruccion: "",
+    valor50Porc: "",
     LICENCIAS_id_licencia_original: null,
     LICENCIAS_fecha_emisionL_original: null,
   });
@@ -67,101 +69,24 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
     fetchTarifas();
   }, []);
 
-  // Cargar datos iniciales para editar
+  // Calcular valores derivados al cambiar datos del formulario
   useEffect(() => {
-    let valorPorcentaje = "";
-    let totalPresupuesto = 0;
-    let totalCancelar = 0;
-
-    const areaList = formData.areaConstruccion
-      .split("\n")
-      .map((a) => parseFloat(a.trim()))
-      .filter((a) => !isNaN(a));
-
-    const cantDemoMoviList = formData.cantDemoMovi
-      .split("\n")
-      .map((a) => parseFloat(a.trim()))
-      .filter((a) => !isNaN(a));
-
-    const areaListCopy = [...areaList];
-    const cantDemoMoviListCopy = [...cantDemoMoviList];
-
-    formData.tipoConstruccion.forEach((tipo) => {
-      if (!tipo || !tipo.nombre_tarifa) return;
-
-      const nombre = tipo.nombre_tarifa.toUpperCase();
-
-      // Manejar CAMBIO DE USO de manera especial
-      if (nombre === "CAMBIO DE USO O REMODELACIONES") {
-        if (
-          !formData.tarifaCambioUso ||
-          !formData.tarifaCambioUso.TarifaCostoDimension
-        )
-          return;
-
-        const baseCU = parseFloat(
-          formData.tarifaCambioUso.TarifaCostoDimension?.costo_tarifa || 0
-        );
-        const areaCU = areaListCopy.shift();
-
-        if (areaCU && baseCU) {
-          const subtotal1 = areaCU * baseCU;
-          const subtotal2 = subtotal1 * 0.25;
-          const subtotal3 = subtotal2 * 0.035;
-
-          valorPorcentaje += `${areaCU}X${baseCU}=${subtotal1.toLocaleString(
-            "es-GT"
-          )}X25%=${subtotal2
-            .toFixed(2)
-            .toLocaleString("es-GT")}X3.5%=${subtotal3
-            .toFixed(2)
-            .toLocaleString("es-GT")}\n`;
-
-          //totalPresupuesto += subtotal1;
-          totalPresupuesto += subtotal2;
-          totalCancelar += subtotal3;
-        }
-        return;
-      }
-
-      // Manejar otros tipos de construcción
-      if (!tipo.TarifaCostoDimension) return;
-
-      const costo = parseFloat(tipo.TarifaCostoDimension?.costo_tarifa || 0);
-      const porcentaje = parseFloat(tipo.TarifaCostoDimension?.porcentaje || 0);
-
-      const isDemoMovi = ["DEMOLICIÓN", "MOVIMIENTO DE TIERRA"].includes(
-        nombre
-      );
-      const area = isDemoMovi
-        ? cantDemoMoviListCopy.shift()
-        : areaListCopy.shift();
-
-      if (!isNaN(area)) {
-        const subtotal = area * costo;
-        const subtotalPorcentaje = subtotal * (porcentaje / 100);
-        totalPresupuesto += subtotal;
-        totalCancelar += subtotalPorcentaje;
-
-        valorPorcentaje += `${area}X${costo}=${subtotal.toLocaleString(
-          "es-GT"
-        )}X${porcentaje}%=${subtotalPorcentaje
-          .toFixed(2)
-          .toLocaleString("es-GT")}\n`;
-      }
-    });
+    const { valorPorcentaje, valor50Porc, presupuestObra, cantidadCancelar } =
+      calcularTasa(formData);
 
     setFormData((prev) => ({
       ...prev,
-      valorPorcentaje: valorPorcentaje.trim(),
-      presupuestObra: totalPresupuesto.toFixed(2),
-      cantidadCancelar: totalCancelar.toFixed(2),
+      valorPorcentaje,
+      valor50Porc,
+      presupuestObra,
+      cantidadCancelar,
     }));
   }, [
     formData.tipoConstruccion,
     formData.areaConstruccion,
     formData.cantDemoMovi,
     formData.tarifaCambioUso,
+    formData.nivelesConstruccion,
   ]);
 
   // Cargar datos iniciales si se está editando
@@ -176,7 +101,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
 
   useEffect(() => {
     if (initialData) {
-       console.log("initialData en TasaForm:", initialData);
+      console.log("initialData en TasaForm:", initialData);
       setFormData((prev) => ({
         ...prev,
         ...initialData,
@@ -220,17 +145,19 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
         "esAmpliacion",
         "LICENCIAS_id_licencia_original",
         "LICENCIAS_fecha_emisionL_original",
+        "nivelesConstruccion",
+        "valor50Porc",
       ];
 
-       const value = formData[key];
-    const isEmpty = value === null || value === undefined || value === "";
+      const value = formData[key];
+      const isEmpty = value === null || value === undefined || value === "";
 
-    if (isEmpty && !excepciones.includes(key)) {
-      console.log("Campo inválido:", key, "valor:", value);
-      newErrors[key] = true;
-      hasErrors = true;
-    }
-  });
+      if (isEmpty && !excepciones.includes(key)) {
+        console.log("Campo inválido:", key, "valor:", value);
+        newErrors[key] = true;
+        hasErrors = true;
+      }
+    });
 
     if (incluyeCambioUso && !formData.tarifaCambioUso) {
       newErrors.tarifaCambioUso = true;
@@ -258,19 +185,19 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
     }
 
     //Validaciones si es ampliación
-  if (formData.esAmpliacion) {
-    if (
-      !formData.LICENCIAS_id_licencia_original &&
-      formData.LICENCIAS_id_licencia_original !== 0
-    ) {
-      newErrors.LICENCIAS_id_licencia_original = true;
-      hasErrors = true;
+    if (formData.esAmpliacion) {
+      if (
+        !formData.LICENCIAS_id_licencia_original &&
+        formData.LICENCIAS_id_licencia_original !== 0
+      ) {
+        newErrors.LICENCIAS_id_licencia_original = true;
+        hasErrors = true;
+      }
+      if (!formData.LICENCIAS_fecha_emisionL_original) {
+        newErrors.LICENCIAS_fecha_emisionL_original = true;
+        hasErrors = true;
+      }
     }
-    if (!formData.LICENCIAS_fecha_emisionL_original) {
-      newErrors.LICENCIAS_fecha_emisionL_original = true;
-      hasErrors = true;
-    }
-  }
 
     console.log("formData", formData);
 
@@ -282,6 +209,138 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
     } else {
       console.warn("Errores encontrados: ", newErrors);
     }
+  };
+
+  const calcularTasa = (form) => {
+    let valorPorcentaje = "";
+    let valor50Porc = "";
+    let totalPresupuesto = 0;
+    let totalCancelar = 0;
+    const tarifasData = [];
+
+    const areaList = form.areaConstruccion
+      .split("\n")
+      .map((a) => parseFloat(a.trim()))
+      .filter((a) => !isNaN(a));
+
+    const cantDemoList = form.cantDemoMovi
+      .split("\n")
+      .map((a) => parseFloat(a.trim()))
+      .filter((a) => !isNaN(a));
+
+    const nivelesList = (form.nivelesConstruccion || "")
+      .split("\n")
+      .map((a) => parseFloat(a.trim()))
+      .filter((a) => !isNaN(a));
+
+    const areaCopy = [...areaList];
+    const cantCopy = [...cantDemoList];
+
+    for (const tipo of form.tipoConstruccion) {
+      if (!tipo || !tipo.nombre_tarifa) continue;
+
+      const nombre = tipo.nombre_tarifa.toUpperCase();
+
+      const isCambioUso = nombre === "CAMBIO DE USO O REMODELACIONES";
+
+      if (isCambioUso) {
+        const baseCU = parseFloat(
+          form.tarifaCambioUso?.TarifaCostoDimension?.costo_tarifa || 0
+        );
+        const areaCU = areaCopy.shift();
+
+        if (areaCU && baseCU) {
+          const subtotal1 = areaCU * baseCU;
+          const subtotal2 = subtotal1 * 0.25;
+          const subtotal3 = subtotal2 * 0.035;
+
+          totalPresupuesto += subtotal2;
+          totalCancelar += subtotal3;
+
+          valorPorcentaje += `${areaCU}X${baseCU}=${subtotal1.toLocaleString(
+            "es-GT"
+          )}X25%=${subtotal2
+            .toFixed(2)
+            .toLocaleString("es-GT")}X3.5%=${subtotal3
+            .toFixed(2)
+            .toLocaleString("es-GT")}\n`;
+
+          tarifasData.push({
+            TARIFA_id_nombreTarifa: form.tarifaCambioUso.id_nombreTarifa,
+            dimension_construccion: areaCU,
+            formula: `${areaCU} x ${baseCU} x 25% x 3.5%`,
+            valor: subtotal3,
+          });
+        }
+
+        continue;
+      }
+
+      if (!tipo.TarifaCostoDimension) continue;
+
+      const costo = parseFloat(tipo.TarifaCostoDimension.costo_tarifa || 0);
+      const porcentaje = parseFloat(tipo.TarifaCostoDimension.porcentaje || 0);
+
+      const isDemo = ["DEMOLICIÓN", "MOVIMIENTO DE TIERRA"].includes(nombre);
+      const area = isDemo ? cantCopy.shift() : areaCopy.shift();
+
+      if (!isNaN(area)) {
+        const subtotal = area * costo;
+        const valor = subtotal * (porcentaje / 100);
+
+        totalPresupuesto += subtotal;
+        totalCancelar += valor;
+
+        valorPorcentaje += `${area}X${costo}=${subtotal.toLocaleString(
+          "es-GT"
+        )}X${porcentaje}%=${valor.toFixed(2).toLocaleString("es-GT")}\n`;
+
+        tarifasData.push({
+          TARIFA_id_nombreTarifa: tipo.id_nombreTarifa,
+          dimension_construccion: area,
+          formula: `${area} x ${costo} x ${porcentaje}%`,
+          valor,
+        });
+
+        // Calcular niveles adicionales
+        if (
+          tipo.TIPO_CONSTRUCCION_TARIFA_id_tipoConstruccion === 2 ||
+          tipo.TIPO_CONSTRUCCION_TARIFA_id_tipoConstruccion === 3
+        ) {
+          nivelesList.forEach((nivelArea) => {
+            const subtotalNivel = nivelArea * costo;
+            const porcNivel = subtotalNivel * (porcentaje / 100);
+            const valorNivel = porcNivel * 0.5;
+
+            totalPresupuesto += subtotalNivel;
+            totalCancelar += valorNivel;
+
+            valor50Porc += `${nivelArea}X${costo}=${subtotalNivel.toLocaleString(
+              "es-GT"
+            )}X${porcentaje}%=${porcNivel
+              .toFixed(2)
+              .toLocaleString("es-GT")}X50%=${valorNivel
+              .toFixed(2)
+              .toLocaleString("es-GT")}\n`;
+
+            tarifasData.push({
+              TARIFA_id_nombreTarifa: tipo.id_nombreTarifa,
+              dimension_construccion: nivelArea,
+              formula: `${nivelArea} x ${costo} x ${porcentaje}% x 50%`,
+              valor: valorNivel,
+            });
+          });
+        }
+      }
+    }
+
+    return {
+      valorPorcentaje: valorPorcentaje.trim(),
+      valor50Porc: valor50Porc.trim(),
+      presupuestObra: totalPresupuesto.toFixed(2),
+      cantidadCancelar: totalCancelar.toFixed(2),
+      tarifasData,
+    };
   };
 
   const mantenimientoPropietario = async () => {
@@ -363,20 +422,25 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
       }
       await mantenimientoPropietario();
 
+      //const { tarifasData } = calcularTasa(form);
+
       const parseMonedaToFloat = (valor) => {
         if (!valor) return 0;
         return parseFloat(valor.replace(/[Q,\s]/g, ""));
       };
 
-      //Datos para la tasa
+      // Obtener los cálculos desde calcularTasa
+      const { presupuestObra, cantidadCancelar, tarifasData } =
+        calcularTasa(form);
+
       const tasaData = {
         fecha_emisionT: form.fechaRegistro,
         direccion_propiedad: form.direccionExacta,
         alineacion_urban: form.cuentaNoAlineacion === "si",
         anotaciones: form.anotaciones || null,
         cant_dem_movTierra: parseFloat(form.cantDemoMovi) || null,
-        presupuesto_obra: parseMonedaToFloat(form.presupuestObra),
-        cantidad_cancelar: parseMonedaToFloat(form.cantidadCancelar),
+        presupuesto_obra: parseMonedaToFloat(presupuestObra),
+        cantidad_cancelar: parseMonedaToFloat(cantidadCancelar),
         documento: null,
         PROPIETARIOS_cui: parseInt(form.dpi),
         LICENCIAS_id_licencia_original:
@@ -385,67 +449,8 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           form.LICENCIAS_fecha_emisionL_original || null,
       };
 
-      //Tarifas asociadas
-      const tarifasData = [];
-
-      const areaList = form.areaConstruccion
-        .split("\n")
-        .map((a) => parseFloat(a.trim()))
-        .filter((a) => !isNaN(a));
-
-      const cantDemoList = form.cantDemoMovi
-        .split("\n")
-        .map((a) => parseFloat(a.trim()))
-        .filter((a) => !isNaN(a));
-
-      const areaCopy = [...areaList];
-      const cantCopy = [...cantDemoList];
-
-      for (const tipo of form.tipoConstruccion) {
-        const isCambioUso =
-          tipo.nombre_tarifa?.toUpperCase() ===
-          "CAMBIO DE USO O REMODELACIONES";
-
-        if (isCambioUso) {
-          const baseCU = parseFloat(
-            form.tarifaCambioUso?.TarifaCostoDimension?.costo_tarifa || 0
-          );
-          const areaCU = areaCopy.shift();
-          const subtotal1 = areaCU * baseCU;
-          const subtotal2 = subtotal1 * 0.25;
-          const subtotal3 = subtotal2 * 0.035;
-
-          tarifasData.push({
-            TARIFA_id_nombreTarifa: form.tarifaCambioUso.id_nombreTarifa,
-            dimension_construccion: areaCU,
-            formula: `${areaCU} x ${baseCU} x 25% x 3.5%`,
-            valor: subtotal3,
-          });
-        } else if (tipo.TarifaCostoDimension) {
-          const costo = parseFloat(tipo.TarifaCostoDimension.costo_tarifa);
-          const porcentaje = parseFloat(tipo.TarifaCostoDimension.porcentaje);
-          const nombre = tipo.nombre_tarifa?.toUpperCase();
-          const isDemo = ["DEMOLICIÓN", "MOVIMIENTO DE TIERRA"].includes(
-            nombre
-          );
-
-          const area = isDemo ? cantCopy.shift() : areaCopy.shift();
-          const subtotal = area * costo;
-          const valor = subtotal * (porcentaje / 100);
-
-          tarifasData.push({
-            TARIFA_id_nombreTarifa: tipo.id_nombreTarifa,
-            dimension_construccion: area,
-            formula: `${area} x ${costo} x ${porcentaje}%`,
-            valor,
-          });
-        }
-      }
-
-      //Envio al backend
       const payload = { tasaData, tarifasData };
       console.log("Datos a enviar:", payload);
-      console.log("Enviando tasaData:", tasaData);
 
       const response = await axios.post(
         "http://localhost:3001/api/tasas",
@@ -614,6 +619,22 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           multiline
           error={Boolean(errors.areaConstruccion)}
         />
+        {formData.tipoConstruccion.some(
+          (t) =>
+            t.TIPO_CONSTRUCCION_TARIFA_id_tipoConstruccion === 2 ||
+            t.TIPO_CONSTRUCCION_TARIFA_id_tipoConstruccion === 3
+        ) && (
+          <TextField
+            label="ÁREA DE SEGUNDO NIVEL O MÁS"
+            name="nivelesConstruccion"
+            value={formData.nivelesConstruccion}
+            onChange={handleChange}
+            fullWidth
+            multiline
+            margin="normal"
+            //placeholder="Ej: 80\n75\n60"
+          />
+        )}
         <TextField
           name="cantDemoMovi"
           label={getLabel(
@@ -625,6 +646,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           fullWidth
           multiline
         />
+
         <TextField
           name="valorPorcentaje"
           label={getLabel(
@@ -638,6 +660,24 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           multiline
           error={Boolean(errors.valorPorcentaje)}
         />
+        {formData.tipoConstruccion.some(
+          (t) =>
+            t.TIPO_CONSTRUCCION_TARIFA_id_tipoConstruccion === 2 ||
+            t.TIPO_CONSTRUCCION_TARIFA_id_tipoConstruccion === 3
+        ) && (
+          <TextField
+            label="50% DEL VALOR DE LA LICENCIA SEGÚN LOS PLANOS PRESENTADOS DEL SEGUNDO NIVEL O MÁS NIVELES"
+            name="valor50Porc"
+            value={formData.valor50Porc}
+            fullWidth
+            margin="normal"
+            multiline
+            disabled
+            InputProps={{
+              readOnly: true,
+            }}
+          />
+        )}
         <TextField
           name="presupuestObra"
           label={getLabel("presupuestObra", "PRESUPUESTO DE LA OBRA")}
