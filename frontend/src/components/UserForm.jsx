@@ -104,13 +104,18 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
     }
 
     // Validación de contraseñas solo si estamos en modo creación
-    if (
-      !initialData?.id_usuario &&
-      formData.contraseña &&
-      formData.valContraseña &&
-      formData.contraseña !== formData.valContraseña
-    ) {
-      newErrors.valContraseña = "Las contraseñas no coinciden";
+    // if (
+    //   !initialData?.id_usuario &&
+    //   formData.contraseña &&
+    //   formData.valContraseña &&
+    //   formData.contraseña !== formData.valContraseña
+    // ) {
+    //   newErrors.valContraseña = "Las contraseñas no coinciden";
+    // }
+    if (formData.contraseña || formData.valContraseña) {
+      if (formData.contraseña !== formData.valContraseña) {
+        newErrors.valContraseña = "Las contraseñas no coinciden";
+      }
     }
 
     setErrors(newErrors);
@@ -187,7 +192,8 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
           // Crear nuevo usuario
           const response = await axios.post(
             "http://localhost:3001/api/crearusuarios",
-            payload, headers
+            payload,
+            headers
             // {
             //   headers: {
             //     "x-user-id": JSON.parse(localStorage.getItem("user"))
@@ -195,7 +201,7 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
             //   },
             // }
           );
-          
+
           console.log("Usuario creado con ID:", response.data);
           payload.id_usuario = response.data.id;
           onSubmit(payload); // Llamada a onSubmit con el nuevo usuario
@@ -203,6 +209,16 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
         }
       } catch (error) {
         console.error("Error al enviar datos:", error);
+        if (error.response?.status === 409) {
+          onClose();
+          Swal.fire({
+            icon: "error",
+            title: "Correo ya registrado",
+            text: "Por favor usa otro correo electrónico.",
+          });
+        } else {
+          alert("Error al enviar datos. Por favor, inténtalo de nuevo.");
+        }
       }
     }
   };
@@ -338,35 +354,42 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
           required
           error={Boolean(errors.correo)}
         />
-        {!initialData?.id_usuario && (
-          <>
-            <TextField
-              type="password"
-              name="contraseña"
-              label={getLabel("contraseña", "Contraseña")}
-              value={formData.contraseña || ""}
-              onChange={handleChange}
-              fullWidth
-              required
-              error={Boolean(errors.contraseña)}
-            />
+        {/* {!initialData?.id_usuario && (
+          )} */}
+        <>
+          <TextField
+            type="password"
+            name="contraseña"
+            label={
+              initialData?.id_usuario
+                ? "Nueva contraseña (opcional)"
+                : getLabel("contraseña", "Contraseña")
+            }
+            value={formData.contraseña}
+            onChange={handleChange}
+            fullWidth
+            //required
+            error={Boolean(errors.contraseña)}
+          />
 
-            <TextField
-              type="password"
-              name="valContraseña"
-              label={
-                errors.valContraseña === "Las contraseñas no coinciden"
-                  ? "Las contraseñas no coinciden"
-                  : getLabel("valContraseña", "Valida la contraseña")
-              }
-              value={formData.valContraseña || ""}
-              onChange={handleChange}
-              fullWidth
-              required
-              error={Boolean(errors.valContraseña)}
-            />
-          </>
-        )}
+          <TextField
+            type="password"
+            name="valContraseña"
+            label={
+              errors.valContraseña === "Las contraseñas no coinciden"
+                ? "Las contraseñas no coinciden"
+                : initialData?.id_usuario
+                ? "Confirmar nueva contraseña (opcional)"
+                : getLabel("valContraseña", "Valida la contraseña")
+            }
+            value={formData.valContraseña}
+            onChange={handleChange}
+            fullWidth
+            //required
+            error={Boolean(errors.valContraseña)}
+          />
+        </>
+
         <Stack direction="row" spacing={2} justifyContent="center">
           <Button onClick={onClose} variant="outlined">
             Cancelar

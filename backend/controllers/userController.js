@@ -4,7 +4,7 @@ const {
   createUsuario,
   updateUsuario,
   deleteUsuario,
-  actualizarEstadoEnFuncion:  updateEnFunciones
+  actualizarEstadoEnFuncion: updateEnFunciones,
 } = require("../models/usuario/usuario.service");
 
 const getAllUsers = async (req, res) => {
@@ -13,7 +13,9 @@ const getAllUsers = async (req, res) => {
     res.json({ success: true, usuarios });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, error: "Error al obtener usuarios" });
+    res
+      .status(500)
+      .json({ success: false, error: "Error al obtener usuarios" });
   }
 };
 
@@ -21,7 +23,9 @@ const getUserById = async (req, res) => {
   try {
     const usuario = await getUsuarioById(req.params.id);
     if (!usuario) {
-      return res.status(404).json({ success: false, error: "Usuario no encontrado" });
+      return res
+        .status(404)
+        .json({ success: false, error: "Usuario no encontrado" });
     }
     res.json({ success: true, usuario });
   } catch (error) {
@@ -31,15 +35,18 @@ const getUserById = async (req, res) => {
 };
 
 const createUser = async (req, res) => {
-
   try {
-    
     const id_usuario = await createUsuario(req.body);
-    
-    res.json({ success: true, id_usuario });  
+    res.status(201).json({ id_usuario });
+
+    //res.json({ success: true, id_usuario });
   } catch (error) {
     console.error("Error al crear usuario:", error);
-    res.status(500).json({ success: false, error: "Error al crear usuario" });
+    if (error.statusCode === 409) {
+      return res.status(409).json({ error: "Correo ya registrado" });
+    }
+
+    res.status(500).json({ success: false, error: "Error del servidor" });
   }
 };
 
@@ -47,14 +54,18 @@ const updateUser = async (req, res) => {
   try {
     const { id_usuario } = req.params;
     if (!id_usuario || id_usuario.toLowerCase() === "null") {
-      return res.status(400).json({ success: false, error: "ID de usuario no válido" });
+      return res
+        .status(400)
+        .json({ success: false, error: "ID de usuario no válido" });
     }
 
     await updateUsuario(id_usuario, req.body);
     res.status(200).json({ message: "Usuario actualizado correctamente" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, error: "Error al actualizar usuario" });
+    res
+      .status(500)
+      .json({ success: false, error: "Error al actualizar usuario" });
   }
 };
 
@@ -85,7 +96,7 @@ const actualizarEstadoEnFuncion = async (req, res) => {
     let { en_funciones } = req.body;
 
     en_funciones = en_funciones ? 1 : 0;
-    await  updateEnFunciones(id_usuario, en_funciones);
+    await updateEnFunciones(id_usuario, en_funciones);
 
     res.json({
       success: true,
@@ -94,10 +105,11 @@ const actualizarEstadoEnFuncion = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, error: "Error al actualizar estado" });
+    res
+      .status(500)
+      .json({ success: false, error: "Error al actualizar estado" });
   }
 };
-
 
 module.exports = {
   getAllUsers,
@@ -105,5 +117,5 @@ module.exports = {
   createUser,
   updateUser,
   deleteUser,
-  actualizarEstadoEnFuncion
+  actualizarEstadoEnFuncion,
 };

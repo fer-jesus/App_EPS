@@ -77,7 +77,7 @@ const Login = () => {
             id_usuario: usuario.id_usuario,
             nombre: usuario.nombre,
             rol: usuario.rol,
-            correo: usuario.correo, 
+            correo: usuario.correo,
             token: res.data.token,
           });
 
@@ -97,6 +97,36 @@ const Login = () => {
     } catch (error) {
       console.error("Error:", error.response?.data || error.message);
       setShowErrorAlert(true);
+    }
+  };
+
+  const handleRecoverPassword = async () => {
+    if (!email || !email.includes("@")) {
+      setEmailError(true);
+      return;
+    }
+
+    try {
+      await axios.post("http://localhost:3001/api/recoverpass", {
+        correo: email,
+      });
+
+      Swal.fire(
+        "¡Listo!",
+        "Hemos enviado una contraseña temporal a tu correo.",
+        "success"
+      );
+    } catch (error) {
+      console.error("Error al recuperar contraseña:", error);
+      Swal.fire(
+        "Error",
+        "No se pudo enviar el correo de recuperación.",
+        "error"
+      );
+    } finally {
+      setOpenModal(false);
+      setEmail("");
+      setEmailError(false);
     }
   };
 
@@ -273,21 +303,7 @@ const Login = () => {
             >
               Cancelar
             </Button>
-            <Button
-              onClick={() => {
-                if (!email || !email.includes("@")) {
-                  setEmailError(true);
-                  return;
-                }
-                // llamada al backend
-                alert(`Correo de recuperación enviado a: ${email}`);
-                setOpenModal(false);
-                setEmail("");
-                setEmailError(false);
-              }}
-            >
-              Enviar
-            </Button>
+            <Button onClick={handleRecoverPassword}>Enviar</Button>
           </DialogActions>
         </Dialog>
       </Paper>
