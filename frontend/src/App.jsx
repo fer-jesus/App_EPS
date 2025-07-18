@@ -3,6 +3,7 @@ import ProtectedRoute from "./routes/ProtectedRoute";
 import Login from './pages/Login';
 import Menu from './pages/Menu';
 import Registros from './pages/Register';
+import Nomenclaturas from './pages/Nomenclaturas';
 import Usuarios from './pages/Usuarios';
 import Tarifas from './pages/Tarifas';
 //import TasaForm from './pages/TasaForm';
@@ -19,6 +20,7 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/menu" element={ <ProtectedRoute><Menu /></ProtectedRoute>} />
         <Route path="/registros" element={<ProtectedRoute><Registros /></ProtectedRoute>} />
+        <Route path="/nomenclaturas" element={<ProtectedRoute><Nomenclaturas /></ProtectedRoute>} />
          <Route path="/reportes" element={<ProtectedRoute><Reportes /></ProtectedRoute>} />
         <Route path="/usuarios" element={<ProtectedRoute><Usuarios /></ProtectedRoute>} />
         <Route path="/tarifas" element={<ProtectedRoute><Tarifas /></ProtectedRoute>} />

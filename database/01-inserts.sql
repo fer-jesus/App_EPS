@@ -160,6 +160,13 @@ INSERT INTO TARIFA_COSTO_DIMENSION (TARIFA_id_nombreTarifa, costo_tarifa, unidad
 INSERT INTO TARIFA_COSTO_PROYECTO (TARIFA_id_nombreTarifa, porcentaje_costoProyecto, porcentaje)
 VALUES (28, 25.00, 3.50); 
 
+INSERT INTO TIPO_NOMENCLATURA (id_tipoNomenclatura, tipo_nomenclatura)
+VALUES 
+  (1, 'NORMAL'),
+  (2, 'IUSI'),
+  (3, 'JALAPAGUA'),
+  (4, 'EMPRESA ELECTRICA');
+
 
 
 -- Tarifas actualizadas

@@ -169,7 +169,7 @@ const Registros = () => {
       field: "registro_general",
       headerName: "REGISTRO. G",
       flex: 1,
-      minWidth: 100,
+      minWidth: 150,
     },
     {
       field: "nombrePropietario",
@@ -228,32 +228,36 @@ const Registros = () => {
       }
     },
 
-    {
-      field: "nomenclatura",
-      headerName: "NOMENCLATURA",
-      flex: 1,
-      minWidth: 150,
-      renderCell: (params) => (
-        <Box display="flex" gap={1}>
-          <IconButton
-            size="small"
-            color="primary"
-            onClick={() => console.log("Editar NOMENCLATURA", params.row)}
-          >
-            <EditIcon fontSize="small" />
-          </IconButton>
-          <IconButton size="small" disabled>
-            <VisibilityIcon fontSize="small" color="disabled" />
-          </IconButton>
-        </Box>
-      ),
-    },
+    // {
+    //   field: "nomenclatura",
+    //   headerName: "NOMENCLATURA",
+    //   flex: 1,
+    //   minWidth: 150,
+    //   renderCell: (params) => (
+    //     <Box display="flex" gap={1}>
+    //       <IconButton
+    //         size="small"
+    //         color="primary"
+    //         onClick={() => console.log("Editar NOMENCLATURA", params.row)}
+    //       >
+    //         <EditIcon fontSize="small" />
+    //       </IconButton>
+    //       <IconButton size="small" disabled>
+    //         <VisibilityIcon fontSize="small" color="disabled" />
+    //       </IconButton>
+    //     </Box>
+    //   ),
+    // },
   ];
 
-  // Filtro
-  const filteredRows = tasas.filter((row) =>
-    row.nombrePropietario?.toLowerCase().includes(search.toLowerCase())
+  // Filtrar filas según el término de búsqueda
+  const filteredRows = tasas.filter((row) => {
+  const searchLower = search.toLowerCase();
+  return (
+    row.nombrePropietario?.toLowerCase().includes(searchLower) ||
+    row.registro_general?.toLowerCase().includes(searchLower)
   );
+});
 
   return (
     <>

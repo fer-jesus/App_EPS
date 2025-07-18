@@ -74,6 +74,9 @@ const AppNavbar = () => {
       <ListItem button onClick={() => handleNavigate("/registros")}>
         <ListItemText primary="Registros" />
       </ListItem>
+       <ListItem button onClick={() => handleNavigate("/nomenclaturas")}>
+        <ListItemText primary="Nomenclaturas" />
+      </ListItem>
       <ListItem button onClick={() => handleNavigate("/reportes")}>
         <ListItemText primary="Reportes" />
       </ListItem>
@@ -149,6 +152,12 @@ const AppNavbar = () => {
                   onClick={() => handleNavigate("/registros")}
                 >
                   Registros
+                </Button>
+                <Button
+                  color="inherit"
+                  onClick={() => handleNavigate("/nomenclaturas")}
+                >
+                  Nomenclaturas
                 </Button>
                 <Button
                   color="inherit"

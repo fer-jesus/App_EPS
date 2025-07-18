@@ -10,6 +10,7 @@ const tarifaRoutes = require ('./routes/tarifaRoutes');
 const tasaRoutes = require("./routes/tasaRoutes");
 const propietarioRoutes = require('./routes/propietarioRoutes');
 const licenciaRoutes = require('./routes/licenciaRoutes');
+const nomenclaturaRoutes = require('./routes/nomenclaturaRoutes');
 
 // Configuración de middlewares
 app.use(cors({
@@ -44,6 +45,7 @@ app.use('/api/tarifas', tarifaRoutes);
 app.use("/api/tasas", tasaRoutes);
 app.use('/api/propietarios', propietarioRoutes);
 app.use('/api/licencias', licenciaRoutes);
+app.use('/api/nomenclaturas', nomenclaturaRoutes);
 
 // Ruta de prueba
 app.get('/', (req, res) => {
