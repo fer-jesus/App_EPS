@@ -33,6 +33,7 @@ const verificarCredenciales = async (correo, contrasena) => {
   return {
     ...usuario.toJSON(),
     nombre_rol: usuario.Rol?.RolNombre?.nombre || null,
+    es_contrasena_temporal: usuario.es_contrasena_temporal,
   };
 };
 
@@ -51,7 +52,6 @@ const getAllUsuarios = async () => {
           {
             model: RolNombre,
             as: "RolNombres",
-            //where: { sexo: sequelize.col("Usuario.sexo") },
             required: false,
           },
         ],
@@ -195,7 +195,7 @@ const actualizarEstadoEnFuncion = async (id, en_funciones) => {
 };
 
 const resetPassword = async (correo) => {
-  const tempPassword = crypto.randomBytes(6).toString("base64url"); // ejemplo: vDk7x4Ws
+  const tempPassword = crypto.randomBytes(6).toString("base64url"); 
   const hashedPassword = await bcrypt.hash(tempPassword, 10);
 
   // Update directo usando Sequelize
@@ -212,6 +212,25 @@ const resetPassword = async (correo) => {
   return tempPassword;
 };
 
+const cambiarContrasena = async (id_usuario, contrasena_actual, nueva_contrasena) => {
+  const usuario = await Usuario.findByPk(id_usuario);
+
+  if (!usuario) return { success: false, error: "Usuario no encontrado" };
+
+   // Solo validar si se proporcionó contraseña actual
+  if (contrasena_actual) {
+    const coincide = await bcrypt.compare(contrasena_actual, usuario.contrasena);
+    if (!coincide) return { success: false, error: "Contraseña actual incorrecta" };
+  }
+
+  const nuevaHash = await bcrypt.hash(nueva_contrasena, 10);
+  usuario.contrasena = nuevaHash;
+  usuario.es_contrasena_temporal = false;
+  await usuario.save();
+
+  return { success: true };
+};
+
 module.exports = {
   verificarCredenciales,
   getAllUsuarios,
@@ -221,4 +240,5 @@ module.exports = {
   deleteUsuario,
   actualizarEstadoEnFuncion,
   resetPassword,
+  cambiarContrasena,
 };

@@ -9,7 +9,8 @@ const jwtMiddleware = {
         id_usuario: usuario.id_usuario,
         correo: usuario.correo,
         rol: usuario.nombre_rol,
-        unidad: usuario.unidad
+        unidad: usuario.unidad,
+        es_contrasena_temporal: usuario.es_contrasena_temporal 
       },
       process.env.SECRET_JWT_KEY,
       { expiresIn: '1h' } 

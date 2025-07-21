@@ -72,3 +72,4 @@ button:focus-visible {
   }
 }
 
+@import "leaflet/dist/leaflet.css";

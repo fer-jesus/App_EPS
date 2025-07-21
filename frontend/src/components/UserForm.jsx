@@ -354,42 +354,41 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
           required
           error={Boolean(errors.correo)}
         />
-        {/* {!initialData?.id_usuario && (
-          )} */}
-        <>
-          <TextField
-            type="password"
-            name="contraseña"
-            label={
-              initialData?.id_usuario
-                ? "Nueva contraseña (opcional)"
-                : getLabel("contraseña", "Contraseña")
-            }
-            value={formData.contraseña}
-            onChange={handleChange}
-            fullWidth
-            //required
-            error={Boolean(errors.contraseña)}
-          />
+        {!initialData?.id_usuario && (
+          <>
+            <TextField
+              type="password"
+              name="contraseña"
+              label={
+                initialData?.id_usuario
+                  ? "Nueva contraseña (opcional)"
+                  : getLabel("contraseña", "Contraseña")
+              }
+              value={formData.contraseña}
+              onChange={handleChange}
+              fullWidth
+              //required
+              error={Boolean(errors.contraseña)}
+            />
 
-          <TextField
-            type="password"
-            name="valContraseña"
-            label={
-              errors.valContraseña === "Las contraseñas no coinciden"
-                ? "Las contraseñas no coinciden"
-                : initialData?.id_usuario
-                ? "Confirmar nueva contraseña (opcional)"
-                : getLabel("valContraseña", "Valida la contraseña")
-            }
-            value={formData.valContraseña}
-            onChange={handleChange}
-            fullWidth
-            //required
-            error={Boolean(errors.valContraseña)}
-          />
-        </>
-
+            <TextField
+              type="password"
+              name="valContraseña"
+              label={
+                errors.valContraseña === "Las contraseñas no coinciden"
+                  ? "Las contraseñas no coinciden"
+                  : initialData?.id_usuario
+                  ? "Confirmar nueva contraseña (opcional)"
+                  : getLabel("valContraseña", "Valida la contraseña")
+              }
+              value={formData.valContraseña}
+              onChange={handleChange}
+              fullWidth
+              //required
+              error={Boolean(errors.valContraseña)}
+            />
+          </>
+        )}
         <Stack direction="row" spacing={2} justifyContent="center">
           <Button onClick={onClose} variant="outlined">
             Cancelar

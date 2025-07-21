@@ -1,8 +1,11 @@
-const { verificarCredenciales, resetPassword } = require("../models/usuario/usuario.service");
-const jwtMiddleware = require('../middleware/jwtMiddleware');
+const {
+  verificarCredenciales,
+  resetPassword,
+  cambiarContrasena,
+} = require("../models/usuario/usuario.service");
+const jwtMiddleware = require("../middleware/jwtMiddleware");
 const nodemailer = require("nodemailer");
 require("dotenv").config();
-
 
 const login = async (req, res) => {
   const { username, password } = req.body;
@@ -13,22 +16,21 @@ const login = async (req, res) => {
     if (!usuario) {
       return res.status(401).json({
         success: false,
-        error: "Credenciales incorrectas"
+        error: "Credenciales incorrectas",
       });
     }
-    
-// let roles = usuario.Rol.RolNombres;
-// const rolEncontrado = roles.find(rol => rol.dataValues.sexo === usuario.sexo);
-const nombreRol = usuario.Rol && usuario.Rol.RolNombres
-  ? usuario.Rol.RolNombres.find(rn => rn.sexo === usuario.sexo)?.nombre_rol
-  : null;
+
+    const nombreRol =
+      usuario.Rol && usuario.Rol.RolNombres
+        ? usuario.Rol.RolNombres.find((rn) => rn.sexo === usuario.sexo)
+            ?.nombre_rol
+        : null;
 
     // Generar token JWT
     const token = jwtMiddleware.generateToken({
       ...usuario,
-      nombre_rol: nombreRol
+      nombre_rol: nombreRol,
     });
-
 
     res.json({
       success: true,
@@ -41,14 +43,15 @@ const nombreRol = usuario.Rol && usuario.Rol.RolNombres
         //rol: rolEncontrado,
         ROL_id_rol: usuario.ROL_id_rol,
         unidad: usuario.unidad,
-        fecha_de_baja: usuario.fecha_de_baja
-      }
+        fecha_de_baja: usuario.fecha_de_baja,
+        es_contrasena_temporal: usuario.es_contrasena_temporal,
+      },
     });
   } catch (error) {
     console.error("Error en login:", error);
     res.status(500).json({
       success: false,
-      error: "Error en el servidor"
+      error: "Error en el servidor",
     });
   }
 };
@@ -83,16 +86,42 @@ const recuperarContrasena = async (req, res) => {
       `,
     });
 
-    res.json({ success: true, message: "Contraseña temporal enviada por correo." });
-
+    res.json({
+      success: true,
+      message: "Contraseña temporal enviada por correo.",
+    });
   } catch (error) {
     console.error("Error al recuperar contraseña:", error);
     res.status(500).json({
       success: false,
-      error: "No se pudo recuperar la contraseña. Verifica el correo electrónico.",
+      error:
+        "No se pudo recuperar la contraseña. Verifica el correo electrónico.",
     });
   }
 };
 
+const actualizarContrasena = async (req, res) => {
+  const { id_usuario } = req.user; // viene del token (middleware authenticate)
+  const { nueva_contrasena } = req.body;
 
-module.exports = { login, recuperarContrasena };
+  try {
+    const resultado = await cambiarContrasena(
+      id_usuario,
+      null,
+      nueva_contrasena
+    );
+    if (!resultado.success) {
+      return res.status(400).json({ success: false, error: resultado.error });
+    }
+
+    res.json({
+      success: true,
+      message: "Contraseña actualizada correctamente.",
+    });
+  } catch (error) {
+    console.error("Error al cambiar contraseña:", error);
+    res.status(500).json({ success: false, error: "Error del servidor" });
+  }
+};
+
+module.exports = { login, recuperarContrasena, actualizarContrasena };

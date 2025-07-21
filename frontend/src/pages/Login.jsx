@@ -57,28 +57,22 @@ const Login = () => {
 
     try {
       // Llamada a la API para autenticar al usuario
-      const res = await axios.post("http://localhost:3001/api/login", {
+      const res = await axios.post("http://localhost:3001/api/auth/login", {
         username: user,
         password: pass,
       });
-      // // Verificar la respuesta de la API
-      // if (res.data.success) {
-      //   // Si la autenticación es exitosa, redirigir al menú
-      //   navigate("/menu");
-      // } else {
-      //   // Si la autenticación falla, mostrar un mensaje de error
-      //   setShowErrorAlert(true);
-      // }
+      // Si la respuesta es exitosa, se procesa el login
       if (res.data.success) {
         const usuario = res.data.usuario;
 
         if (usuario.fecha_de_baja === null) {
           login({
+            token: res.data.token,
             id_usuario: usuario.id_usuario,
             nombre: usuario.nombre,
             rol: usuario.rol,
             correo: usuario.correo,
-            token: res.data.token,
+            es_contrasena_temporal: usuario.es_contrasena_temporal,
           });
 
           navigate("/menu");
@@ -107,7 +101,7 @@ const Login = () => {
     }
 
     try {
-      await axios.post("http://localhost:3001/api/recoverpass", {
+      await axios.post("http://localhost:3001/api/auth/recoverpass", {
         correo: email,
       });
 
