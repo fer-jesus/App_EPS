@@ -6,7 +6,7 @@ import Registros from './pages/Register';
 import Nomenclaturas from './pages/Nomenclaturas';
 import Usuarios from './pages/Usuarios';
 import Tarifas from './pages/Tarifas';
-import Maps from './pages/Maps';
+//import Maps from './pages/Maps';
 //import TasaForm from './pages/TasaForm';
 import Reportes from './pages/Reportes';
 import LicenciaHistorial from './pages/LicenciaHistorial';
@@ -25,7 +25,7 @@ function App() {
         <Route path="/reportes" element={<ProtectedRoute><Reportes /></ProtectedRoute>} />
         <Route path="/usuarios" element={<ProtectedRoute><Usuarios /></ProtectedRoute>} />
         <Route path="/tarifas" element={<ProtectedRoute><Tarifas /></ProtectedRoute>} />
-        <Route path="/maps" element={<ProtectedRoute><Maps /></ProtectedRoute>} />
+        {/* <Route path="/maps" element={<ProtectedRoute><Maps /></ProtectedRoute>} /> */}
         <Route path="/historial-tasas" element={<TasaHistorial />} />
         <Route path="/historial-licencias" element={<ProtectedRoute><LicenciaHistorial /></ProtectedRoute>} />
          <Route path="/historial-nomenclaturas" element={<ProtectedRoute><NomenclaturaHistorial /></ProtectedRoute>} />

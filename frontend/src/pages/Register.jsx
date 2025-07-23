@@ -7,12 +7,16 @@ import {
   Button,
   DialogContent,
   Dialog,
+  DialogTitle,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import EditIcon from "@mui/icons-material/Edit";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import IconButton from "@mui/material/IconButton";
 import AssignmentIcon from "@mui/icons-material/Assignment";
+import CloseIcon from "@mui/icons-material/Close";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import MapaLeaflet from "../components/MapaLeaflet";
 import AppNavbar from "../components/AppNavBar";
 import Swal from "sweetalert2";
 import TasaForm from "../components/TasaForm";
@@ -25,6 +29,9 @@ const Registros = () => {
   const [selectedTasa, setSelectedTasa] = useState(null);
   const [openLicenciaDialog, setOpenLicenciaDialog] = useState(false);
   const [selectedLicencia, setSelectedLicencia] = useState(null);
+  const [openMapa, setOpenMapa] = useState(false);
+  const [coordenadasSeleccionadas, setCoordenadasSeleccionadas] =
+    useState(null);
   const [search, setSearch] = useState("");
   const token = localStorage.getItem("token");
 
@@ -49,52 +56,50 @@ const Registros = () => {
           tasa.LICENCIAS_id_licencia_original || null,
         LICENCIAS_fecha_emisionL_original:
           tasa.LICENCIAS_fecha_emisionL_original || null,
+        latitud: tasa.latitud || null,
+        longitud: tasa.longitud || null,
+        direccion_propiedad: tasa.direccion_propiedad || "",
       }));
       setTasas(datos);
     } catch (error) {
       console.error("Error al cargar tasas:", error);
     }
   };
+
   useEffect(() => {
     fetchTasas();
   }, []);
 
-  // Función para abrir el modal
+  // Funciones para abrir/cerrar modales y guardar datos
   const handleOpen = (tasa = null) => {
     setSelectedTasa(tasa);
     setOpenDialog(true);
   };
 
-  // Función para crear la tasa
   const handleSaveTasa = async () => {
     await fetchTasas();
     setOpenDialog(false);
   };
 
-  // Función para cerrar el modal
   const handleClose = () => {
     setSelectedTasa(null);
     setOpenDialog(false);
   };
 
-  // Función para abrir el modal de licencia
   const handleOpenLicencia = async (tasa) => {
     try {
       const response = await axios.get(
         `http://localhost:3001/api/licencias/datos-tasa/${tasa.id}`,
-
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      console.log("Datos licencia recibidos:", response.data);
 
       setSelectedLicencia({
         ...response.data,
         TASAS_id_tasa: tasa.id,
-
         LICENCIAS_id_licencia_ampliacion:
           tasa.LICENCIAS_id_licencia_original || null,
         LICENCIAS_fecha_emisionL_ampliacion:
@@ -137,18 +142,12 @@ const Registros = () => {
       );
 
       const datosTasa = response.data;
-      console.log("Ampliación - datos recibidos:", datosTasa);
-      console.log("Datos para ampliación:", {
-        ...datosTasa,
-        id_licencia: datosTasa.LICENCIAS_id_licencia_original,
-        fecha_emisionL: datosTasa.LICENCIAS_fecha_emisionL_original,
-      });
       handleOpen({
         direccionExacta: datosTasa.direccionExacta || "",
         nombrePropietario: datosTasa.nombrePropietario || "",
         dpi: datosTasa.dpi || "",
         fechaRegistro: new Date().toISOString().split("T")[0],
-        esAmpliacion: true, // se usará dentro de TasaForm
+        esAmpliacion: true,
         LICENCIAS_id_licencia_original:
           datosTasa.LICENCIAS_id_licencia_original,
         LICENCIAS_fecha_emisionL_original:
@@ -162,6 +161,72 @@ const Registros = () => {
         text: "No se pudo obtener los datos para la ampliación.",
       });
     }
+  };
+
+  const coordenadasValidas = (latitud, longitud) => {
+    if (
+      latitud === null ||
+      longitud === null ||
+      latitud === "" ||
+      longitud === ""
+    ) {
+      return false;
+    }
+
+    // Eliminar espacios en blanco antes y después
+    const latStr = latitud.toString().trim();
+    const lngStr = longitud.toString().trim();
+
+    const lat = Number(latStr);
+    const lng = Number(lngStr);
+
+    return Number.isFinite(lat) && Number.isFinite(lng);
+  };
+
+  // Función render para la celda "tasa"
+  const renderCellTasa = (params) => {
+    const row = params.row;
+    console.log("latitud:", row.latitud, "longitud:", row.longitud);
+    const yaAmpliada = row.registro_general?.startsWith("AMP-");
+    const tieneCoordenadas = coordenadasValidas(row.latitud, row.longitud);
+
+    return (
+      <Box display="flex" gap={1}>
+        <IconButton
+          size="small"
+          onClick={() => handleAmpliacionClick(row)}
+          disabled={yaAmpliada}
+          sx={{
+            color: yaAmpliada ? "inherit" : "#1e4d6b",
+          }}
+        >
+          <AssignmentIcon fontSize="small" />
+        </IconButton>
+        <IconButton size="small" disabled>
+          <VisibilityIcon fontSize="small" color="disabled" />
+        </IconButton>
+        {tieneCoordenadas && (
+          <IconButton
+            size="small"
+            onClick={() => {
+              console.log("Coordenadas y dirección:", {
+                latitud: Number(row.latitud.toString().trim()),
+                longitud: Number(row.longitud.toString().trim()),
+                direccion_propiedad: row.direccion_propiedad || "",
+              });
+              setCoordenadasSeleccionadas({
+                latitud: Number(row.latitud.toString().trim()),
+                longitud: Number(row.longitud.toString().trim()),
+                direccion_propiedad: row.direccion_propiedad || "",
+              });
+              setOpenMapa(true);
+            }}
+          >
+            <LocationOnIcon fontSize="small" sx={{ color: "#a83248" }} />
+          </IconButton>
+        )}
+      </Box>
+    );
   };
 
   const columns = [
@@ -182,18 +247,26 @@ const Registros = () => {
       headerName: "TASA",
       flex: 1,
       minWidth: 150,
-
+      renderCell: renderCellTasa,
+    },
+    {
+      field: "licencia",
+      headerName: "LICENCIA",
+      flex: 1,
+      minWidth: 130,
       renderCell: (params) => {
         const yaAmpliada = params.row.registro_general?.startsWith("AMP-");
         return (
           <Box display="flex" gap={1}>
             <IconButton
               size="small"
-              color="primary"
-              onClick={() => handleAmpliacionClick(params.row)}
+              onClick={() => handleOpenLicencia(params.row)}
               disabled={yaAmpliada}
+              sx={{
+                color: yaAmpliada ? "inherit" : "#1e6b3d", // verde elegante
+              }}
             >
-              <AssignmentIcon fontSize="small" />
+              <EditIcon fontSize="small" />
             </IconButton>
             <IconButton size="small" disabled>
               <VisibilityIcon fontSize="small" color="disabled" />
@@ -202,62 +275,16 @@ const Registros = () => {
         );
       },
     },
-
-    {
-      field: "licencia",
-      headerName: "LICENCIA",
-      flex: 1,
-      minWidth: 130,
-      renderCell: (params) => {
-         const yaAmpliada = params.row.registro_general?.startsWith("AMP-");
-         return (
-        <Box display="flex" gap={1}>
-          <IconButton
-            size="small"
-            color="primary"
-            onClick={() => handleOpenLicencia(params.row)}
-            disabled={yaAmpliada}
-          >
-            <EditIcon fontSize="small" />
-          </IconButton>
-          <IconButton size="small" disabled>
-            <VisibilityIcon fontSize="small" color="disabled" />
-          </IconButton>
-        </Box>
-      );
-      }
-    },
-
-    // {
-    //   field: "nomenclatura",
-    //   headerName: "NOMENCLATURA",
-    //   flex: 1,
-    //   minWidth: 150,
-    //   renderCell: (params) => (
-    //     <Box display="flex" gap={1}>
-    //       <IconButton
-    //         size="small"
-    //         color="primary"
-    //         onClick={() => console.log("Editar NOMENCLATURA", params.row)}
-    //       >
-    //         <EditIcon fontSize="small" />
-    //       </IconButton>
-    //       <IconButton size="small" disabled>
-    //         <VisibilityIcon fontSize="small" color="disabled" />
-    //       </IconButton>
-    //     </Box>
-    //   ),
-    // },
   ];
 
   // Filtrar filas según el término de búsqueda
   const filteredRows = tasas.filter((row) => {
-  const searchLower = search.toLowerCase();
-  return (
-    row.nombrePropietario?.toLowerCase().includes(searchLower) ||
-    row.registro_general?.toLowerCase().includes(searchLower)
-  );
-});
+    const searchLower = search.toLowerCase();
+    return (
+      row.nombrePropietario?.toLowerCase().includes(searchLower) ||
+      row.registro_general?.toLowerCase().includes(searchLower)
+    );
+  });
 
   return (
     <>
@@ -282,7 +309,6 @@ const Registros = () => {
             alignItems: "center",
             mb: 2,
             flexDirection: { xs: "column", sm: "row" },
-            // flexWrap: "wrap",
             gap: 2,
           }}
         >
@@ -292,7 +318,7 @@ const Registros = () => {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             sx={{
-              width: { xs: "50%", sm: 300 }, // Ancho completo en móviles, 300px en desktop
+              width: { xs: "50%", sm: 300 },
               backgroundColor: "#fff",
             }}
           />
@@ -321,7 +347,7 @@ const Registros = () => {
           sx={{
             height: 400,
             width: "100%",
-            overflow: "auto", // Permite scroll horizontal en móviles
+            overflow: "auto",
           }}
         >
           <DataGrid
@@ -330,10 +356,10 @@ const Registros = () => {
             pageSize={5}
             rowsPerPageOptions={[5, 10]}
             disableSelectionOnClick
-            density="standard" //("compact" | "standard" | "comfortable")
+            density="standard"
             sx={{
               "& .MuiDataGrid-columnHeader": {
-                backgroundColor: "#D0D3D4", // Fondo distintivo para headers
+                backgroundColor: "#D0D3D4",
                 "& .MuiDataGrid-columnHeaderTitle": {
                   fontWeight: "bold",
                   fontSize: { xs: "0.9rem", sm: "1rem" },
@@ -341,7 +367,7 @@ const Registros = () => {
               },
               "& .MuiDataGrid-cell": {
                 fontSize: { xs: "0.9rem", sm: "1rem" },
-                whiteSpace: "normal", // Permite múltiples líneas en celdas
+                whiteSpace: "normal",
                 padding: "8px",
               },
             }}
@@ -357,10 +383,10 @@ const Registros = () => {
             sx: {
               mx: { xs: 2, sm: "auto" },
               width: {
-                xs: "100%", // 100% en pantallas pequeñas
-                sm: "90%", // un poco de margen en tablets
-                md: "70%", // más compacto en pantallas medianas
-                lg: "600px", // ancho fijo en pantallas grandes },
+                xs: "100%",
+                sm: "90%",
+                md: "70%",
+                lg: "600px",
               },
             },
           }}
@@ -397,6 +423,49 @@ const Registros = () => {
               onClose={handleCloseLicencia}
               onSubmit={handleSaveLicencia}
             />
+          </DialogContent>
+        </Dialog>
+
+        <Dialog
+          open={openMapa}
+          onClose={() => setOpenMapa(false)}
+          maxWidth="xl"
+          fullWidth
+        >
+          <DialogTitle
+            sx={{
+              m: 0,
+              p: 2,
+              textAlign: "center",
+              fontWeight: "bold",
+              position: "relative",
+            }}
+          >
+            Geolocalización
+            <IconButton
+              aria-label="cerrar"
+              onClick={() => setOpenMapa(false)}
+              sx={{
+                position: "absolute",
+                right: 8,
+                top: 8,
+                color: (theme) => theme.palette.grey[500],
+              }}
+              size="large"
+            >
+              <CloseIcon />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent>
+            {coordenadasSeleccionadas && (
+              <MapaLeaflet
+                initialPosition={[
+                  coordenadasSeleccionadas.latitud,
+                  coordenadasSeleccionadas.longitud,
+                ]}
+                direccion={coordenadasSeleccionadas.direccion_propiedad}
+              />
+            )}
           </DialogContent>
         </Dialog>
       </Container>

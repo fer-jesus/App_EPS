@@ -105,8 +105,10 @@ const Nomenclaturas = () => {
           </IconButton>
           <IconButton
             size="small"
-            color="primary"
             onClick={() => handleOpen(params.row, true)}
+            sx={{
+              color: "#1e6b3d", 
+            }}
           >
             <EditIcon fontSize="small" />
           </IconButton>

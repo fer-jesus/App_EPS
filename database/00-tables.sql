@@ -57,6 +57,8 @@ CREATE TABLE TASAS (
   presupuesto_obra DECIMAL (10,2) NOT NULL,
   cantidad_cancelar DECIMAL (10,2) NOT NULL,
   documento BLOB NULL,
+  latitud DECIMAL(10,8) NULL,
+  longitud DECIMAL(11,8) NULL,
   PROPIETARIOS_cui BIGINT(15) NOT NULL,
   LICENCIAS_id_licencia_original INT NULL,
   LICENCIAS_fecha_emisionL_original DATE NULL,

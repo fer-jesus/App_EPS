@@ -86,11 +86,9 @@ const AppNavbar = () => {
           isMobile ? setOpenHistorialDialog(true) : handleNavigate("/historial")
         }
       >
-        <ListItemText primary="Maps" />
+        <ListItemText primary="Historial" />
       </ListItem>
-       <ListItem button onClick={() => handleNavigate("/maps")}>
-        <ListItemText primary="Maps" />
-      </ListItem>
+    
       {esAdmin && (
         <>
           <ListItem button onClick={() => setConfigExpanded(!configExpanded)}>
@@ -173,12 +171,6 @@ const AppNavbar = () => {
                   onClick={handleMenuOpen(setMenuAnchorHistorial)}
                 >
                   Historial
-                </Button>
-                <Button
-                  color="inherit"
-                  onClick={() => handleNavigate("/maps")}   
-                >
-                  Maps
                 </Button>
                 <Menu
                   anchorEl={menuAnchorHistorial}

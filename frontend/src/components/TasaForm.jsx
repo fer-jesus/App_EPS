@@ -31,6 +31,8 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
     esAmpliacion: false,
     nivelesConstruccion: "",
     valor50Porc: "",
+    latitud: "",
+    longitud: "",
     LICENCIAS_id_licencia_original: null,
     LICENCIAS_fecha_emisionL_original: null,
   });
@@ -147,6 +149,8 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
         "LICENCIAS_fecha_emisionL_original",
         "nivelesConstruccion",
         "valor50Porc",
+        "latitud",
+        "longitud",
       ];
 
       const value = formData[key];
@@ -442,6 +446,8 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
         presupuesto_obra: parseMonedaToFloat(presupuestObra),
         cantidad_cancelar: parseMonedaToFloat(cantidadCancelar),
         documento: null,
+        latitud: form.latitud || null,
+        longitud: form.longitud || null,
         PROPIETARIOS_cui: parseInt(form.dpi),
         LICENCIAS_id_licencia_original:
           form.LICENCIAS_id_licencia_original || null,
@@ -678,6 +684,21 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
             }}
           />
         )}
+        <TextField
+          name="latitud"
+          label={getLabel("latitud", "LATITUD (opcional)")}
+          // type="number"
+          value={formData.latitud}
+          onChange={handleChange}
+        />
+
+        <TextField
+          name="longitud"
+          label={getLabel("longitud", "  LONGITUD (opcional)")}
+          //type="number"
+          value={formData.longitud}
+          onChange={handleChange}
+        />
         <TextField
           name="presupuestObra"
           label={getLabel("presupuestObra", "PRESUPUESTO DE LA OBRA")}
