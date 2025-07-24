@@ -28,6 +28,7 @@ const MapaLeaflet = ({
   initialPosition = [14.63472, -89.98889],
   onUbicacionSeleccionada,
   direccion = "",
+  nombrePropietario = "",
 }) => {
   const [markerPosition, setMarkerPosition] = useState(
     initialPosition && Array.isArray(initialPosition) ? initialPosition : null
@@ -99,6 +100,7 @@ const MapaLeaflet = ({
               <div>Latitud: {markerPosition[0].toFixed(8)}</div>
               <div>Longitud: {markerPosition[1].toFixed(8)}</div>
               {direccion && <div>Dirección: {direccion}</div>}
+              {nombrePropietario && <div>Propietario: {nombrePropietario}</div>}
             </div>
           </Popup>
         </Marker>
@@ -111,6 +113,7 @@ MapaLeaflet.propTypes = {
   initialPosition: PropTypes.array,
   onUbicacionSeleccionada: PropTypes.func,
   direccion: PropTypes.string,
+  nombrePropietario: PropTypes.string,
 };
 
 export default MapaLeaflet;

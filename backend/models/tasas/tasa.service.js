@@ -85,7 +85,7 @@ const obtenerRegistros = async () => {
       "LICENCIAS_fecha_emisionL_original",
       "latitud",
       "longitud",
-      "direccion_propiedad", 
+      "direccion_propiedad",
     ],
   });
 
@@ -151,7 +151,7 @@ const obtenerRegistros = async () => {
         tasa.LICENCIAS_fecha_emisionL_original || null,
       latitud: tasa.latitud || null,
       longitud: tasa.longitud || null,
-      direccion_propiedad: tasa.direccion_propiedad || "", 
+      direccion_propiedad: tasa.direccion_propiedad || "",
     };
   });
   // Ordenar: "En proceso" primero, luego por registro_general
@@ -193,7 +193,7 @@ const obtenerDatosTasaPorId = async (idTasa) => {
         attributes: ["id_licencia", "fecha_emisionL"],
       },
     ],
-    attributes: ["direccion_propiedad"],
+    attributes: ["direccion_propiedad", "latitud", "longitud"],
   });
 
   if (!tasa) {
@@ -206,6 +206,8 @@ const obtenerDatosTasaPorId = async (idTasa) => {
     dpi: tasa.propietario?.cui || "",
     LICENCIAS_id_licencia_original: tasa.licencia?.id_licencia || null,
     LICENCIAS_fecha_emisionL_original: tasa.licencia?.fecha_emisionL || null,
+    latitud: tasa.latitud || "",
+    longitud: tasa.longitud || "",
   };
 };
 

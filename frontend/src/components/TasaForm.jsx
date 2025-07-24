@@ -687,17 +687,17 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
         <TextField
           name="latitud"
           label={getLabel("latitud", "LATITUD (opcional)")}
-          // type="number"
           value={formData.latitud}
           onChange={handleChange}
+          //disabled={formData.esAmpliacion}
         />
 
         <TextField
           name="longitud"
           label={getLabel("longitud", "  LONGITUD (opcional)")}
-          //type="number"
           value={formData.longitud}
           onChange={handleChange}
+          //disabled={formData.esAmpliacion}
         />
         <TextField
           name="presupuestObra"

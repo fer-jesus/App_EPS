@@ -148,6 +148,8 @@ const Registros = () => {
         dpi: datosTasa.dpi || "",
         fechaRegistro: new Date().toISOString().split("T")[0],
         esAmpliacion: true,
+        latitud: datosTasa.latitud || "",
+        longitud: datosTasa.longitud || "",
         LICENCIAS_id_licencia_original:
           datosTasa.LICENCIAS_id_licencia_original,
         LICENCIAS_fecha_emisionL_original:
@@ -213,11 +215,14 @@ const Registros = () => {
                 latitud: Number(row.latitud.toString().trim()),
                 longitud: Number(row.longitud.toString().trim()),
                 direccion_propiedad: row.direccion_propiedad || "",
+                nombre_propietario: row.nombrePropietario || "Desconocido",
               });
               setCoordenadasSeleccionadas({
                 latitud: Number(row.latitud.toString().trim()),
                 longitud: Number(row.longitud.toString().trim()),
                 direccion_propiedad: row.direccion_propiedad || "",
+                nombre_propietario: row.nombrePropietario || "Desconocido",
+                
               });
               setOpenMapa(true);
             }}
@@ -464,6 +469,7 @@ const Registros = () => {
                   coordenadasSeleccionadas.longitud,
                 ]}
                 direccion={coordenadasSeleccionadas.direccion_propiedad}
+                nombrePropietario={coordenadasSeleccionadas.nombre_propietario}
               />
             )}
           </DialogContent>
