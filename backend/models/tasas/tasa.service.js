@@ -6,11 +6,14 @@ const {
   TasaTarifaVariosNiveles,
 } = require(".");
 
-const crearTasa = async (tasaData, tarifasData) => {
+const { setUsuarioId } = require("../../utils/historial");
+
+const crearTasa = async (tasaData, tarifasData, id_usuario) => {
   console.log("Creando tasa:", tasaData);
   try {
     const result = await Tasa.sequelize.transaction(async (t) => {
       //console.log("Insertando tarifa:", tarifa);
+      await setUsuarioId(Tasa.sequelize, id_usuario, t);
       const nuevaTasa = await Tasa.create(tasaData, { transaction: t });
       const idTasa = nuevaTasa.id_tasa;
       console.log("ID de nueva tasa:", nuevaTasa?.id_tasa);

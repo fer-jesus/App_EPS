@@ -1,7 +1,6 @@
 SET NAMES utf8mb4;
 USE lic_const_db;
 
-
 INSERT INTO ROL (id_rol) VALUES 
 (1), -- DIRECTOR
 (2), -- SUBDIRECTOR
@@ -35,7 +34,150 @@ INSERT INTO USUARIOS (
   1, 'M', 1  -- ROL_id_rol = 1 (DIRECTOR)
 );
 
--- TARIFAS
+-- Tarifas actualizadas
+INSERT INTO TIPO_CONSTRUCCION_TARIFA (id_tipoConstruccion, tipo_construccion) VALUES
+(1, 'Viviendas'),
+(2, 'Vivienda techo de lamina'),
+(3, 'Vivienda losa de concreto'),
+(4, 'Industriales y Centros Comerciales (Plazas, plazuelas y otros desarrollos comerciales,hoteles,clínicas médicas)'),
+(5, 'Edificios de uno o dos niveles'),
+(6, 'Edificios de 3 o más niveles'),
+(7, 'Bódegas (Estructura metálica, tipo mango rígido o armadura metálica sobre muros de carga, techo de lámina, techo curvo'),
+(8, 'Trabajos de obra exterior'),
+-- (11, 'Cambio de uso o remodelaciones'),
+(9, 'Otras actividades constructivas'),
+(10, 'Demolición'),
+(11, 'Movimiento de tierra'); -- preguntar si así dejar el nombre
+
+INSERT INTO TARIFA (id_nombreTarifa, nombre_tarifa, TIPO_CONSTRUCCION_TARIFA_id_tipoConstruccion) VALUES
+(1, 'Vivienda interés social y entidades religiosas', 1),
+(2, 'Vivienda hasta 60 m²', 2),
+(3, 'Vivienda hasta 61 a 100 m²', 2),
+(4, 'Vivienda hasta 101 a 200 m²', 2),
+(5, 'Vivienda hasta 201 a 300 m²', 2),
+(6, 'Vivienda mayor a 301 m²', 2),
+(7, 'Vivienda hasta 60 m²', 3),
+(8, 'Vivienda de 61 a 100 m²', 3),
+(9, 'Vivienda de 101 a 200 m²', 3),
+(10, 'Vivienda de 201 a 300 m²', 3),
+(11, 'Vivienda de 301 a 400 m²', 3),
+(12, 'Vivienda mayor a 401 m²', 3),
+(13, 'Un nivel techo de losa', 4), -- preguntar si colocar "local comercial"
+(14, 'Dos niveles o mas', 4), -- preguntar si colocar "local comercial"
+(15, 'Trabajos de asfalto o Pavimento', 4),
+(16, 'Trabajos de adoquinado', 4),
+(17, 'Trabajos de Jardinización', 4),
+(18, 'Oficinas(uno o dos niveles)', 5),
+(19, 'Locales comerciales(uno o dos niveles)', 5),
+(20, 'Vivienda multifamiliar(uno o dos niveles)', 5),
+(21, 'Oficinas(tres o más niveles)', 6),
+(22, 'Locales comerciales(tres o más niveles)', 6),
+(23, 'Vivienda multifamiliar(tres o más niveles)', 6),
+(24, 'Sótanos', 6),
+(25, 'Bodegas(0 a 200m²)', 7),
+(26, 'Bodegas(201 a 600 m²)', 7),
+(27, 'Bodegas(601 en adelante m²)', 7),
+(28, 'Fundición de trabajos de concreto', 8),
+(29, 'Estacionamiento sin cubierta', 8),
+(30, 'Estacionamiento con cubierta de lámina', 8),
+(31, 'Estacionamiento con cubierta de losa', 8),
+-- (32, 'Cambio de uso o remodelaciones', 8),
+(33, 'Parques y centros recreativos', 8),
+(34, 'Piscinas Domiciliar', 8),
+(35, 'Piscinas Comercial', 8),
+(36, 'Cisternas', 8),
+(37, 'Levantado de ladrillo', 9),
+(38, 'Levantado de Block', 9),
+(39, 'Cubierta de Lamina', 9),
+(40, 'Cubierta de concreto', 9),
+(41, 'Cubierta de madera y/o tabla yeso', 9),
+(42, 'Techo curvo', 9),
+(43, 'Muro prefabricado', 9),
+(44, 'Materiales prefabricados', 9),
+(45, 'Durock', 9),
+(46, 'Tabla roca', 9),
+(47, 'Gasolineras (área techada)', 9),
+(48, 'Portones para garita', 9),
+(49, 'Pozos Mecánicos', 9),
+(50, 'Malla galvanizada', 9),
+(51, 'Edificios escolares', 9),
+(52, 'Garitas', 9),
+(53, 'Salón de Usos Múltiples', 9),
+(54, 'Centros Recreativos y deportivos', 9),
+(55, 'Demolición', 10),
+(56, 'Movimiento de tierra', 11);
+
+INSERT INTO TARIFA_COSTO_DIMENSION (TARIFA_id_nombreTarifa, costo_tarifa, unidad_medida, porcentaje) VALUES
+(1, 0.00, 'm²', 0.00),
+(2, 400.00, 'm²', 1.0),
+(3, 600.00, 'm²', 2.0),
+(4, 800.00, 'm²', 2.5),
+(5, 900.00, 'm²', 3.0),
+(6, 1000.00, 'm²', 3.0),
+(7, 600.00, 'm²', 2.0),
+(8, 700.00, 'm²', 2.0),
+(9, 1000.00, 'm²', 2.5),
+(10, 1150.00, 'm²', 3.0),
+(11, 1300.00, 'm²', 3.0),
+(12, 1450.00, 'm²', 3.0),
+(13, 2000.00, 'm²', 3.5),
+(14, 2500.00, 'm²', 3.5),
+(15, 800.00, 'm²', 3.5),
+(16, 500.00, 'm²', 3.5),
+(17, 350.00, 'm²', 3.0),
+(18, 1000.00, 'm²', 3.0),
+(19, 1000.00, 'm²', 3.0),
+(20, 1000.00, 'm²', 3.0),
+(21, 1200.00, 'm²', 3.0),
+(22, 1200.00, 'm²', 3.0),
+(23, 1200.00, 'm²', 3.0),
+(24, 1200.00, 'm²', 3.0),
+(25, 500.00, 'm²', 3.5),
+(26, 750.00, 'm²', 3.5),
+(27, 900.00, 'm²', 3.5),
+(28, 150.00, 'm²', 3.0),
+(29, 200.00, 'm²', 3.0),
+(30, 550.00, 'm²', 3.0),
+(31, 850.00, 'm²', 3.0),
+-- (32, ?, '?', 3.5), Cambio de uso o remodelaciones
+(33, 500.00, 'm²', 3.0),
+(34, 400.00, 'm³', 3.0),
+(35, 800.00, 'm³', 3.0),
+(36, 1000.00, 'm³', 3.0),
+(37, 150.00, 'm²', 3.0),
+(38, 140.00, 'm²', 3.0),
+(39, 200.00, 'm²', 2.0),
+(40, 400.00, 'm²', 3.0),
+(41, 200.00, 'm²', 3.0),
+(42, 300.00, 'm²', 3.0),
+(43, 200.00, 'm²', 2.0),
+(44, 200.00, 'm²', 2.0),
+(45, 200.00, 'm²', 2.0),
+(46, 200.00, 'm²', 2.0),
+(47, 2000.00, 'm²', 3.5),
+(48, 750.00, 'm²', 3.5),
+(49, 75.00, 'm', 100.0),
+(50, 100.00, 'm²', 2.5),
+(51, 1200.00, 'm²', 4.5),
+(52, 1500.00, 'm²', 4.5),
+(53, 1800.00, 'm²', 4.5),
+(54, 1200.00, 'm²', 4.5),
+(55, 50.00, 'm²', 3),
+(56, 50.00, 'm²', 3); 
+
+
+INSERT INTO TARIFA_COSTO_PROYECTO (TARIFA_id_nombreTarifa, porcentaje_costoProyecto, porcentaje)
+VALUES (28, 25.00, 3.50); 
+
+INSERT INTO TIPO_NOMENCLATURA (id_tipoNomenclatura, tipo_nomenclatura)
+VALUES 
+  (1, 'NORMAL'),
+  (2, 'IUSI'),
+  (3, 'JALAPAGUA'),
+  (4, 'EMPRESA ELECTRICA');
+
+
+/* -- TARIFAS
 INSERT INTO TIPO_CONSTRUCCION_TARIFA (id_tipoConstruccion, tipo_construccion) VALUES
 (1, 'Viviendas'),
 (2, 'Vivienda techo de lamina'),
@@ -155,148 +297,4 @@ INSERT INTO TARIFA_COSTO_DIMENSION (TARIFA_id_nombreTarifa, costo_tarifa, unidad
 (49, 1800.00, 'm²', 4.5),
 (50, 1200.00, 'm²', 4.5),
 (51, 50.00, 'm²', 3),
-(52, 50.00, 'm²', 3);
-
-INSERT INTO TARIFA_COSTO_PROYECTO (TARIFA_id_nombreTarifa, porcentaje_costoProyecto, porcentaje)
-VALUES (28, 25.00, 3.50); 
-
-INSERT INTO TIPO_NOMENCLATURA (id_tipoNomenclatura, tipo_nomenclatura)
-VALUES 
-  (1, 'NORMAL'),
-  (2, 'IUSI'),
-  (3, 'JALAPAGUA'),
-  (4, 'EMPRESA ELECTRICA');
-
-
-
--- Tarifas actualizadas
-/* INSERT INTO TIPO_CONSTRUCCION_TARIFA (id_tipoConstruccion, tipo_construccion) VALUES
-(1, 'Viviendas'),
-(2, 'Vivienda techo de lamina'),
-(3, 'Vivienda losa de concreto'),
-(4, 'Industriales y Centros Comerciales (Plazas, plazuelas y otros desarrollos comerciales,hoteles,clínicas médicas)'),
-(5, 'Edificios de uno o dos niveles'),
-(6, 'Edificios de 3 o más niveles'),
-(7, 'Bódegas (Estructura metálica, tipo mango rígido o armadura metálica sobre muros de carga, techo de lámina, techo curvo'),
-(8, 'Trabajos de obra exterior'),
--- (11, 'Cambio de uso o remodelaciones'),
-(9, 'Otras actividades constructivas'),
-(10, 'Demolición'),
-(11, 'Movimiento de tierra'); --preguntar si así dejar el nombre
-
-INSERT INTO TARIFA (id_nombreTarifa, nombre_tarifa, TIPO_CONSTRUCCION_TARIFA_id_tipoConstruccion) VALUES
-(1, 'Vivienda interés social y entidades religiosas', 1),
-(2, 'Vivienda hasta 60 m²', 2),
-(3, 'Vivienda hasta 61 a 100 m²', 2),
-(4, 'Vivienda hasta 101 a 200 m²', 2),
-(5, 'Vivienda hasta 201 a 300 m²', 2),
-(6, 'Vivienda mayor a 301 m²', 2),
-(7, 'Vivienda hasta 60 m²', 3),
-(8, 'Vivienda de 61 a 100 m²', 3),
-(9, 'Vivienda de 101 a 200 m²', 3),
-(10, 'Vivienda de 201 a 300 m²', 3),
-(11, 'Vivienda de 301 a 400 m²', 3),
-(12, 'Vivienda mayor a 401 m²', 3),
-(13, 'Un nivel techo de losa', 4),-- preguntar si colocar "local comercial"
-(14, 'Dos niveles o mas', 4),-- preguntar si colocar "local comercial"
-(15, 'Trabajos de asfalto o Pavimento', 4),
-(16, 'Trabajos de adoquinado', 4),
-(17, 'Trabajos de Jardinización', 4),
-(18, 'Oficinas(uno o dos niveles)', 5),
-(19, 'Locales comerciales(uno o dos niveles)', 5),
-(20, 'Vivienda multifamiliar(uno o dos niveles)', 5),
-(21, 'Oficinas(tres o más niveles)', 6),
-(22, 'Locales comerciales(tres o más niveles)', 6),
-(23, 'Vivienda multifamiliar(tres o más niveles)', 6),
-(24, 'Sótanos', 6),
-(25, 'Bodegas(0 a 200m²)', 7),
-(26, 'Bodegas(201 a 600 m²)', 7),
-(27, 'Bodegas(601 en adelante m²)', 7),
-(28, 'Fundición de trabajos de concreto', 8),
-(29, 'Estacionamiento sin cubierta', 8),
-(30, 'Estacionamiento con cubierta de lámina', 8),
-(31, 'Estacionamiento con cubierta de losa', 8),
--- (32, 'Cambio de uso o remodelaciones', 8),
-(33, 'Parques y centros recreativos', 8),
-(34, 'Piscinas Domiciliar', 8),
-(35, 'Piscinas Comercial', 8),
-(36, 'Cisternas', 8),
-(37, 'Levantado de ladrillo', 9),
-(38, 'Levantado de Block', 9),
-(39, 'Cubierta de Lamina', 9),
-(40, 'Cubierta de concreto', 9),
-(41, 'Cubierta de madera y/o tabla yeso', 9),
-(42, 'Techo curvo', 9),
-(43, 'Muro prefabricado', 9),
-(44, 'Materiales prefabricados', 9),
-(45, 'Durock', 9),
-(46, 'Tabla roca', 9),
-(47, 'Gasolineras (área techada)', 9),
-(48, 'Portones para garita', 9),
-(49, 'Pozos Mecánicos', 9),
-(50, 'Malla galvanizada', 9),
-(51, 'Edificios escolares', 9),
-(52, 'Garitas', 9),
-(53, 'Salón de Usos Múltiples', 9),
-(54, 'Centros Recreativos y deportivos', 9),
-(55, 'Demolición', 10),
-(56, 'Movimiento de tierra', 11);
-
-INSERT INTO TARIFA_COSTO_DIMENSION (TARIFA_id_nombreTarifa, costo_tarifa, unidad_medida, porcentaje) VALUES
-(1, 0.00, 'm²', 0.00),
-(2, 400.00, 'm²', 1.0),
-(3, 600.00, 'm²', 2.0),
-(4, 800.00, 'm²', 2.5),
-(5, 900.00, 'm²', 3.0),
-(6, 1000.00, 'm²', 3.0),
-(7, 600.00, 'm²', 2.0),
-(8, 700.00, 'm²', 2.0),
-(9, 1000.00, 'm²', 2.5),
-(10, 1150.00, 'm²', 3.0),
-(11, 1300.00, 'm²', 3.0),
-(12, 1450.00, 'm²', 3.0),
-(13, 2000.00, 'm²', 3.5),
-(14, 2500.00, 'm²', 3.5),
-(15, 800.00, 'm²', 3.5),
-(16, 500.00, 'm²', 3.5),
-(17, 350.00, 'm²', 3.0),
-(18, 1000.00, 'm²', 3.0),
-(19, 1000.00, 'm²', 3.0),
-(20, 1000.00, 'm²', 3.0),
-(21, 1200.00, 'm²', 3.0),
-(22, 1200.00, 'm²', 3.0),
-(23, 1200.00, 'm²', 3.0),
-(24, 1200.00, 'm²', 3.0),
-(25, 500.00, 'm²', 3.5),
-(26, 750.00, 'm²', 3.5),
-(27, 900.00, 'm²', 3.5),
-(28, 150.00, 'm²', 3.0),
-(29, 200.00, 'm²', 3.0),
-(30, 550.00, 'm²', 3.0),
-(31, 850.00, 'm²', 3.0),
--- (32, ?, '?', 3.5), -- Cambio de uso o remodelaciones
-(33, 500.00, 'm²', 3.0),
-(34, 400.00, 'm³', 3.0),
-(35, 800.00, 'm³', 3.0),
-(36, 1000.00, 'm³', 3.0),
-(37, 150.00, 'm²', 3.0),
-(38, 140.00, 'm²', 3.0),
-(39, 200.00, 'm²', 2.0),
-(40, 400.00, 'm²', 3.0),
-(41, 200.00, 'm²', 3.0),
-(42, 300.00, 'm²', 3.0),
-(43, 200.00, 'm²', 2.0),
-(44, 200.00, 'm²', 2.0),
-(45, 200.00, 'm²', 2.0),
-(46, 200.00, 'm²', 2.0),
-(47, 2000.00, 'm²', 3.5),
-(48, 750.00, 'm²', 3.5),
-(49, 75.00, 'm', 100.0),
-(50, 100.00, 'm²', 2.5),
-(51, 1200.00, 'm²', 4.5),
-(52, 1500.00, 'm²', 4.5),
-(53, 1800.00, 'm²', 4.5),
-(54, 1200.00, 'm²', 4.5),
-(55, 50.00, 'm²', 3),
-(56, 50.00, 'm²', 3); */
-
+(52, 50.00, 'm²', 3); */

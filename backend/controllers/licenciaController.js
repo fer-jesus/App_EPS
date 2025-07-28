@@ -6,11 +6,19 @@ const {
 } = require("../models/licencias/licencia.service");
 
 const postLicencia = async (req, res) => {
+
   try {
+      const id_usuario = req.user?.id_usuario;
+    if (!id_usuario) {
+      return res.status(401).json({ error: "Usuario no autenticado" });
+    }
+
     console.log("postLicencia recibe:", req.body);
     //asignación de un id_licencia aleatorio temporal, un trigger cambiará el valor antes de insertar
     req.body.id_licencia = Math.round(Math.random() * 10000);
-    const nuevaLicencia = await crearLicencia(req.body);
+
+    const nuevaLicencia = await crearLicencia(req.body, id_usuario);
+    
     res.status(201).json(nuevaLicencia);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -44,7 +52,13 @@ const updateRotulo = async (req, res) => {
   const { rotulo } = req.body;
 
   try {
-    const resultado = await actualizarRotulo(id_licencia, fecha_emisionL, rotulo);
+     const id_usuario = req.user?.id_usuario;
+    if (!id_usuario) {
+      return res.status(401).json({ error: "Usuario no autenticado" });
+    }
+
+    const resultado = await actualizarRotulo(id_licencia, fecha_emisionL, rotulo, id_usuario);
+    
     res.json(resultado);
   } catch (error) {
     res.status(500).json({ error: error.message });

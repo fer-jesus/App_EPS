@@ -14,7 +14,13 @@ const crearTasaHandler = async (req, res) => {
       return res.status(400).json({ error: "Datos incompletos" });
     }
 
-    const nuevaTasa = await crearTasa(tasaData, tarifasData);
+    // Verificar que el usuario esté autenticado
+     const id_usuario = req.user?.id_usuario;
+    if (!id_usuario) {
+      return res.status(401).json({ error: "Usuario no autenticado" });
+    }
+
+    const nuevaTasa = await crearTasa(tasaData, tarifasData, id_usuario);
     console.log("Tasa creada:", nuevaTasa);
 
     res.status(201).json({
@@ -30,11 +36,7 @@ const crearTasaHandler = async (req, res) => {
 const listarRegistros = async (req, res) => {
   try {
     const tasas = await obtenerRegistros();
-    // const response = tasas.map((t) => ({
-    //   id: t.id_tasa,
-    //    nombre_propietario: t.propietario?.nombre_propietario  || "Desconocido",
-    // }));
-    // res.json(response);
+
     res.json(tasas);
   } catch (error) {
     console.error("Error al obtener tasas:", error);
@@ -52,13 +54,6 @@ const obtenerDatosAmpliacionHandler = async (req, res) => {
       return res.status(404).json({ error: "Tasa no encontrada" });
     }
 
-    // res.json({
-    //   direccionExacta: tasa.direccion_propiedad,
-    //   nombrePropietario: tasa.propietario?.nombre_propietario || "",
-    //   dpi: tasa.propietario?.cui || "",
-    //   LICENCIAS_id_licencia_original: tasa.LICENCIAS_id_licencia_original,
-    //   LICENCIAS_fecha_emisionL_original: tasa.LICENCIAS_fecha_emisionL_original,
-    // });
     res.json(tasa);
   } catch (error) {
     console.error("Error al obtener datos de la tasa:", error);

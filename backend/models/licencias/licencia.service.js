@@ -1,78 +1,91 @@
 const { Licencia } = require("./index");
 const { Tasa } = require("../tasas");
+const  sequelize  = require("../../config/sequelize");
+const { setUsuarioId } = require("../../utils/historial");
 
-const crearLicencia = async (licenciaData) => {
+
+const crearLicencia = async (licenciaData, id_usuario) => {
   try {
     //Esto envia el id_licencia
-    //const { id_licencia, ...camposLicencia } = licenciaData;
-
-    const nuevaLicencia = await Licencia.create({
-      //...licenciaData,
-      boleta_pago: licenciaData.boleta_pago || null,
-      id_licencia: licenciaData.id_licencia,
-      fecha_emisionL: licenciaData.fecha_emisionL,
-      fecha_vencimiento: licenciaData.fecha_vencimiento,
-      estado: licenciaData.estado,
-      rotulo: licenciaData.rotulo,
-      TASAS_id_tasa: licenciaData.TASAS_id_tasa,
-       LICENCIAS_id_licencia_ampliacion: licenciaData.LICENCIAS_id_licencia_ampliacion || null,
-      LICENCIAS_fecha_emisionL_ampliacion: licenciaData.LICENCIAS_fecha_emisionL_ampliacion || null,
-    });
-
-    console.log("Nueva licencia creada:", nuevaLicencia);
-    // Verificar si esta licencia es una ampliación (se enviaron los campos de referencia)
-    if (
-      licenciaData.LICENCIAS_id_licencia_original &&
-      licenciaData.LICENCIAS_fecha_emisionL_original
-    ) {
-      // Actualizar la licencia original con los datos de ampliación
-
-      console.log(
-        "Actualizando licencia original con datos de ampliación:",
-        nuevaLicencia.id_licencia,
-        nuevaLicencia.fecha_emisionL
-      );
-      await Licencia.update(
+    const result = await sequelize.transaction(async (t) => {
+      await setUsuarioId(sequelize, id_usuario, t);
+      const nuevaLicencia = await Licencia.create(
         {
-          LICENCIAS_id_licencia_ampliacion: nuevaLicencia.id_licencia,
-          LICENCIAS_fecha_emisionL_ampliacion: nuevaLicencia.fecha_emisionL,
+          //...licenciaData,
+          boleta_pago: licenciaData.boleta_pago || null,
+          id_licencia: licenciaData.id_licencia,
+          fecha_emisionL: licenciaData.fecha_emisionL,
+          fecha_vencimiento: licenciaData.fecha_vencimiento,
+          estado: licenciaData.estado,
+          rotulo: licenciaData.rotulo,
+          TASAS_id_tasa: licenciaData.TASAS_id_tasa,
+          LICENCIAS_id_licencia_ampliacion:
+            licenciaData.LICENCIAS_id_licencia_ampliacion || null,
+          LICENCIAS_fecha_emisionL_ampliacion:
+            licenciaData.LICENCIAS_fecha_emisionL_ampliacion || null,
         },
-        {
-          where: {
-            id_licencia: licenciaData.LICENCIAS_id_licencia_original,
-            fecha_emisionL: new Date(
-              licenciaData.LICENCIAS_fecha_emisionL_original
-            ),
+        { transaction: t }
+      );
+
+      console.log("Nueva licencia creada:", nuevaLicencia);
+      // Verificar si esta licencia es una ampliación (se enviaron los campos de referencia)
+      if (
+        licenciaData.LICENCIAS_id_licencia_original &&
+        licenciaData.LICENCIAS_fecha_emisionL_original
+      ) {
+        // Actualizar la licencia original con los datos de ampliación
+
+        console.log(
+          "Actualizando licencia original con datos de ampliación:",
+          nuevaLicencia.id_licencia,
+          nuevaLicencia.fecha_emisionL
+        );
+        await Licencia.update(
+          {
+            LICENCIAS_id_licencia_ampliacion: nuevaLicencia.id_licencia,
+            LICENCIAS_fecha_emisionL_ampliacion: nuevaLicencia.fecha_emisionL,
           },
-        }
-      );
-      // **Actualizar la tasa para que tenga referencia a la licencia original**
-      await Tasa.update(
-        {
-          LICENCIAS_id_licencia_original:
-            licenciaData.LICENCIAS_id_licencia_original,
-          LICENCIAS_fecha_emisionL_original:
-            licenciaData.LICENCIAS_fecha_emisionL_original,
+          {
+            where: {
+              id_licencia: licenciaData.LICENCIAS_id_licencia_original,
+              fecha_emisionL: new Date(
+                licenciaData.LICENCIAS_fecha_emisionL_original
+              ),
+            },
+            transaction: t,
+          }
+        );
+        // **Actualizar la tasa para que tenga referencia a la licencia original**
+        await Tasa.update(
+          {
+            LICENCIAS_id_licencia_original:
+              licenciaData.LICENCIAS_id_licencia_original,
+            LICENCIAS_fecha_emisionL_original:
+              licenciaData.LICENCIAS_fecha_emisionL_original,
+          },
+          {
+            where: { id_tasa: nuevaLicencia.TASAS_id_tasa },
+            transaction: t,
+          }
+        );
+      }
+
+      //Consultar la licencia usando `TASAS_id_tasa` y `fecha_emisionL`
+      const licenciaFinal = await Licencia.findOne({
+        where: {
+          TASAS_id_tasa: nuevaLicencia.TASAS_id_tasa,
+          fecha_emisionL: nuevaLicencia.fecha_emisionL,
         },
-        {
-          where: { id_tasa: nuevaLicencia.TASAS_id_tasa },
-        }
-      );
-    }
+        transaction: t,
+      });
 
-    //Consultar la licencia usando `TASAS_id_tasa` y `fecha_emisionL`
-    const licenciaFinal = await Licencia.findOne({
-      where: {
-        TASAS_id_tasa: nuevaLicencia.TASAS_id_tasa,
-        fecha_emisionL: nuevaLicencia.fecha_emisionL,
-      },
+      if (!licenciaFinal) {
+        throw new Error("No se pudo encontrar la licencia creada");
+      }
+
+      return licenciaFinal.get();
     });
-
-    if (!licenciaFinal) {
-      throw new Error("No se pudo encontrar la licencia creada");
-    }
-
-    return licenciaFinal.get();
+    return result;
   } catch (error) {
     console.error("Error al crear licencia:", error);
     throw new Error("No se pudo crear la licencia.");
@@ -176,8 +189,13 @@ const obtenerLicenciaPorTasa = async (id_tasa) => {
   }
 };
 
-const actualizarRotulo = async (id_licencia, fecha_emisionL, nuevoRotulo) => {
+const actualizarRotulo = async (id_licencia, fecha_emisionL, nuevoRotulo, id_usuario) => {
   try {
+
+    const result = await sequelize.transaction(async (t) => {
+      // Establecer variable de sesión para trigger
+      await setUsuarioId(sequelize, id_usuario, t);
+
     const [filasActualizadas] = await Licencia.update(
       { rotulo: nuevoRotulo },
       {
@@ -185,6 +203,7 @@ const actualizarRotulo = async (id_licencia, fecha_emisionL, nuevoRotulo) => {
           id_licencia,
           fecha_emisionL,
         },
+        transaction: t,
       }
     );
 
@@ -193,6 +212,8 @@ const actualizarRotulo = async (id_licencia, fecha_emisionL, nuevoRotulo) => {
     }
 
     return { message: "Rótulo actualizado correctamente" };
+  });
+    return result;
   } catch (error) {
     console.error("Error al actualizar el rótulo:", error);
     throw error;
