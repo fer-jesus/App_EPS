@@ -15,8 +15,8 @@ services:
       - dot_data:/var/lib/mysql
       - ./database:/docker-entrypoint-initdb.d
     networks:
-      #- network_EPS-JFGL
-      - nginx-proxy
+      - network_EPS-JFGL
+      #- nginx-proxy
 
 
   backend:
@@ -35,13 +35,13 @@ services:
     - DB_PASSWORD=${DB_PASSWORD}
     - DB_NAME=${DB_NAME}
     - DB_PORT=${DB_PORT}
-    - VIRTUAL_HOST=back_dot.dotmunijalapa.org
-    - LETSENCRYPT_HOST=back_dot.dotmunijalapa.org
-    - LETSENCRYPT_EMAIL=admin@dotmunijalapa.org
+    # - VIRTUAL_HOST=back_dot.dotmunijalapa.org
+    # - LETSENCRYPT_HOST=back_dot.dotmunijalapa.org
+    # - LETSENCRYPT_EMAIL=admin@dotmunijalapa.org
 
     networks:
-      #- network_EPS-JFGL
-      - nginx-proxy
+      - network_EPS-JFGL
+      #- nginx-proxy
 
     depends_on:
       - db
@@ -61,21 +61,21 @@ services:
       - /app/node_modules
     environment: 
       - VITE_BACKEND_URL=http://backend:3001
-      - VIRTUAL_HOST=front_dot.dotmunijalapa.org
-      - LETSENCRYPT_HOST=front_dot.dotmunijalapa.org
-      - LETSENCRYPT_EMAIL=admin@dotmunijalapa.org
+      # - VIRTUAL_HOST=front_dot.dotmunijalapa.org
+      # - LETSENCRYPT_HOST=front_dot.dotmunijalapa.org
+      # - LETSENCRYPT_EMAIL=admin@dotmunijalapa.org
 
     networks: 
-      #- network_EPS-JFGL
-      - nginx-proxy
+      - network_EPS-JFGL
+      #- nginx-proxy
 
     depends_on: 
       - backend
     restart: always
 
 networks:
-  #network_EPS-JFGL:
-   nginx-proxy:
+  network_EPS-JFGL:
+   #nginx-proxy:
     external: true
     #driver: bridge
 

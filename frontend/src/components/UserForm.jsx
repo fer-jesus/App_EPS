@@ -158,7 +158,7 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
 
           // Editar usuario existente
           const response = await axios.put(
-            `https://front_dot.dotmunijalapa.org/api/usuarios/${initialData.id_usuario}`,
+            `http://localhost:3001/api/usuarios/${initialData.id_usuario}`,
             payload,
             headers
             // {
@@ -191,7 +191,7 @@ const UserForm = ({ onSubmit, initialData = {}, onClose }) => {
 
           // Crear nuevo usuario
           const response = await axios.post(
-            "https://front_dot.dotmunijalapa.org/api/crearusuarios",
+            "http://localhost:3001/api/crearusuarios",
             payload,
             headers
             // {

@@ -27,7 +27,7 @@ const Nomenclaturas = () => {
 
   const fetchNomenclaturas = async () => {
     try {
-      const response = await fetch("https://front_dot.dotmunijalapa.org/api/nomenclaturas", {
+      const response = await fetch("http://localhost:3001/api/nomenclaturas", {
         headers: {
           Authorization: `Bearer ${token}`,
         },

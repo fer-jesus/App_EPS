@@ -37,7 +37,7 @@ const Registros = () => {
 
   const fetchTasas = async () => {
     try {
-      const response = await axios.get("https://front_dot.dotmunijalapa.org/api/tasas", {
+      const response = await axios.get("http://localhost:3001/api/tasas", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -89,7 +89,7 @@ const Registros = () => {
   const handleOpenLicencia = async (tasa) => {
     try {
       const response = await axios.get(
-        `https://front_dot.dotmunijalapa.org/api/licencias/datos-tasa/${tasa.id}`,
+        `http://localhost:3001/api/licencias/datos-tasa/${tasa.id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -135,7 +135,7 @@ const Registros = () => {
 
     try {
       const response = await axios.get(
-        `https://front_dot.dotmunijalapa.org/api/tasas/ampliacion/${row.id}`,
+        `http://localhost:3001/api/tasas/ampliacion/${row.id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
