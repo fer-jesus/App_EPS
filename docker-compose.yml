@@ -4,18 +4,19 @@ services:
   db:
     image: mysql:8.0
     restart: always
-    container_name: mysql_db
+    container_name: dot_db_mysql
     environment:
-      MYSQL_ROOT_PASSWORD: 12345
-      MYSQL_DATABASE: lic_const_db
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     ports:
       - "3306:3306"
     volumes:
-      - db_data:/var/lib/mysql
+      - dot_data:/var/lib/mysql
       - ./database:/docker-entrypoint-initdb.d
     networks:
-      - app-network
+      - network_EPS-JFGL
+
 
   backend:
     build: 
@@ -28,18 +29,22 @@ services:
       - ./backend:/app
       - /app/node_modules
     environment:
-       #- PORT=3000
-       - DB_USER=root
-       - DB_HOST=db
-       - DB_PASSWORD=12345
-       - DB_NAME=lic_const_db
-       - DB_PORT=3306
+    - DB_HOST=${DB_HOST}
+    - DB_USER=${DB_USER}
+    - DB_PASSWORD=${DB_PASSWORD}
+    - DB_NAME=${DB_NAME}
+    - DB_PORT=${DB_PORT}
+    - VIRTUAL_HOST=back_dot.dotmunijalapa.org
+    - LETSENCRYPT_HOST=back_dot.dotmunijalapa.org
+    - LETSENCRYPT_EMAIL=admin@dotmunijalapa.org
+
     networks:
-      - app-network
+      - network_EPS-JFGL
+
     depends_on:
       - db
     restart: always
-    command: sh -c "while ! nc -z db 3306 ; do sleep 1 ; done && npm run dev"
+    command: sh -c "while ! nc -z db 3306 ; do sleep 1 ; done && npm run start"
     #command: sh -c "while ! nc -z host.docker.internal 3306 ; do sleep 1 ; done && npm run dev"
 
   frontend:
@@ -53,19 +58,26 @@ services:
       - ./frontend:/app
       - /app/node_modules
     environment: 
-      - VITE_REACT_APP_BACKEND_URL=http://backend:3001 
+      - VITE_BACKEND_URL=http://backend:3001
+      - VIRTUAL_HOST=front_dot.dotmunijalapa.org
+      - LETSENCRYPT_HOST=front_dot.dotmunijalapa.org
+      - LETSENCRYPT_EMAIL=admin@dotmunijalapa.org
+
     networks: 
-      - app-network
+      - network_EPS-JFGL
+
     depends_on: 
       - backend
     restart: always
 
 networks:
-  app-network:
-    driver: bridge
+  network_EPS-JFGL:
+    external: true
+    #driver: bridge
 
 volumes:
-  db_data:
+  dot_data:
+
 
 
 

@@ -36,7 +36,7 @@ const CambiarContrasena = () => {
 
     try {
       const res = await fetch(
-        "http://localhost:3001/api/auth/actualizar-contrasena",
+        "https://front_dot.dotmunijalapa.org/api/auth/actualizar-contrasena",
         {
           method: "POST",
           headers: {

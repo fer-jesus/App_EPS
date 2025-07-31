@@ -28,7 +28,7 @@ const AdminTarifas = () => {
 
   const fetchTarifas = async () => {
     try {
-      const response = await fetch("http://localhost:3001/api/tarifas", {
+      const response = await fetch("https://front_dot.dotmunijalapa.org/api/tarifas", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -81,7 +81,7 @@ const AdminTarifas = () => {
   const handleGuardarCambios = async () => {
     if (tarifaEditando) {
       try {
-        await fetch(`http://localhost:3001/api/tarifas/${tarifaEditando.id}`, {
+        await fetch(`https://front_dot.dotmunijalapa.org/api/tarifas/${tarifaEditando.id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",

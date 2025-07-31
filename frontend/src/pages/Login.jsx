@@ -57,7 +57,7 @@ const Login = () => {
 
     try {
       // Llamada a la API para autenticar al usuario
-      const res = await axios.post("http://localhost:3001/api/auth/login", {
+      const res = await axios.post("https://front_dot.dotmunijalapa.org/api/auth/login", {
         username: user,
         password: pass,
       });
@@ -101,7 +101,7 @@ const Login = () => {
     }
 
     try {
-      await axios.post("http://localhost:3001/api/auth/recoverpass", {
+      await axios.post("https://front_dot.dotmunijalapa.org/api/auth/recoverpass", {
         correo: email,
       });
 

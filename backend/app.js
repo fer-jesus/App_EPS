@@ -12,9 +12,20 @@ const propietarioRoutes = require('./routes/propietarioRoutes');
 const licenciaRoutes = require('./routes/licenciaRoutes');
 const nomenclaturaRoutes = require('./routes/nomenclaturaRoutes');
 
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://frontend:5173', // nombre del servicio en docker-compose
+  'https://front_dot.dotmunijalapa.org'// dominio del frontend para el entorno de producción
+];
+
 // Configuración de middlewares
 app.use(cors({
-  origin: 'http://localhost:5173', 
+    origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-user-id']

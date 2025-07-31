@@ -60,7 +60,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
     const fetchTarifas = async () => {
       try {
         const res = await axios.get(
-          "http://localhost:3001/api/tarifas",
+          "https://front_dot.dotmunijalapa.org/api/tarifas",
           headers
         );
         setTarifas(res.data);
@@ -352,7 +352,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
       //Verificar si el propietario ya existe
 
       const response = await axios.get(
-        `http://localhost:3001/api/propietarios/${formData.dpi}`,
+        `https://front_dot.dotmunijalapa.org/api/propietarios/${formData.dpi}`,
         headers
       );
       const nombreBD = response.data.nombre_propietario?.trim().toLowerCase();
@@ -361,7 +361,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
       //Si el nombre cambió, actualizar
       if (nombreBD !== nombreFormulario) {
         await axios.put(
-          `http://localhost:3001/api/propietarios/${formData.dpi}`,
+          `https://front_dot.dotmunijalapa.org/api/propietarios/${formData.dpi}`,
           {
             nombre_propietario: formData.nombrePropietario.trim(),
           },
@@ -372,7 +372,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
       if (err.response?.status === 404) {
         // No existe propietario, crear
         await axios.post(
-          `http://localhost:3001/api/propietarios`,
+          `https://front_dot.dotmunijalapa.org/api/propietarios`,
           {
             cui: parseInt(formData.dpi),
             nombre_propietario: formData.nombrePropietario.trim(),
@@ -391,7 +391,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
 
     try {
       const response = await axios.get(
-        `http://localhost:3001/api/propietarios/${cui}`,
+        `https://front_dot.dotmunijalapa.org/api/propietarios/${cui}`,
         headers
       );
       if (response.data && response.data.nombre_propietario) {
@@ -459,7 +459,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
       console.log("Datos a enviar:", payload);
 
       const response = await axios.post(
-        "http://localhost:3001/api/tasas",
+        "https://front_dot.dotmunijalapa.org/api/tasas",
         payload,
         headers
       );
