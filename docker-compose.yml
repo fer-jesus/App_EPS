@@ -6,8 +6,8 @@ services:
     restart: always
     container_name: dot_db_mysql
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_ROOT_PASSWORD: 12345
+      MYSQL_DATABASE: lic_const_db
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     ports:
       - "3306:3306"
@@ -15,7 +15,7 @@ services:
       - dot_data:/var/lib/mysql
       - ./database:/docker-entrypoint-initdb.d
     networks:
-      - network_EPS-JFGL
+      - app-network
       #- nginx-proxy
 
 
@@ -30,17 +30,17 @@ services:
       - ./backend:/app
       - /app/node_modules
     environment:
-    - DB_HOST=${DB_HOST}
-    - DB_USER=${DB_USER}
-    - DB_PASSWORD=${DB_PASSWORD}
-    - DB_NAME=${DB_NAME}
-    - DB_PORT=${DB_PORT}
+    - DB_HOST=db
+    - DB_USER=root
+    - DB_PASSWORD=12345
+    - DB_NAME=lic_const_db
+    - DB_PORT=3306
     # - VIRTUAL_HOST=back_dot.dotmunijalapa.org
     # - LETSENCRYPT_HOST=back_dot.dotmunijalapa.org
     # - LETSENCRYPT_EMAIL=admin@dotmunijalapa.org
 
     networks:
-      - network_EPS-JFGL
+      - app-network
       #- nginx-proxy
 
     depends_on:
@@ -66,7 +66,7 @@ services:
       # - LETSENCRYPT_EMAIL=admin@dotmunijalapa.org
 
     networks: 
-      - network_EPS-JFGL
+      - app-network
       #- nginx-proxy
 
     depends_on: 
@@ -74,11 +74,11 @@ services:
     restart: always
 
 networks:
-  network_EPS-JFGL:
+  app-network:
+    driver: bridge
    #nginx-proxy:
-    external: true
-    #driver: bridge
-
+    #external: true
+    
 volumes:
   dot_data:
 

@@ -81,7 +81,7 @@ INSERT INTO TARIFA (id_nombreTarifa, nombre_tarifa, TIPO_CONSTRUCCION_TARIFA_id_
 (29, 'Estacionamiento sin cubierta', 8),
 (30, 'Estacionamiento con cubierta de lámina', 8),
 (31, 'Estacionamiento con cubierta de losa', 8),
--- (32, 'Cambio de uso o remodelaciones', 8),
+(32, 'Cambio de uso o remodelaciones', 8),
 (33, 'Parques y centros recreativos', 8),
 (34, 'Piscinas Domiciliar', 8),
 (35, 'Piscinas Comercial', 8),
