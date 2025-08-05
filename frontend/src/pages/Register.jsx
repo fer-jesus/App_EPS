@@ -185,10 +185,27 @@ const Registros = () => {
     return Number.isFinite(lat) && Number.isFinite(lng);
   };
 
-  const handleAbrirPDFTasa = (idTasa) => {
-  const url = `http://localhost:3001/api/tasas/pdf/${idTasa}`;
-  window.open(url, "_blank");
-};
+// const handleAbrirPDFTasa = async (idTasa) => {
+//   const token = localStorage.getItem("token");
+
+//   try {
+//     const response = await fetch(`http://localhost:3001/api/tasa/documento/pdf/${idTasa}`, {
+//       method: "GET",
+//       headers: {
+//         Authorization: `Bearer ${token}`,
+//       },
+//     });
+
+//     if (!response.ok) throw new Error("Error al obtener el PDF");
+
+//     const blob = await response.blob();
+//     const url = window.URL.createObjectURL(blob);
+//     window.open(url, "_blank");
+//   } catch (error) {
+//     console.error("Error al abrir PDF:", error);
+//   }
+// };
+
 
 
   // Función render para la celda "tasa"
@@ -210,12 +227,12 @@ const Registros = () => {
         >
           <AssignmentIcon fontSize="small" />
         </IconButton>
-        <IconButton size="small"
+        {/* <IconButton size="small"
         onClick={() => handleAbrirPDFTasa(row.id)}
         sx={{ color: "#2b4f6b" }}
         >
           <VisibilityIcon fontSize="small"/>
-        </IconButton>
+        </IconButton> */}
         {tieneCoordenadas && (
           <IconButton
             size="small"
