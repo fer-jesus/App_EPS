@@ -185,6 +185,12 @@ const Registros = () => {
     return Number.isFinite(lat) && Number.isFinite(lng);
   };
 
+  const handleAbrirPDFTasa = (idTasa) => {
+  const url = `http://localhost:3001/api/tasas/pdf/${idTasa}`;
+  window.open(url, "_blank");
+};
+
+
   // Función render para la celda "tasa"
   const renderCellTasa = (params) => {
     const row = params.row;
@@ -204,8 +210,11 @@ const Registros = () => {
         >
           <AssignmentIcon fontSize="small" />
         </IconButton>
-        <IconButton size="small" disabled>
-          <VisibilityIcon fontSize="small" color="disabled" />
+        <IconButton size="small"
+        onClick={() => handleAbrirPDFTasa(row.id)}
+        sx={{ color: "#2b4f6b" }}
+        >
+          <VisibilityIcon fontSize="small"/>
         </IconButton>
         {tieneCoordenadas && (
           <IconButton

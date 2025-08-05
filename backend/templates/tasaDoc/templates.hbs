@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Documento Tasa</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-image: url("file://{{imagenFondo}}");
+      background-size: cover;
+      background-repeat: no-repeat;
+      padding: 80px;
+    }
+    .contenido {
+      background: rgba(255, 255, 255, 0.85);
+      padding: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="contenido">
+    <h1>Documento de Tasa</h1>
+    <p><strong>Propietario:</strong> {{nombre_propietario}}</p>
+    <p><strong>ID Tasa:</strong> {{id_tasa}}</p>
+    <p><strong>Valor total:</strong> Q. {{valor_total}}</p>
+    <!-- Agrega más campos según tu modelo -->
+  </div>
+</body>
+</html>
