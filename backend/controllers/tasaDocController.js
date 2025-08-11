@@ -2,28 +2,60 @@ const path = require("path");
 const fs = require("fs-extra");
 const puppeteer = require("puppeteer");
 const handlebars = require("handlebars");
-const { obtenerDatosTasaPorId } = require("../models/tasas/tasa.service");
+const {
+  obtenerDatosParaDocumentoPDF,
+} = require("../models/tasas/tasa.service");
 
 const generarPDFTasa = async (req, res) => {
   try {
     const { id } = req.params;
 
     // 1. Obtener los datos de la Tasa
-    const datosTasa = await obtenerDatosTasaPorId(id);
+    const datosTasa = await obtenerDatosParaDocumentoPDF(id);
     if (!datosTasa) {
       return res.status(404).json({ mensaje: "Tasa no encontrada" });
     }
 
-    datosTasa.imagenFondo = path.resolve(__dirname, "../templates/tasaDoc/fondo_tasa.png");
+    // Convertir la imagen a base64
+    const imagePath = path.resolve(
+      __dirname,
+      "../templates/tasaDoc/fondo_tasa.png"
+    );
+    const imageBuffer = await fs.readFile(imagePath);
+    const base64Image = imageBuffer.toString("base64");
+    const mimeType = "image/png";
+
+    // Agregar como Data URI
+    datosTasa.imagenFondo = `data:${mimeType};base64,${base64Image}`;
 
     // 2. Leer y compilar la plantilla
-    const templatePath = path.join(__dirname, "../templates/tasaDoc/templates.hbs");
+    const templatePath = path.join(
+      __dirname,
+      "../templates/tasaDoc/templates.hbs"
+    );
+
     const html = await fs.readFile(templatePath, "utf-8");
+
+    handlebars.registerHelper("mayusculas", function (texto) {
+      return texto?.toString().toUpperCase() || "";
+    });
+
+    handlebars.registerHelper("breaklines", function (texto) {
+      if (!texto) return "";
+      const escaped = handlebars.escapeExpression(texto);
+      return new handlebars.SafeString(escaped.replace(/\n/g, "<br/>"));
+    });
+
     const template = handlebars.compile(html);
+
     const content = template(datosTasa);
 
     // 3. Crear el PDF con Puppeteer
-    const browser = await puppeteer.launch({ headless: true });
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    });
+
     const page = await browser.newPage();
 
     // 4. Cargar el contenido HTML en la página

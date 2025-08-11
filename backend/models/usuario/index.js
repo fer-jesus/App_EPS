@@ -18,12 +18,12 @@ Usuario.belongsTo(Rol, {
 RolNombre.hasMany(Usuario, {
   foreignKey: 'ROL_id_rol',
   sourceKey: 'ROL_id_rol',
-  as: 'usuarios' // opcional, pero útil si haces consultas con alias
+  as: 'usuarios' 
 });
 Usuario.belongsTo(RolNombre, {
   foreignKey: 'ROL_id_rol',
   targetKey: 'ROL_id_rol',
-  as: 'RolNombre' // importante si quieres incluir esto en consultas
+  as: 'RolNombre' 
 });
 
 module.exports = {

@@ -11,7 +11,8 @@ const tasaRoutes = require("./routes/tasaRoutes");
 const propietarioRoutes = require('./routes/propietarioRoutes');
 const licenciaRoutes = require('./routes/licenciaRoutes');
 const nomenclaturaRoutes = require('./routes/nomenclaturaRoutes');
-const tasaDocRoute = require("./routes/tasaDocRoute");
+const tasadocRoute = require("./routes/tasadocRoutes");
+const licenciadocRoute = require("./routes/licenciadocRoutes");
 
 const allowedOrigins = [
   'http://localhost:5173',
@@ -58,7 +59,8 @@ app.use("/api/tasas", tasaRoutes);
 app.use('/api/propietarios', propietarioRoutes);
 app.use('/api/licencias', licenciaRoutes);
 app.use('/api/nomenclaturas', nomenclaturaRoutes);
-app.use("/api/tasa-documento", tasaDocRoute);
+app.use("/api/tasa-documento", tasadocRoute);
+app.use("/api/licencia-documento", licenciadocRoute);
 
 // Ruta de prueba
 app.get('/', (req, res) => {

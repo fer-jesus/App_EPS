@@ -270,9 +270,10 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
             .toLocaleString("es-GT")}\n`;
 
           tarifasData.push({
-            TARIFA_id_nombreTarifa: form.tarifaCambioUso.id_nombreTarifa,
+            TARIFA_id_nombreTarifa: 32, // 32 ó form.tarifaCambioUso.id_nombreTarifa,
             dimension_construccion: areaCU,
-            formula: `${areaCU} x ${baseCU} x 25% x 3.5%`,
+            //formula: `${areaCU} x ${baseCU} x 25% x 3.5%`,
+            formula: `${areaCU}X${baseCU}=${subtotal1.toLocaleString("es-GT")}X25%=${subtotal2.toFixed(2).toLocaleString("es-GT")}X3.5%=${subtotal3.toFixed(2).toLocaleString("es-GT")}`,
             valor: subtotal3,
           });
         }
@@ -302,7 +303,8 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
         tarifasData.push({
           TARIFA_id_nombreTarifa: tipo.id_nombreTarifa,
           dimension_construccion: area,
-          formula: `${area} x ${costo} x ${porcentaje}%`,
+          //formula: `${area} x ${costo} x ${porcentaje}%`,
+          formula: `${area}X${costo}=${subtotal.toLocaleString("es-GT")}X${porcentaje}%=${valor.toFixed(2).toLocaleString("es-GT")}`,
           valor,
         });
 
@@ -330,7 +332,8 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
             tarifasData.push({
               TARIFA_id_nombreTarifa: tipo.id_nombreTarifa,
               dimension_construccion: nivelArea,
-              formula: `${nivelArea} x ${costo} x ${porcentaje}% x 50%`,
+              //formula: `${nivelArea} x ${costo} x ${porcentaje}% x 50%`,
+              formula: `${nivelArea}X${costo}=${subtotalNivel.toLocaleString("es-GT")}X${porcentaje}%=${porcNivel.toFixed(2).toLocaleString("es-GT")}X50%=${valorNivel.toFixed(2).toLocaleString("es-GT")}`,
               valor: valorNivel,
             });
           });

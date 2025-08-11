@@ -4,26 +4,195 @@
   <meta charset="UTF-8" />
   <title>Documento Tasa</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-image: url("file://{{imagenFondo}}");
-      background-size: cover;
-      background-repeat: no-repeat;
-      padding: 80px;
+  @page {
+      size: letter portrait;
+      margin: 0;
     }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+    }
+     body {
+      font-family: Arial, sans-serif;
+      position: relative;
+      z-index: 0;
+    }
+     body::before {
+      content: '';    
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url("{{imagenFondo}}");
+      background-size: auto 100%; /* ESTIRA completamente la imagen hacia afuera */
+      background-position: center top;
+      background-repeat: no-repeat;
+      opacity: 0.5; /* Ajusta la opacidad según sea necesario */
+      background-color: rgba(255, 255, 255, 0.3);
+      z-index: -1; /* Coloca la imagen detrás del contenido */
+  }
+
     .contenido {
-      background: rgba(255, 255, 255, 0.85);
-      padding: 20px;
+      padding: 150px 60px 60px 60px; 
+      box-sizing: border-box;
+      position: relative;
+      z-index: 1;
+    }
+
+    .titulo-tabla {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+
+    .titulo-tabla td {
+      background-color: #00b050;
+      color: black;
+      text-align: center;
+      font-size: 14px;
+      font-weight: bold;
+      padding: 1px 6px;
+      border: 1px solid #000;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    th, td {
+      border: 1px solid #000;
+      padding: 8px 12px;
+      vertical-align: top;
+      word-wrap: break-word;
+    }
+
+    th {
+      width: 50%;
+      text-align: center;
+      font-weight: normal;
+    }
+
+    td {
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .sin-negrita {
+    font-weight: normal !important;
+    }
+
+    .firma {
+     position: fixed; /* Fija la posición en la ventana */
+     bottom: 120px;    /* Distancia desde el borde inferior */
+     left: 0;
+     right: 0;
+     text-align: center;
+     font-size: 14px;
+     padding: 10px 0;
+     z-index: 100;
+     margin-top: 0;
+     opacity: 0.9;
+    }
+
+    .firma .nombre {
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .firma .cargo {
+      margin: 0;
+      font-style: normal;
     }
   </style>
 </head>
 <body>
   <div class="contenido">
-    <h1>Documento de Tasa</h1>
-    <p><strong>Propietario:</strong> {{nombre_propietario}}</p>
-    <p><strong>ID Tasa:</strong> {{id_tasa}}</p>
-    <p><strong>Valor total:</strong> Q. {{valor_total}}</p>
-    <!-- Agrega más campos según tu modelo -->
+
+     <table class="titulo-tabla">
+      <tr>
+        <td>DATOS GENERALES DE LA CONSTRUCCIÓN</td>
+      </tr>
+      </table>
+
+   <!-- Tabla 1 -->
+   
+      <table>
+      <tr>
+        <th>FECHA</th>
+        <td>{{fecha}}</td>
+      </tr>
+      <tr>
+        <th>DIRECCIÓN EXACTA</th>
+        <td>{{mayusculas direccion}}</td>
+      </tr>
+      <tr>
+        <th>NOMBRE DEL PROPIETARIO O POSEEDOR</th>
+        <td>{{mayusculas nombre_propietario}}</td>
+      </tr>
+      <tr>
+        <th>TIPO DE CONSTRUCCIÓN SEGÚN REGLAMENTO</th>
+        <td>{{mayusculas tipo_construccion}}</td>
+      </tr>
+      <tr>
+        <th>CUENTA O NO CON ALINEACIÓN URBANÍSTICA</th>
+        <td>{{mayusculas alineacion}}</td>
+      </tr>
+      <tr>
+        <th>RECOMENDACIÓN O ANOTACIONES GENERALES</th>
+        <td>{{mayusculas anotaciones}}</td>
+      </tr>
+    </table>
+
+    <!-- Tabla 2 -->
+    <table>
+      <tr>
+        <th>ÁREA DE LA CONSTRUCCIÓN</th>
+        <td class="sin-negrita">{{{breaklines area_construccion}}}</td>
+      </tr>
+      <tr>
+        <th>CANTIDAD EN M² DE DEMOLICIÓN, MOVIMIENTO DE TIERRA</th>
+        <td class="sin-negrita">{{{breaklines area_demolicion}}}</td>
+      </tr>
+      <tr>
+        <th>VALOR DE M² Y PORCENTAJE APLICADO</th>
+        <td class="sin-negrita">{{valor_m2_y_porcentaje}}</td>
+      </tr>
+          {{#if valor_segundo_nivel}}
+      <tr>
+        <th>
+          LAS CONSTRUCCIONES CON FINES DOMICILIARES DE MÁS DE UN NIVEL PAGARAN UN 50% DEL VALOR DE LA LICENCIA SEGÚN LOS PLANOS PRESENTADOS DEL SEGUNDO NIVEL O MAS NIVELES
+        </th>
+        <td class="sin-negrita" style="text-align: center; vertical-align: middle;">
+          {{{breaklines valor_segundo_nivel}}}
+        </td>
+      </tr>
+      {{/if}}
+      <tr>
+        <th>PRESUPUESTO DE LA OBRA</th>
+        <td>Q. {{presupuesto_obra}}</td>
+      </tr>
+      <tr>
+        <th>CANTIDAD A CANCELAR POR LICENCIA DE CONSTRUCCIÓN</th>
+        <td style="background-color: #6ca644;">{{cantidad_cancelar}}</td>
+      </tr>
+    </table>
+
+    <!-- Firma final -->
+    {{#if firmaUsuario}}
+    <div class="firma">
+      <p class="nombre">{{usuario}}</p>
+      <p class="cargo">{{rol_nombre}}</p>
+      <p class="cargo">{{institucion_firma}}</p>
+    </div>
+    {{/if}}
+
   </div>
 </body>
 </html> 

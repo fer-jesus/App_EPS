@@ -206,6 +206,27 @@ const handleAbrirPDFTasa = async (idTasa) => {
   }
 };
 
+const handleAbrirPDFLicencia = async (idLicencia) => {
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await fetch(`http://localhost:3001/api/licencia-documento/pdf/${idLicencia}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) throw new Error("Error al obtener el PDF");
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    window.open(url, "_blank");
+  } catch (error) {
+    console.error("Error al abrir PDF de licencia:", error);
+  }
+};
+
 
   // Función render para la celda "tasa"
   const renderCellTasa = (params) => {
@@ -221,7 +242,7 @@ const handleAbrirPDFTasa = async (idTasa) => {
           onClick={() => handleAmpliacionClick(row)}
           disabled={yaAmpliada}
           sx={{
-            color: yaAmpliada ? "inherit" : "#1e4d6b",
+            color: yaAmpliada ? "inherit" : "#4187b3ff",
           }}
         >
           <AssignmentIcon fontSize="small" />
@@ -298,8 +319,10 @@ const handleAbrirPDFTasa = async (idTasa) => {
             >
               <EditIcon fontSize="small" />
             </IconButton>
-            <IconButton size="small" disabled>
-              <VisibilityIcon fontSize="small" color="disabled" />
+            <IconButton    size="small"
+          onClick={() => handleAbrirPDFLicencia(params.row.id_licencia)}
+        >
+          <VisibilityIcon fontSize="small" sx={{ color: "#2b4f6b" }} />
             </IconButton>
           </Box>
         );

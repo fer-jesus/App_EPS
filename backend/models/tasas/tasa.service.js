@@ -1,12 +1,16 @@
 const {
   Tasa,
   TasaTarifa,
+  Tarifa,
   Propietario,
   Licencia,
   TasaTarifaVariosNiveles,
 } = require(".");
 
+const { Usuario, Rol, RolNombre } = require("../usuario");
+
 const { setUsuarioId } = require("../../utils/historial");
+const { Op, Sequelize } = require("sequelize");
 
 const crearTasa = async (tasaData, tarifasData, id_usuario) => {
   console.log("Creando tasa:", tasaData);
@@ -214,8 +218,231 @@ const obtenerDatosTasaPorId = async (idTasa) => {
   };
 };
 
+const obtenerDatosParaDocumentoPDF = async (idTasa) => {
+  const tasa = await Tasa.findByPk(idTasa, {
+    include: [
+      {
+        model: Propietario,
+        as: "propietario",
+        attributes: ["nombre_propietario"],
+      },
+      {
+        model: Licencia,
+        as: "licencia",
+        attributes: ["fecha_emisionL"],
+      },
+      {
+        model: TasaTarifa,
+        as: "detalles_tarifas",
+        include: [
+          {
+            model: Tarifa,
+            as: "tarifa",
+            attributes: [
+              "id_nombreTarifa",
+              "nombre_tarifa",
+              "TIPO_CONSTRUCCION_TARIFA_id_tipoConstruccion",
+            ],
+          },
+        ],
+      },
+    ],
+  });
+
+  if (!tasa) {
+    throw new Error("Tasa no encontrada");
+  }
+
+  //Consulta usuario firmante: coordinador o coordinador interino en funciones
+  const usuarioFirmante = await Usuario.findOne({
+    where: { en_funciones: 1 },
+    include: [
+      {
+        model: Rol,
+        as: "Rol",
+        where: {
+          id_rol: [3, 4], // IDs de coordinadores
+        },
+        required: true,
+        include: [
+          {
+          model: RolNombre,
+          as: "RolNombres",
+          required: true,
+          attributes: ["nombre_rol", "sexo"],
+          },
+        ],
+      },
+    ],
+  });
+
+  //FUNCIONES AUXILIARES
+  const obtenerDescripcionTipoConstruccion = (tarifa) => {
+    const idTarifa = tarifa?.id_nombreTarifa;
+    const nombreTarifa = tarifa?.nombre_tarifa || "";
+    const tipoConstruccionId =
+      tarifa?.TIPO_CONSTRUCCION_TARIFA_id_tipoConstruccion;
+
+    if (!idTarifa || !tipoConstruccionId) return "";
+
+    // Casos especiales
+
+    if (idTarifa === 32) return "Cambio de uso o remodelaciones";
+    if ([2, 3, 4, 5, 6].includes(idTarifa)) return "Vivienda techo de lamina";
+    if ([7, 8, 9, 10, 11, 12].includes(idTarifa))
+      return "Vivienda losa de concreto";
+    if (idTarifa === 44) return nombreTarifa;
+
+    // Mostrar solo nombre tarifa
+    if ([4, 5, 6, 7].includes(tipoConstruccionId)) return nombreTarifa;
+
+    // Mostrar tipo construcción / tarifa
+    if ([8, 9].includes(tipoConstruccionId)) {
+      let tipoConstruccionTexto = "";
+
+      if (tipoConstruccionId === 8)
+        tipoConstruccionTexto = "Trabajos de obra exterior";
+      if (tipoConstruccionId === 9)
+        tipoConstruccionTexto = "Otras actividades constructivas";
+
+      return `${tipoConstruccionTexto} - ${nombreTarifa}`;
+    }
+
+    return nombreTarifa; // fallback
+  };
+
+  const formatoFecha = (fechaStr) => {
+    if (!fechaStr) return "";
+    const [year, month, day] = fechaStr.split("-");
+    return `${day}/${month}/${year}`;
+  };
+
+  const formatearMoneda = (valor) => {
+    const numero = Number(valor);
+    return numero.toLocaleString("es-GT", {
+      style: "decimal",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
+
+  //VARIABLES DE CÁLCULO
+
+  // Suma total de las tarifas
+  const valorTotal =
+    tasa.detalles_tarifas?.reduce((acc, t) => acc + Number(t.valor), 0) || 0;
+
+  let formulasTarifa = [];
+  let formulasSegundoNivel = [];
+  let areasConstruccion = [];
+  let areaDemolicion = "";
+
+  for (const detalle of tasa.detalles_tarifas || []) {
+    const tarifa = detalle.tarifa;
+    const nombre = tarifa?.nombre_tarifa?.toUpperCase() || "";
+    const tipoConstruccionId =
+      tarifa?.TIPO_CONSTRUCCION_TARIFA_id_tipoConstruccion;
+    const formula = detalle.formula?.toUpperCase();
+    const dimension = detalle.dimension_construccion?.toString() || "";
+    const idTarifa = tarifa?.id_nombreTarifa;
+
+    if (!tarifa) continue;
+
+    // Definir unidad (m² o m³)
+    const unidad = [34, 35, 36].includes(idTarifa) ? " m³" : " m²";
+
+    // Área de demolición (no debe mostrarse como área de construcción)
+    const esDemolicion = ["DEMOLICIÓN", "MOVIMIENTO DE TIERRA"].includes(
+      nombre
+    );
+    if (esDemolicion) {
+      areaDemolicion = dimension ? `${dimension}${unidad}` : "";
+    }
+
+    let formulaFormateada = formula;
+    if (formula?.includes("=")) {
+      const partes = formula.split("=");
+      const parteFinal = partes.pop().trim();
+      const parteFinalFormateada = formatearMoneda(parteFinal);
+      formulaFormateada = [...partes, parteFinalFormateada].join("=");
+    }
+
+    if ([2, 3].includes(tipoConstruccionId) && formula?.includes("X50%")) {
+      formulasSegundoNivel.push(formulaFormateada);
+    } else {
+      formulasTarifa.push(formulaFormateada);
+    }
+
+    if (!esDemolicion && dimension) {
+      areasConstruccion.push(`${dimension}${unidad}`);
+    }
+  }
+
+  const tieneFirmante = Boolean(usuarioFirmante);
+
+  return {
+    fecha: formatoFecha(tasa.licencia?.fecha_emisionL || tasa.fecha_emisionT),
+    direccion: tasa.direccion_propiedad || "",
+    nombre_propietario: tasa.propietario?.nombre_propietario || "",
+    tipo_construccion: (() => {
+      const descripciones = tasa.detalles_tarifas
+        ?.map((t) => {
+          const tipoId = t.tarifa?.TIPO_CONSTRUCCION_TARIFA_id_tipoConstruccion;
+          const descripcion = obtenerDescripcionTipoConstruccion(t.tarifa);
+          return { tipoId, descripcion };
+        })
+        .filter((t) => t.descripcion); // descartar nulos/vacíos
+
+      const resultado = [];
+      const encontradosTipo2o3 = new Set(); // Para evitar duplicados solo de tipo 2 y 3
+
+      for (const t of descripciones) {
+        if ([2, 3].includes(t.tipoId)) {
+          if (!encontradosTipo2o3.has(t.descripcion)) {
+            resultado.push(t.descripcion);
+            encontradosTipo2o3.add(t.descripcion);
+          }
+        } else {
+          resultado.push(t.descripcion); // otros tipos pueden repetirse
+        }
+      }
+
+      return resultado.join(" / ");
+    })(),
+
+    alineacion: tasa.alineacion_urban
+      ? "Sí CUENTA CON ALINEACIÓN"
+      : "NO CUENTA CON ALINEACIÓN",
+
+    anotaciones: tasa.anotaciones || "",
+    area_construccion: areasConstruccion.join("\n") || "",
+    area_demolicion: areaDemolicion || "",
+    valor_m2_y_porcentaje: formulasTarifa.join("\n") || "",
+    valor_segundo_nivel: formulasSegundoNivel.join("\n") || "",
+    presupuesto_obra: formatearMoneda(tasa.presupuesto_obra) || "0.00",
+    //cantidad_cancelar: formatearMoneda(tasa.cantidad_cancelar),
+    cantidad_cancelar: (() => {
+      const tieneExento = (tasa.detalles_tarifas || []).some(
+        (t) => t.tarifa?.id_nombreTarifa === 1
+      );
+      return tieneExento
+        ? "EXENTO"
+        : `Q. ${formatearMoneda(tasa.cantidad_cancelar)}`;
+    })(),
+    usuario: tieneFirmante
+    ? `${usuarioFirmante?.titulo || ""} ${usuarioFirmante?.nombre || ""}`.trim()  : "",
+    rol_nombre: tieneFirmante
+    ? (usuarioFirmante?.Rol?.RolNombres || [])
+      .find(rn => rn.sexo === usuarioFirmante.sexo)?.nombre_rol || ""
+  : "",
+    institucion_firma: tieneFirmante ? "MUNICIPALIDAD DE JALAPA" : "",
+    firmaUsuario: true,
+  };
+};
+
 module.exports = {
   crearTasa,
   obtenerRegistros,
   obtenerDatosTasaPorId,
+  obtenerDatosParaDocumentoPDF,
 };
