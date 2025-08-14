@@ -1,6 +1,8 @@
 const sequelize = require('../../config/sequelize');
+const { DataTypes } = require('sequelize');
 const Usuario = require('./usuario.model')(sequelize);
 const { Rol, RolNombre } = require('../rol')(sequelize);
+const UsuarioFirma = require("./usuarioFirma.model")(sequelize, DataTypes);;
 
 // Relaciones
 Rol.hasMany(Usuario, {
@@ -23,12 +25,28 @@ RolNombre.hasMany(Usuario, {
 Usuario.belongsTo(RolNombre, {
   foreignKey: 'ROL_id_rol',
   targetKey: 'ROL_id_rol',
-  as: 'RolNombre' 
+  as: 'RolNombre' ,
 });
+
+// Relación: un Usuario puede tener muchas firmas
+Usuario.hasMany(UsuarioFirma, {
+  foreignKey: "USUARIOS_id_usuario",
+  sourceKey: "id_usuario",
+  as: "firmas"
+});
+
+// Relación inversa: una firma pertenece a un Usuario
+UsuarioFirma.belongsTo(Usuario, {
+  foreignKey: "USUARIOS_id_usuario",
+  targetKey: "id_usuario",
+  as: "usuario"
+});
+
 
 module.exports = {
   sequelize,
   Usuario,
   Rol,
-  RolNombre
+  RolNombre,
+  UsuarioFirma
 };

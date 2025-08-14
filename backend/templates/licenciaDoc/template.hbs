@@ -88,7 +88,6 @@
     <div style="
     position: absolute;
     top: 0.1cm;
-
     right: 0.5cm;
     font-size: 12pt;
     font-weight: bold;
@@ -99,7 +98,7 @@
     min-width: 5ch;
     white-space: nowrap;
   ">
-   No.<span style="font-weight: normal; color: black;">{{numeroLicencia}}</span>
+   No.<span style="font-weight: bold; color: #C00000;">{{numeroLicencia}}</span>
   </div>
 
   <div class="header">
@@ -130,66 +129,65 @@
   "></div>
 
 <!-- Contenido dentro del cuadro -->
-<div style="position: absolute; top: calc(0.5cm + 4cm); left: 50%; width: 20cm; transform: translateX(-50%); padding: 0.5cm; box-sizing: border-box;">
+<div style="position: absolute; top: calc(0.5cm + 3.8cm); left: 50%; width: 20cm; transform: translateX(-50%); padding: 0.5cm; box-sizing: border-box;">
   <div style="text-align: justify; font-weight: bold; margin-bottom: 10px;">DATOS DE LA LICENCIA</div>
   
-  <table style="width: 100%; margin-bottom: 15px;">
-    <tr>
-      <td style="width: 50%;">
-        <span style="text-transform: uppercase;">REGISTRO GENERAL</span><br>
-        <div style="display: inline-block; min-width: 200px;">{{registroGeneral}}</div>
-      </td>
-      <td style="width: 25%;">
-        <span style="text-transform: uppercase;">FECHA DE EMISIÓN</span><br>
-        <div style="display: inline-block; min-width: 200px;">{{fechaEmision}}</div>
-      </td>
-      <td style="width: 25%;">
-        <span style="text-transform: uppercase;">FECHA DE VENCIMIENTO</span><br>
-        <div style="display: inline-block; min-width: 200px;">{{fechaVencimiento}}</div>
-      </td>
-    </tr>
-  </table>
+  <table style="width: 100%; margin-bottom: 15px; text-align: center;">
+  <tr>
+    <td style="width: 33%; vertical-align: top;">
+      <div style="text-transform: uppercase; margin-bottom: 5px; font-size: 11pt;">REGISTRO GENERAL</div>
+      <div style="font-weight: bold; min-width: 200px; margin: 0 auto; text-align: center; font-size: 11pt; white-space: pre-line;">{{registroGeneral}}</div>
+    </td>
+    <td style="width: 33%; vertical-align: top;">
+      <div style="text-transform: uppercase; margin-bottom: 5px; font-size: 11pt;">FECHA DE EMISIÓN</div>
+      <div style="font-weight: bold; min-width: 200px; margin: 0 auto; text-align: center; font-size: 11pt;">{{fechaEmision}}</div>
+    </td>
+    <td style="width: 33%; vertical-align: top;">
+      <div style="text-transform: uppercase; margin-bottom: 5px; font-size: 11pt;">FECHA DE VENCIMIENTO</div>
+      <div style="font-weight: bold; min-width: 200px; margin: 0 auto; text-align: center; font-size: 11pt;">{{fechaVencimiento}}</div>
+    </td>
+  </tr>
+</table>
 
   <!-- Sección de solicitante -->
   <div style="margin-top: 70px;">
     <div style="font-weight: bold; text-transform: uppercase;">DATOS DEL SOLICITANTE</div>
     <div style="margin-top: 5px;">
-      <span style="font-weight: bold; text-transform: uppercase;">SOLICITANTE:</span><br>
-      <div style="width: 100%;">{{solicitante}}</div>
+      <span style="font-weight: bold; text-transform: uppercase;">SOLICITANTE:</span>
+       <span style="width: 100%; text-transform: uppercase;">{{solicitante}}</span>
     </div>
     <div style="margin-top: 10px; margin-bottom: 30px;">
-      <span style="font-weight: bold; text-transform: uppercase;">DIRECCIÓN DE LA CONSTRUCCIÓN:</span><br>
-      <div style="width: 100%; min-height: 40px;">{{direccionConstruccion}}</div>
+      <span style="font-weight: bold; text-transform: uppercase;">DIRECCIÓN DE LA CONSTRUCCIÓN:</span>
+      <span style="width: 100%; min-height: 40px; text-transform: uppercase;">{{direccionConstruccion}}</span>
     </div>
   </div>
 
   <!--  TIPO DE CONSTRUCCIÓN  -->
-<div style="margin-top: -15px; margin-bottom: 10px;">
-  <div style="text-transform: uppercase; text-align: center; font-weight: bold;">TIPO DE CONSTRUCCIÓN</div>
-  <div>{{tipoConstruccion}}</div> 
+<div style="margin-top: 15px; margin-bottom: 10px; text-align: center; font-weight: bold; font-size: 10pt; text-transform: uppercase;">
+  {{tipoConstruccion}}
 </div>
 
   <!-- Sección de datos financieros -->
   <div style="margin-top: 35px;">
     <div style="margin-bottom: 10px;">
-      <div style="text-transform: uppercase;">CANCELA LA CANTIDAD DE:</div>
-      <div>{{cantidadCancelada}}</div>
+      <span style="text-transform: uppercase;">CANCELA LA CANTIDAD DE:</span>
+      <span style="font-weight: bold;">{{cantidadCancelada}}</span>
     </div>
     
     <div style="margin-bottom: 10px;">
-      <div style="text-transform: uppercase;">PRESUPUESTO DE LA OBRA:</div>
-      <div>{{presupuestoObra}}</div>
+      <span style="text-transform: uppercase;">PRESUPUESTO DE LA OBRA:</span>
+      <span style="font-weight: bold;">{{presupuestoObra}}</span>
     </div>
     
     <div style="margin-bottom: 10px;">
-      <div style="text-transform: uppercase;">ROTULO:</div>
-      <div>{{rotulo}}</div>
+      <span style="text-transform: uppercase;">ROTULO:</span>
+      <span style="font-weight: bold;">{{rotulo}}</span>
     </div>
   </div>
 
   <div style="margin-top: 10px;">
-    <div style="text-transform: uppercase;">ÁREA DE LA CONSTRUCCIÓN:</div>
-    <div>{{areaConstruccion}}</div>
+    <span style="text-transform: uppercase;">ÁREA DE LA CONSTRUCCIÓN:</span>
+    <span style="font-weight: bold;">{{areaConstruccion}}</span>
   </div>
 </div>
 
@@ -218,29 +216,28 @@
   <!-- Contenedor para las dos primeras firmas en línea, centradas -->
   <div style="display: flex; justify-content: center; gap: 120px; margin-bottom: 60px;">
     <!-- Firma 1 -->
-    <div style="text-align: center;">
-      <div>Nombre</div>
-      <div>COORDINADOR INTERINO</div>
-      <div>PROYECTOS URBANOS - <br>
-        LICENCIAS DE CONSTRUCCIÓN</div>
+   <div style="text-align: center; font-size: 10pt">
+     <div style="font-weight: bold; text-transform: uppercase">{{firmantes.0.nombre}}</div>
+      <div>{{firmantes.0.rol}}</div>
+      <div>{{firmantes.0.unidad}}</div>
     </div>
 
     <!-- Firma 2 -->
-    <div style="text-align: center;">
-      <div>Nombre</div>
-      <div>SUBDIRECTORA</div>
-      <div>DIRECCIÓN DE ORDENAMIENTO TERRITORIAL</div>
-      <div>Y DESARROLLO MUNICIPAL</div>
+   <div style="text-align: center; font-size: 10pt">
+      <div style="font-weight: bold; text-transform: uppercase">{{firmantes.1.nombre}}</div>
+      <div>{{firmantes.1.rol}}</div>
+      <div>{{firmantes.1.unidad}}</div>
+
     </div>
   </div>
 
   <!-- Firma 3 centrada debajo de las dos primeras -->
-  <div style="text-align: center; margin-top: 100px;">
-    <div>Nombre</div>
-    <div>DIRECTOR</div>
-    <div>DIRECCIÓN DE ORDENAMIENTO TERRITORIAL</div>
-    <div>Y DESARROLLO MUNICIPAL</div>
+ <div style="text-align: center; margin-top: 100px; font-size: 10pt">
+    <div style="font-weight: bold; text-transform: uppercase">{{firmantes.2.nombre}}</div>
+    <div style="margin-bottom: 5px;">{{firmantes.2.rol}}</div>
+    <div style="white-space: pre-line;">{{formatUnidad firmantes.2.unidad}}</div>
   </div>
+</div>
 
   </div>
 </body>

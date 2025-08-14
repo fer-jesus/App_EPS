@@ -329,8 +329,7 @@ const obtenerDatosParaDocumentoPDF = async (idTasa) => {
   //VARIABLES DE CÁLCULO
 
   // Suma total de las tarifas
-  const valorTotal =
-    tasa.detalles_tarifas?.reduce((acc, t) => acc + Number(t.valor), 0) || 0;
+  const valorTotal = tasa.detalles_tarifas?.reduce((acc, t) => acc + Number(t.valor), 0) || 0;
 
   let formulasTarifa = [];
   let formulasSegundoNivel = [];

@@ -96,6 +96,7 @@ const Registros = () => {
           },
         }
       );
+      console.log("Datos de la tasa para licencia:", response.data);
 
       setSelectedLicencia({
         ...response.data,
@@ -185,48 +186,85 @@ const Registros = () => {
     return Number.isFinite(lat) && Number.isFinite(lng);
   };
 
-const handleAbrirPDFTasa = async (idTasa) => {
-  const token = localStorage.getItem("token");
+  const handleAbrirPDFTasa = async (idTasa) => {
+    const token = localStorage.getItem("token");
 
-  try {
-    const response = await fetch(`http://localhost:3001/api/tasa-documento/pdf/${idTasa}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    try {
+      const response = await fetch(
+        `http://localhost:3001/api/tasa-documento/pdf/${idTasa}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    if (!response.ok) throw new Error("Error al obtener el PDF");
+      if (!response.ok) throw new Error("Error al obtener el PDF");
 
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
-    window.open(url, "_blank");
-  } catch (error) {
-    console.error("Error al abrir PDF:", error);
-  }
-};
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    } catch (error) {
+      console.error("Error al abrir PDF:", error);
+    }
+  };
 
-const handleAbrirPDFLicencia = async (idLicencia) => {
-  const token = localStorage.getItem("token");
+  const handleAbrirPDFLicencia = async (row) => {
+    const token = localStorage.getItem("token");
 
-  try {
-    const response = await fetch(`http://localhost:3001/api/licencia-documento/pdf/${idLicencia}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    if (row.registro_general === "En proceso") {
+      Swal.fire({
+        icon: "info",
+        title: "Aún no existe la licencia",
+        text: "No puedes visualizar la licencia hasta que se haya generado.",
+        confirmButtonText: "Entendido",
+      });
+      return;
+    }
 
-    if (!response.ok) throw new Error("Error al obtener el PDF");
+    try {
+      const response2 = await axios.get(
+        `http://localhost:3001/api/licencias/por-tasa/${row.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
-    window.open(url, "_blank");
-  } catch (error) {
-    console.error("Error al abrir PDF de licencia:", error);
-  }
-};
+      const licenciaDatos = response2.data;
 
+      console.log("Datos de la tasa para PDF:", licenciaDatos);
+      console.log("fecha_emisionL:", licenciaDatos.fecha_emisionL, "id_licencia:", licenciaDatos.id_licencia);
+
+      let fechaValida = new Date(licenciaDatos.fecha_emisionL);
+      if (isNaN(fechaValida.getTime())) {
+        alert("La fecha de emisión es inválida. Por favor verifica.");
+        return;
+      }
+      const fechaNormalizada = fechaValida.toISOString().split("T")[0];
+
+      const idLicencia = licenciaDatos.id_licencia;
+      const response = await fetch(
+        `http://localhost:3001/api/licencia-documento/pdf/${idLicencia}/${fechaNormalizada}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) throw new Error("Error al obtener el PDF");
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    } catch (error) {
+      alert("Error al abrir PDF de licencia.",error);
+    }
+  };
 
   // Función render para la celda "tasa"
   const renderCellTasa = (params) => {
@@ -247,11 +285,12 @@ const handleAbrirPDFLicencia = async (idLicencia) => {
         >
           <AssignmentIcon fontSize="small" />
         </IconButton>
-        <IconButton size="small"
-        onClick={() => handleAbrirPDFTasa(row.id)}
-        sx={{ color: "#2b4f6b" }}
+        <IconButton
+          size="small"
+          onClick={() => handleAbrirPDFTasa(row.id)}
+          sx={{ color: "#2b4f6b" }}
         >
-          <VisibilityIcon fontSize="small"/>
+          <VisibilityIcon fontSize="small" />
         </IconButton>
         {tieneCoordenadas && (
           <IconButton
@@ -268,7 +307,6 @@ const handleAbrirPDFLicencia = async (idLicencia) => {
                 longitud: Number(row.longitud.toString().trim()),
                 direccion_propiedad: row.direccion_propiedad || "",
                 nombre_propietario: row.nombrePropietario || "Desconocido",
-                
               });
               setOpenMapa(true);
             }}
@@ -319,10 +357,15 @@ const handleAbrirPDFLicencia = async (idLicencia) => {
             >
               <EditIcon fontSize="small" />
             </IconButton>
-            <IconButton    size="small"
-          onClick={() => handleAbrirPDFLicencia(params.row.id_licencia)}
-        >
-          <VisibilityIcon fontSize="small" sx={{ color: "#2b4f6b" }} />
+            <IconButton
+              size="small"
+              onClick={() => {
+                //console.log("params.row completo:", params.row);
+                //console.log("Fecha emisión desde row:", params.row.fecha_emisionL);
+                handleAbrirPDFLicencia(params.row);
+              }}
+            >
+              <VisibilityIcon fontSize="small" sx={{ color: "#2b4f6b" }} />
             </IconButton>
           </Box>
         );

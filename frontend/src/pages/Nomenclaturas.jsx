@@ -71,6 +71,30 @@ const Nomenclaturas = () => {
     setOpenDialog(false);
   };
 
+    const handleAbrirPDFNomenclatura = async (idNomenclatura) => {
+    const token = localStorage.getItem("token");
+
+    try {
+      const response = await fetch(
+        `http://localhost:3001/api/nomenclatura-documento/pdf/${idNomenclatura}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) throw new Error("Error al obtener el PDF");
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    } catch (error) {
+      console.error("Error al abrir PDF:", error);
+    }
+  };
+
   const filteredRows = nomenclaturas.filter((row) => {
   const searchLower = search.toLowerCase();
   return (
@@ -99,9 +123,11 @@ const Nomenclaturas = () => {
       minWidth: 150,
       renderCell: (params) => (
         <Box display="flex" gap={1}>
-          <IconButton size="small" disabled
-          onClick={() => {}}>
-            <VisibilityIcon fontSize="small" color="disabled" />
+          <IconButton size="small" 
+          onClick={() => handleAbrirPDFNomenclatura(params.row.id)}
+          sx={{ color: "#2b4f6b" }}
+          >
+            <VisibilityIcon fontSize="small" />
           </IconButton>
           <IconButton
             size="small"
