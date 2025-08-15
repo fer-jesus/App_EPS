@@ -1,4 +1,5 @@
 const { Nomenclatura, Propietario } = require("./index");
+const { Usuario, Rol, RolNombre } = require("../usuario");
 const sequelize = require("../../config/sequelize");
 
 const crearNomenclatura = async (datos) => {
@@ -19,7 +20,6 @@ const crearNomenclatura = async (datos) => {
   }
 
   return await sequelize.transaction(async (t) => {
-
     // Crear el id de la nomenclatura (id_nomenclatura vendrá desde el trigger)
     const nueva = await Nomenclatura.create(
       {
@@ -98,7 +98,91 @@ const listarNomenclaturas = async () => {
   return datosConRegistro;
 };
 
+const obtenerDatosParaNomenclaturaPDF = async (idNomenclatura) => {
+  try {
+    // Buscar la nomenclatura con su propietario
+    const nomenclatura = await Nomenclatura.findOne({
+      where: { id_nomenclatura: idNomenclatura },
+      attributes: ["id_nomenclatura", "fecha_emisionN", "direccion_solici"],
+      include: [
+        {
+          model: Propietario,
+          as: "propietario",
+          attributes: ["nombre_propietario"],
+        },
+      ],
+    });
+
+    if (!nomenclatura) {
+      throw new Error("Nomenclatura no encontrada");
+    }
+
+    //Consulta usuario firmante: coordinador o coordinador interino en funciones
+    const usuarioFirmante = await Usuario.findOne({
+      where: { en_funciones: 1 },
+      include: [
+        {
+          model: Rol,
+          as: "Rol",
+          where: {
+            id_rol: [1, 2], // IDs de coordinadores
+          },
+          required: true,
+          include: [
+            {
+              model: RolNombre,
+              as: "RolNombres",
+              required: true,
+              attributes: ["nombre_rol", "sexo"],
+            },
+          ],
+        },
+      ],
+    });
+
+    const tieneFirmante = Boolean(usuarioFirmante);
+
+    const nJson = nomenclatura.toJSON();
+
+    // Formatear id_nomenclatura con ceros a la izquierda (0001, 0002, etc.)
+    const idFormateado = String(nJson.id_nomenclatura).padStart(4, "0");
+
+    // Calcular registro_generalN
+    const idStr = nJson.id_nomenclatura?.toString().padStart(4, "0") || "0000";
+    const fecha = new Date(nJson.fecha_emisionN + "T00:00:00");
+    const dd = String(fecha.getDate()).padStart(2, "0");
+    const mm = String(fecha.getMonth() + 1).padStart(2, "0");
+    const yyyy = fecha.getFullYear();
+    const registroGeneral = `${idStr}${dd}${mm}${yyyy}`;
+
+    return {
+      id_nomenclatura: idFormateado,
+      registro_generalN: registroGeneral,
+      solicitante: nJson.propietario?.nombre_propietario || "",
+      direccion: nJson.direccion_solici || "",
+      usuario: tieneFirmante
+        ? `${usuarioFirmante?.titulo || ""} ${
+            usuarioFirmante?.nombre || ""
+          }`.trim()
+        : "",
+      rol_nombre: tieneFirmante
+        ? (usuarioFirmante?.Rol?.RolNombres || []).find(
+            (rn) => rn.sexo === usuarioFirmante.sexo
+          )?.nombre_rol || ""
+        : "",
+      institucion_firma: tieneFirmante
+        ? "DIRECCIÓN DE ORDENAMIENTO TERRITORIAL <br> Y DESARROLLO MUNICIPAL"
+        : "",
+      firmaUsuario: true,
+    };
+  } catch (error) {
+    console.error("Error en obtenerDatosParaLicenciaPDF:", error.message);
+    throw error;
+  }
+};
+
 module.exports = {
   crearNomenclatura,
   listarNomenclaturas,
+  obtenerDatosParaNomenclaturaPDF,
 };

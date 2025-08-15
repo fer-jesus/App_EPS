@@ -225,18 +225,11 @@ const actualizarRotulo = async (
   }
 };
 
-const obtenerDatosParaLicenciaPDF = async (idLicencia, fechaEmision) => {
+const obtenerDatosParaLicenciaPDF = async (idLicencia) => {
   try {
-    const fechaSQL = new Date(fechaEmision);
-    if (isNaN(fechaSQL.getTime())) {
-      throw new Error(`Fecha inválida: ${fechaEmision}`);
-    }
-    const fechaNormalizada = fechaSQL.toISOString().split("T")[0];
-    //hasta aqui
     const licencia = await Licencia.findOne({
       where: {
         id_licencia: idLicencia,
-        fecha_emisionL: fechaNormalizada,
       },
       include: [
         {
@@ -344,12 +337,8 @@ const obtenerDatosParaLicenciaPDF = async (idLicencia, fechaEmision) => {
     // Formatear fechas
     const formatearFecha = (fecha) => {
       if (!fecha) return null;
-      const date = new Date(fecha);
-      if (isNaN(date)) return null;
-      const dia = String(date.getDate()).padStart(2, "0");
-      const mes = String(date.getMonth() + 1).padStart(2, "0");
-      const anio = date.getFullYear();
-      return `${dia}/${mes}/${anio}`;
+      const [year, month, day] = fecha.split("-");
+      return `${day}/${month}/${year}`;
     };
 
     const obtenerDescripcionTipoConstruccion = (tarifa) => {
@@ -424,7 +413,7 @@ const obtenerDatosParaLicenciaPDF = async (idLicencia, fechaEmision) => {
               "nombre",
               "ROL_id_rol",
               "en_funciones",
-              "titulo"
+              "titulo",
             ],
             include: [
               {
@@ -513,7 +502,9 @@ const obtenerDatosParaLicenciaPDF = async (idLicencia, fechaEmision) => {
         }
 
         firmantes.push({
-          nombre: `${usuario.titulo ? usuario.titulo + " " : ""}${usuario.nombre}`,
+          nombre: `${usuario.titulo ? usuario.titulo + " " : ""}${
+            usuario.nombre
+          }`,
           rol: nombreRol || "",
           unidad:
             rol.id === 3

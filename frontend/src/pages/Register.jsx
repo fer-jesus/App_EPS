@@ -236,15 +236,14 @@ const Registros = () => {
       const licenciaDatos = response2.data;
 
       console.log("Datos de la tasa para PDF:", licenciaDatos);
-      console.log("fecha_emisionL:", licenciaDatos.fecha_emisionL, "id_licencia:", licenciaDatos.id_licencia);
+      console.log(
+        "fecha_emisionL:",
+        licenciaDatos.fecha_emisionL,
+        "id_licencia:",
+        licenciaDatos.id_licencia
+      );
 
-      let fechaValida = new Date(licenciaDatos.fecha_emisionL);
-      if (isNaN(fechaValida.getTime())) {
-        alert("La fecha de emisión es inválida. Por favor verifica.");
-        return;
-      }
-      const fechaNormalizada = fechaValida.toISOString().split("T")[0];
-
+      const fechaNormalizada = licenciaDatos.fecha_emisionL;
       const idLicencia = licenciaDatos.id_licencia;
       const response = await fetch(
         `http://localhost:3001/api/licencia-documento/pdf/${idLicencia}/${fechaNormalizada}`,
@@ -262,7 +261,7 @@ const Registros = () => {
       const url = window.URL.createObjectURL(blob);
       window.open(url, "_blank");
     } catch (error) {
-      alert("Error al abrir PDF de licencia.",error);
+      alert("Error al abrir PDF de licencia.", error);
     }
   };
 

@@ -79,17 +79,17 @@
     <div style="
     position: fixed;
     top: 15%;
-    right: 4cm;
+    right: 1.5cm;
     font-size: 14pt;
     font-weight: bold;
     color: #C00000;
     font-family: Arial, sans-serif;
     z-index: 10;
     text-align: right;
-    min-width: 5ch;
+    min-width: 1ch;
     white-space: nowrap;
   ">
-   No.<span style="font-weight: bold; color: #C00000;">{{numeroNomenclatura}}</span>
+   No.<span style="font-weight: bold; color: #C00000;">{{id_nomenclatura}}</span>
   </div>
 
     <div class="nomenclatura-text">NOMENCLATURA</div>
@@ -112,21 +112,21 @@
 ">
 
 <!-- REGISTRO GENERAL -->
-    <div style="margin-top: 30px; margin-bottom: 130px; margin-left: 30px;">
+    <div style="margin-top: 30px; margin-bottom: 100px; margin-left: 30px;">
         <div style="font-weight: bold; margin-bottom: 5px; color: #767171; font-size: 16px;">REGISTRO GENERAL</div>
-        {{registroGeneral}}
+         <span style="font-weight: bold;">{{registro_generalN}}</span>
     </div>
 
     <!-- SOLICITANTE -->
     <div style="margin-bottom: 50px; margin-left: 30px;">
-        <div style="font-weight: bold; margin-bottom: 5px; color: #767171; font-size: 16px;">SOLICITANTE</div>
-        {{solicitante}}
+        <div style="font-weight: bold; margin-bottom: 5px; color: #767171; font-size: 16px; display: inline-block;">SOLICITANTE</div>
+       <span style="margin-left: 10px; font-weight: bold; text-transform: uppercase">{{solicitante}}</span>
     </div>
 
     <!-- DIRECCIÓN -->
     <div style="margin-left: 30px;">
-        <div style="font-weight: bold; margin-bottom: 5px; color: #767171; font-size: 16px;">DIRECCIÓN</div>
-        {{direccion}}
+        <div style="font-weight: bold; margin-bottom: 5px; color: #767171; font-size: 16px; display: inline-block;">DIRECCIÓN</div>
+        <span style="margin-left: 10px; font-weight: bold; text-transform: uppercase">{{direccion}}</span>
     </div>
 
 </div>
@@ -138,7 +138,7 @@
     <div class="firma">
       <p class="nombre">{{usuario}}</p>
       <p class="cargo">{{rol_nombre}}</p>
-      <p class="cargo">{{institucion_firma}}</p>
+      <p class="cargo">{{{institucion_firma}}}</p>
     </div>
     {{/if}}
 

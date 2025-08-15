@@ -2,17 +2,17 @@ const path = require("path");
 const fs = require("fs-extra");
 const puppeteer = require("puppeteer");
 const handlebars = require("handlebars");
-// const {
-//   obtenerDatosParaDocumentoPDF,
-// } = require("../models/nomenclatura/nomenclatura.service");
+const {
+  obtenerDatosParaNomenclaturaPDF,
+} = require("../models/nomenclaturas/nomenclatura.service");
 
 const generarPDFNomenclatura = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const datosNomenclatura = {}; // datos vacíos para la plantilla
+   // const datosNomenclatura = {}; // datos vacíos para la plantilla
     // 1. Obtener los datos de la Nomenclatura
-    //const datosNomenclatura = await obtenerDatosParaDocumentoPDF(id);
+    const datosNomenclatura = await obtenerDatosParaNomenclaturaPDF(id);
     if (!datosNomenclatura) {
       return res.status(404).json({ mensaje: "Nomenclatura no encontrada" });
     }
