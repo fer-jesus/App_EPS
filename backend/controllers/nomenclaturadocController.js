@@ -10,24 +10,54 @@ const generarPDFNomenclatura = async (req, res) => {
   try {
     const { id } = req.params;
 
-   // const datosNomenclatura = {}; // datos vacíos para la plantilla
+    // const datosNomenclatura = {}; // datos vacíos para la plantilla
     // 1. Obtener los datos de la Nomenclatura
     const datosNomenclatura = await obtenerDatosParaNomenclaturaPDF(id);
     if (!datosNomenclatura) {
       return res.status(404).json({ mensaje: "Nomenclatura no encontrada" });
     }
 
-    // Convertir la imagen a base64
-    const imagePath = path.resolve(
+    //Fondo base 
+    const fondoPath = path.resolve(
       __dirname,
       "../templates/nomenclaturaDoc/fondo_nomen.png"
     );
-    const imageBuffer = await fs.readFile(imagePath);
-    const base64Image = imageBuffer.toString("base64");
-    const mimeType = "image/png";
+    const fondoBuffer = await fs.readFile(fondoPath);
+    datosNomenclatura.imagenFondo = `data:image/png;base64,${fondoBuffer.toString(
+      "base64"
+    )}`;
 
-    // Agregar como Data URI
-    datosNomenclatura.imagenFondo = `data:${mimeType};base64,${base64Image}`;
+    //Overlay según tipo_nomenclatura
+    const overlayMap = {
+      IUSI: "IUSI.png",
+      JALAPAGUA: "JALAPAGUA.png",
+      "EMPRESA ELECTRICA": "Elec.png",
+    };
+
+    if (overlayMap[datosNomenclatura.tipo_nomenclatura]) {
+      const overlayPath = path.resolve(
+        __dirname,
+        `../templates/nomenclaturaDoc/${
+          overlayMap[datosNomenclatura.tipo_nomenclatura]
+        }`
+      );
+      const overlayBuffer = await fs.readFile(overlayPath);
+      datosNomenclatura.imagenOverlay = `data:image/png;base64,${overlayBuffer.toString(
+        "base64"
+      )}`;
+    }
+
+    // // Convertir la imagen a base64
+    // const imagePath = path.resolve(
+    //   __dirname,
+    //   "../templates/nomenclaturaDoc/fondo_nomen.png"
+    // );
+    // const imageBuffer = await fs.readFile(imagePath);
+    // const base64Image = imageBuffer.toString("base64");
+    // const mimeType = "image/png";
+
+    // // Agregar como Data URI
+    // datosNomenclatura.imagenFondo = `data:${mimeType};base64,${base64Image}`;
 
     // 2. Leer y compilar la plantilla
     const templatePath = path.join(

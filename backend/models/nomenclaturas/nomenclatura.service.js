@@ -1,4 +1,4 @@
-const { Nomenclatura, Propietario } = require("./index");
+const { Nomenclatura, Propietario, TipoNomenclatura } = require("./index");
 const { Usuario, Rol, RolNombre } = require("../usuario");
 const sequelize = require("../../config/sequelize");
 
@@ -110,6 +110,11 @@ const obtenerDatosParaNomenclaturaPDF = async (idNomenclatura) => {
           as: "propietario",
           attributes: ["nombre_propietario"],
         },
+        {
+          model: TipoNomenclatura,
+          as: "tipoNomenclatura",
+          attributes: ["tipo_nomenclatura"], // 👈 traemos el texto
+        },
       ],
     });
 
@@ -160,6 +165,7 @@ const obtenerDatosParaNomenclaturaPDF = async (idNomenclatura) => {
       registro_generalN: registroGeneral,
       solicitante: nJson.propietario?.nombre_propietario || "",
       direccion: nJson.direccion_solici || "",
+      tipo_nomenclatura: nJson.tipoNomenclatura?.tipo_nomenclatura || "NORMAL",
       usuario: tieneFirmante
         ? `${usuarioFirmante?.titulo || ""} ${
             usuarioFirmante?.nombre || ""
