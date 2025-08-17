@@ -18,7 +18,7 @@ const nomenclaturadocRoute = require("./routes/nomenclaturadocRoutes");
 const allowedOrigins = [
   'http://localhost:5173',
   'http://frontend:5173', // nombre del servicio en docker-compose
-  'https://front_dot.dotmunijalapa.org'// dominio del frontend para el entorno de producción
+  'https://frontdot.dotmunijalapa.org' // dominio del frontend para el entorno de producción
 ];
 
 // Configuración de middlewares
