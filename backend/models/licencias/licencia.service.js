@@ -475,23 +475,28 @@ const obtenerDatosParaLicenciaPDF = async (idLicencia) => {
               u.en_funciones
           );
 
-        if (!usuario) {
-          // fallback manual si no hay usuario
-          firmantes.push({
-            nombre: "",
-            rol:
-              rol.id === 3
-                ? "COORDINADOR INTERINO"
-                : rol.id === 2
-                ? "SUBDIRECTORA"
-                : "DIRECTOR",
-            unidad:
-              rol.id === 3
-                ? "PROYECTOS URBANOS - LICENCIAS DE CONSTRUCCIÓN"
-                : "DIRECCIÓN DE ORDENAMIENTO TERRITORIAL Y DESARROLLO MUNICIPAL",
-          });
-          continue;
-        }
+          if (!usuario) {
+      //Si no hay usuario en funciones se pasa al siguiente rol
+      continue;
+    }
+
+        // if (!usuario) {
+        //   // fallback manual si no hay usuario
+        //   firmantes.push({
+        //     nombre: "",
+        //     rol:
+        //       rol.id === 3
+        //         ? "COORDINADOR INTERINO"
+        //         : rol.id === 2
+        //         ? "SUBDIRECTORA"
+        //         : "DIRECTOR",
+        //     unidad:
+        //       rol.id === 3
+        //         ? "PROYECTOS URBANOS - LICENCIAS DE CONSTRUCCIÓN"
+        //         : "DIRECCIÓN DE ORDENAMIENTO TERRITORIAL Y DESARROLLO MUNICIPAL",
+        //   });
+        //   continue;
+        // }
 
         // Determinar el nombre del rol según sexo
         let nombreRol = "";
@@ -503,8 +508,7 @@ const obtenerDatosParaLicenciaPDF = async (idLicencia) => {
 
         firmantes.push({
           nombre: `${usuario.titulo ? usuario.titulo + " " : ""}${
-            usuario.nombre
-          }`,
+            usuario.nombre}`,
           rol: nombreRol || "",
           unidad:
             rol.id === 3
