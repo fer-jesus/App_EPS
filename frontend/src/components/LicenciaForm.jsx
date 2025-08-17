@@ -51,7 +51,7 @@ const LicenciaForm = ({ initialData, onClose, onSubmit }) => {
   const fetchLicencia = async (idTasa) => {
     try {
       const response = await axios.get(
-        `http://localhost:3001/api/licencias/por-tasa/${idTasa}`,
+        `https://backdot.dotmunijalapa.org/api/licencias/por-tasa/${idTasa}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -159,7 +159,7 @@ const LicenciaForm = ({ initialData, onClose, onSubmit }) => {
       if (form.id_licencia && form.rotulo !== rotuloOriginal) {
         //Si existe, actualizar (rotulo)
         await axios.put(
-          `http://localhost:3001/api/licencias/${form.id_licencia}/${form.fechaEmision}`,
+          `https://backdot.dotmunijalapa.org/api/licencias/${form.id_licencia}/${form.fechaEmision}`,
           { rotulo: form.rotulo },
           {
             headers: {
@@ -190,7 +190,7 @@ const LicenciaForm = ({ initialData, onClose, onSubmit }) => {
             form.LICENCIAS_fecha_emisionL_ampliacion,
         });
         const response = await axios.post(
-          "http://localhost:3001/api/licencias",
+          "https://backdot.dotmunijalapa.org/api/licencias",
           {
             boleta_pago: form.boleta_pago,
             fecha_emisionL: form.fechaEmision,

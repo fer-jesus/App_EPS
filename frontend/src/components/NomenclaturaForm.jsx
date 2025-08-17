@@ -71,7 +71,7 @@ const NomenclaturaForm = ({
   const mantenimientoPropietario = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:3001/api/propietarios/${form.cui}`,
+        `https://backdot.dotmunijalapa.org/api/propietarios/${form.cui}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -82,7 +82,7 @@ const NomenclaturaForm = ({
 
       if (nombreBD !== nombreFormulario) {
         await axios.put(
-          `http://localhost:3001/api/propietarios/${form.cui}`,
+          `https://backdot.dotmunijalapa.org/api/propietarios/${form.cui}`,
           {
             nombre_propietario: form.solicitante.trim(),
             direccion: form.direccion.trim(),
@@ -95,7 +95,7 @@ const NomenclaturaForm = ({
     } catch (err) {
       if (err.response?.status === 404) {
         await axios.post(
-          `http://localhost:3001/api/propietarios`,
+          `https://backdot.dotmunijalapa.org/api/propietarios`,
           {
             cui: parseInt(form.cui),
             nombre_propietario: form.solicitante.trim(),
@@ -118,7 +118,7 @@ const NomenclaturaForm = ({
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `http://localhost:3001/api/propietarios/${cui}`,
+        `https://backdot.dotmunijalapa.org/api/propietarios/${cui}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -151,7 +151,7 @@ const NomenclaturaForm = ({
       await mantenimientoPropietario();
 
       await axios.post(
-        "http://localhost:3001/api/nomenclaturas",
+        "https://backdot.dotmunijalapa.org/api/nomenclaturas",
         {
           PROPIETARIOS_cui: form.cui,
           fecha_emisionN: form.fechaEmision,

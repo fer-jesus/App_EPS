@@ -32,6 +32,7 @@ const Login = () => {
   const [showErrorAlert, setShowErrorAlert] = useState(false);
   const { login } = useAuth();
 
+   const API_URL = "https://backdot.dotmunijalapa.org";
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -57,7 +58,7 @@ const Login = () => {
 
     try {
       // Llamada a la API para autenticar al usuario
-      const res = await axios.post("http://localhost:3001/api/auth/login", {
+      const res = await axios.post(`${API_URL}/api/auth/login`, {
         username: user,
         password: pass,
       });
@@ -101,7 +102,7 @@ const Login = () => {
     }
 
     try {
-      await axios.post("http://localhost:3001/api/auth/recoverpass", {
+      await axios.post(`${API_URL}/api/auth/recoverpass`, {
         correo: email,
       });
 
