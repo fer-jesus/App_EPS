@@ -5,6 +5,7 @@ const {
   getDatosTasa,
   getLicenciaPorTasa,
   updateRotulo,
+  reporteMensual,
 } = require("../controllers/licenciaController");
 
 //Ruta para crear una nueva licencia
@@ -19,5 +20,9 @@ router.get("/por-tasa/:id_tasa", getLicenciaPorTasa);
 
 //Ruta para actualizar el rotulo de una licencia
 router.put("/:id_licencia/:fecha_emisionL", updateRotulo);
+
+//Ruta de reporte
+router.get("/reporte-mensual", reporteMensual);
+
 
 module.exports = router;

@@ -10,13 +10,13 @@ const generarPDFTasa = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // 1. Obtener los datos de la Tasa
+    //Obtener los datos de la Tasa
     const datosTasa = await obtenerDatosParaDocumentoPDF(id);
     if (!datosTasa) {
       return res.status(404).json({ mensaje: "Tasa no encontrada" });
     }
 
-    // Convertir la imagen a base64
+    //Convertir la imagen a base64
     const imagePath = path.resolve(
       __dirname,
       "../templates/tasaDoc/fondo_tasa.png"
@@ -25,10 +25,10 @@ const generarPDFTasa = async (req, res) => {
     const base64Image = imageBuffer.toString("base64");
     const mimeType = "image/png";
 
-    // Agregar como Data URI
+    //Agregar como Data URI
     datosTasa.imagenFondo = `data:${mimeType};base64,${base64Image}`;
 
-    // 2. Leer y compilar la plantilla
+    //Leer y compilar la plantilla
     const templatePath = path.join(
       __dirname,
       "../templates/tasaDoc/templates.hbs"
@@ -50,7 +50,7 @@ const generarPDFTasa = async (req, res) => {
 
     const content = template(datosTasa);
 
-    // 3. Crear el PDF con Puppeteer
+    //Crear el PDF con Puppeteer
     const browser = await puppeteer.launch({
       headless: true,
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
@@ -58,12 +58,12 @@ const generarPDFTasa = async (req, res) => {
 
     const page = await browser.newPage();
 
-    // 4. Cargar el contenido HTML en la página
+    //Cargar el contenido HTML en la página
     await page.setContent(content, {
       waitUntil: "networkidle0",
     });
 
-    // 5. Ruta de fondo relativo al HTML (usando Data URI si deseas evitar rutas relativas)
+    // Ruta de fondo relativo al HTML 
     const pdfBuffer = await page.pdf({
       format: "A4",
       printBackground: true,
@@ -71,7 +71,9 @@ const generarPDFTasa = async (req, res) => {
 
     await browser.close();
 
-    // 6. Enviar el PDF como respuesta
+
+
+    //Enviar el PDF como respuesta
     res.set({
       "Content-Type": "application/pdf",
       "Content-Disposition": `attachment; filename=tasa_${id}.pdf`,

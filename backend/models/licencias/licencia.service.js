@@ -4,6 +4,7 @@ const { Usuario, RolNombre, Rol, UsuarioFirma } = require("../usuario");
 //const { RolNombre } = require("../rol");
 const sequelize = require("../../config/sequelize");
 const { setUsuarioId } = require("../../utils/historial");
+const { Op, fn, col } = require("sequelize");
 
 const crearLicencia = async (licenciaData, id_usuario) => {
   try {
@@ -475,10 +476,10 @@ const obtenerDatosParaLicenciaPDF = async (idLicencia) => {
               u.en_funciones
           );
 
-          if (!usuario) {
-      //Si no hay usuario en funciones se pasa al siguiente rol
-      continue;
-    }
+        if (!usuario) {
+          //Si no hay usuario en funciones se pasa al siguiente rol
+          continue;
+        }
 
         // if (!usuario) {
         //   // fallback manual si no hay usuario
@@ -508,7 +509,8 @@ const obtenerDatosParaLicenciaPDF = async (idLicencia) => {
 
         firmantes.push({
           nombre: `${usuario.titulo ? usuario.titulo + " " : ""}${
-            usuario.nombre}`,
+            usuario.nombre
+          }`,
           rol: nombreRol || "",
           unidad:
             rol.id === 3
@@ -560,119 +562,79 @@ const obtenerDatosParaLicenciaPDF = async (idLicencia) => {
   }
 };
 
+const obtenerReporteLicencias = async (inicio, fin) => {
+  let where = {};
+
+  if (inicio && fin) {
+    const inicioDate = new Date(inicio);
+    const finDate = new Date(fin);
+
+    if (
+      inicioDate.getMonth() === finDate.getMonth() &&
+      inicioDate.getFullYear() === finDate.getFullYear()
+    ) {
+      // Filtrar directamente por mes y año exactos
+      const firstDay = `${inicioDate.getFullYear()}-${String(
+        inicioDate.getMonth() + 1
+      ).padStart(2, "0")}-01`;
+
+      const lastDay = new Date(
+        inicioDate.getFullYear(),
+        inicioDate.getMonth() + 1,
+        0
+      ).getDate();
+
+      const endOfMonth = `${inicioDate.getFullYear()}-${String(
+        inicioDate.getMonth() + 1
+      ).padStart(2, "0")}-${lastDay}`;
+
+      where = {
+        fecha_emisionL: {
+          [Op.between]: [firstDay, endOfMonth],
+        },
+      };
+    } else {
+      // Rango normal de fechas
+      where = {
+        fecha_emisionL: {
+          [Op.gte]: inicio,
+          [Op.lte]: fin,
+        },
+      };
+    }
+  }
+
+  const reporte = await Licencia.findAll({
+    attributes: [
+      [fn("MONTH", col("fecha_emisionL")), "mes"],
+      [fn("YEAR", col("fecha_emisionL")), "anio"],
+      [fn("COUNT", col("id_licencia")), "cantidad_licencias"],
+    ],
+    include: [
+      {
+        model: Tasa,
+        as: "tasa",
+        attributes: [[fn("SUM", col("cantidad_cancelar")), "monto_total"]],
+      },
+    ],
+    where,
+    group: ["anio", "mes"],
+    order: [
+      ["anio", "ASC"],
+      ["mes", "ASC"],
+    ],
+    raw: true,
+    nest: true,
+  });
+
+  return reporte;
+};
+
 module.exports = {
   crearLicencia,
   obtenerDatosTasaPorId,
   obtenerLicenciaPorTasa,
   actualizarRotulo,
   obtenerDatosParaLicenciaPDF,
+  obtenerReporteLicencias,
 };
-
-// const firmantes = await (async function obtenerFirmantes(idLicencia) {
-//       // Buscar en USUARIO_FIRMA
-//       let firmaData = await UsuarioFirma.findAll({
-//         where: { LICENCIAS_id_licencia: idLicencia },
-//         include: [
-//           {
-//             model: Usuario,
-//             as: "usuario",
-//             attributes: ["sexo", "nombre", "ROL_id_rol", "en_funciones"],
-//             include: [
-//               {
-//                 model: RolNombre,
-//                 as: "RolNombre",
-//                 attributes: ["nombre_rol", "ROL_id_rol", "sexo"],
-//                 where: {
-//                   sexo: sequelize.col("usuario.sexo"),
-//                 },
-//                 required: false,
-//               },
-//             ],
-//           },
-//         ],
-//       });
-
-//       // Si no hay datos en USUARIO_FIRMA, consultar directamente en USUARIOS
-//       if (!firmaData.length) {
-//         firmaData = await Usuario.findAll({
-//           where: { en_funciones: 1 },
-//           include: [
-//             {
-//               model: RolNombre,
-//               as: "RolNombre",
-//               attributes: ["nombre_rol", "ROL_id_rol", "sexo"],
-//               where: {
-//                 sexo: sequelize.col("Usuario.sexo"),
-//               },
-//               required: false,
-//             },
-//           ],
-//         });
-
-//         // Transformar para tener la misma estructura que cuando viene de UsuarioFirma
-//         firmaData = firmaData.map((u) => ({ usuario: u }));
-//       }
-
-//       const rolesRequeridos = [
-//         { id: 3, interino: 4 }, // COORDINADOR
-//         { id: 2, interino: 6 }, // SUBDIRECTOR
-//         { id: 1, interino: 5 }, // DIRECTOR
-//       ];
-
-//       const firmantes = [];
-
-//       for (const rol of rolesRequeridos) {
-//         // buscar usuario principal o interino
-//         let usuario = firmaData
-//           .map((f) => f.usuario)
-//           .find(
-//             (u) =>
-//               (u.ROL_id_rol === rol.id || u.ROL_id_rol === rol.interino) &&
-//               u.en_funciones
-//           );
-
-//         if (!usuario) {
-//           // fallback manual si no hay usuario
-//           firmantes.push({
-//             nombre: "",
-//             rol:
-//               rol.id === 3
-//                 ? "COORDINADOR INTERINO"
-//                 : rol.id === 2
-//                 ? "SUBDIRECTORA"
-//                 : "DIRECTOR",
-//             unidad:
-//               rol.id === 3
-//                 ? "PROYECTOS URBANOS - LICENCIAS DE CONSTRUCCIÓN"
-//                 : "DIRECCIÓN DE ORDENAMIENTO TERRITORIAL Y DESARROLLO MUNICIPAL",
-//           });
-//           continue;
-//         }
-
-//         // determinar el nombre del rol según ROL_id_rol del usuario y sexo
-//         let nombreRol;
-
-//         if (usuario.RolNombre) {
-//           // RolNombre puede ser un objeto o un array
-//           if (Array.isArray(usuario.RolNombre)) {
-//             const rolNombreObj = usuario.RolNombre.find(
-//               (r) => r.sexo === usuario.sexo
-//             );
-//             nombreRol = rolNombreObj?.nombre_rol || "";
-//           } else {
-//             nombreRol = usuario.RolNombre.nombre_rol;
-//           }
-//         }
-
-//         firmantes.push({
-//           nombre: usuario.nombre,
-//           rol: nombreRol || "",
-//           unidad:
-//             rol.id === 3
-//               ? "PROYECTOS URBANOS - LICENCIAS DE CONSTRUCCIÓN"
-//               : "DIRECCIÓN DE ORDENAMIENTO TERRITORIAL Y DESARROLLO MUNICIPAL",
-//         });
-//       }
-
-//       return firmantes;
-//     })(licencia.id_licencia);

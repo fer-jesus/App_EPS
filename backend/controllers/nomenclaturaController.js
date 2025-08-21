@@ -1,6 +1,7 @@
 const {
   crearNomenclatura,
   listarNomenclaturas,
+  obtenerReporteNomenclaturas,
 } = require("../models/nomenclaturas/nomenclatura.service");
 
 
@@ -37,7 +38,19 @@ const getNomenclaturas = async (req, res) => {
   }
 };
 
+const reporteMensual = async (req, res) => {
+  try {
+    const { inicio, fin } = req.query;
+    const resultado = await obtenerReporteNomenclaturas(inicio, fin);
+    res.json(resultado);
+  } catch (err) {
+    console.error("Error en reporteMensual Nomenclaturas:", err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
 module.exports = {
   postNomenclatura,
   getNomenclaturas,
+  reporteMensual,
 };

@@ -56,7 +56,7 @@ CREATE TABLE TASAS (
   cant_dem_movTierra DECIMAL (5,2) NULL,
   presupuesto_obra DECIMAL (10,2) NOT NULL,
   cantidad_cancelar DECIMAL (10,2) NOT NULL,
-  documento BLOB NULL,
+  documento MEDIUMBLOB NULL,
   latitud DECIMAL(10,8) NULL,
   longitud DECIMAL(11,8) NULL,
   PROPIETARIOS_cui BIGINT(15) NOT NULL,

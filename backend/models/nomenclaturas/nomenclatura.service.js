@@ -1,6 +1,7 @@
 const { Nomenclatura, Propietario, TipoNomenclatura } = require("./index");
 const { Usuario, Rol, RolNombre } = require("../usuario");
 const sequelize = require("../../config/sequelize");
+const { Op, fn, col } = require("sequelize");
 
 const crearNomenclatura = async (datos) => {
   const {
@@ -187,8 +188,69 @@ const obtenerDatosParaNomenclaturaPDF = async (idNomenclatura) => {
   }
 };
 
+const obtenerReporteNomenclaturas = async (inicio, fin) => {
+  let where = {};
+
+  if (inicio && fin) {
+    const inicioDate = new Date(inicio);
+    const finDate = new Date(fin);
+
+    if (
+      inicioDate.getMonth() === finDate.getMonth() &&
+      inicioDate.getFullYear() === finDate.getFullYear()
+    ) {
+      // Filtrar por mes exacto
+      const firstDay = `${inicioDate.getFullYear()}-${String(
+        inicioDate.getMonth() + 1
+      ).padStart(2, "0")}-01`;
+
+      const lastDay = new Date(
+        inicioDate.getFullYear(),
+        inicioDate.getMonth() + 1,
+        0
+      ).getDate();
+
+      const endOfMonth = `${inicioDate.getFullYear()}-${String(
+        inicioDate.getMonth() + 1
+      ).padStart(2, "0")}-${lastDay}`;
+
+      where = {
+        fecha_emisionN: {
+          [Op.between]: [firstDay, endOfMonth],
+        },
+      };
+    } else {
+      // Rango normal de fechas
+      where = {
+        fecha_emisionN: {
+          [Op.gte]: inicio,
+          [Op.lte]: fin,
+        },
+      };
+    }
+  }
+
+  const reporte = await Nomenclatura.findAll({
+    attributes: [
+      [fn("MONTH", col("fecha_emisionN")), "mes"],
+      [fn("YEAR", col("fecha_emisionN")), "anio"],
+      [fn("COUNT", col("id_nomenclatura")), "cantidad_nomenclaturas"],
+    ],
+    where,
+    group: ["anio", "mes"],
+    order: [
+      ["anio", "ASC"],
+      ["mes", "ASC"],
+    ],
+    raw: true,
+  });
+
+  return reporte;
+};
+
 module.exports = {
   crearNomenclatura,
   listarNomenclaturas,
   obtenerDatosParaNomenclaturaPDF,
+  obtenerReporteNomenclaturas,
 };

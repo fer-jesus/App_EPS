@@ -29,11 +29,12 @@ import { useTheme } from "@mui/material/styles";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
-// import { AuthContext } from "../context/AuthContext"; //
-
 const AppNavbar = () => {
   const [menuAnchorUser, setMenuAnchorUser] = useState(null);
+  const [menuAnchorReportes, setMenuAnchorReportes] = useState(null);
   const [menuAnchorHistorial, setMenuAnchorHistorial] = useState(null);
+  const [openReportesDialog, setOpenReportesDialog] = useState(false);
+  const [reportesExpanded, setReportesExpanded] = useState(false);
   const [openHistorialDialog, setOpenHistorialDialog] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [configExpanded, setConfigExpanded] = useState(false);
@@ -41,9 +42,13 @@ const AppNavbar = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const { auth } = useContext(AuthContext);
-  //console.log("Auth data:", auth);
+
   const rol = auth?.user?.rol.toUpperCase();
-  const esAdmin = rol === "DIRECTOR" || rol === "DIRECTORA" || rol === "SUBDIRECTOR" || rol === "SUBDIRECTORA";
+  const esAdmin =
+    rol === "DIRECTOR" ||
+    rol === "DIRECTORA" ||
+    rol === "SUBDIRECTOR" ||
+    rol === "SUBDIRECTORA";
 
   // const { logout } = useContext(AuthContext); //
 
@@ -74,12 +79,33 @@ const AppNavbar = () => {
       <ListItem button onClick={() => handleNavigate("/registros")}>
         <ListItemText primary="Registros" />
       </ListItem>
-       <ListItem button onClick={() => handleNavigate("/nomenclaturas")}>
+      <ListItem button onClick={() => handleNavigate("/nomenclaturas")}>
         <ListItemText primary="Nomenclaturas" />
       </ListItem>
-      <ListItem button onClick={() => handleNavigate("/reportes")}>
+
+      <ListItem button onClick={() => setReportesExpanded(!reportesExpanded)}>
         <ListItemText primary="Reportes" />
+        {reportesExpanded ? <ExpandLess /> : <ExpandMore />}
       </ListItem>
+      {reportesExpanded && (
+        <>
+          <ListItem
+            button
+            sx={{ pl: 4 }}
+            onClick={() => handleNavigate("/report-licencias")}
+          >
+            <ListItemText primary="Licencias" />
+          </ListItem>
+          <ListItem
+            button
+            sx={{ pl: 4 }}
+            onClick={() => handleNavigate("/report-nomenclaturas")}
+          >
+            <ListItemText primary="Nomenclaturas" />
+          </ListItem>
+        </>
+      )}
+
       <ListItem
         button
         onClick={() =>
@@ -88,7 +114,7 @@ const AppNavbar = () => {
       >
         <ListItemText primary="Historial" />
       </ListItem>
-    
+
       {esAdmin && (
         <>
           <ListItem button onClick={() => setConfigExpanded(!configExpanded)}>
@@ -162,10 +188,25 @@ const AppNavbar = () => {
                 </Button>
                 <Button
                   color="inherit"
-                  onClick={() => handleNavigate("/reportes")}
+                  onClick={handleMenuOpen(setMenuAnchorReportes)}
                 >
                   Reportes
                 </Button>
+                <Menu
+                  anchorEl={menuAnchorReportes}
+                  open={Boolean(menuAnchorReportes)}
+                  onClose={handleMenuClose(setMenuAnchorReportes)}
+                >
+                  <MenuItem onClick={() => handleNavigate("/report-licencias")}>
+                    Licencias
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => handleNavigate("/report-nomenclaturas")}
+                  >
+                    Nomenclaturas
+                  </MenuItem>
+                </Menu>
+
                 <Button
                   color="inherit"
                   onClick={handleMenuOpen(setMenuAnchorHistorial)}
@@ -224,13 +265,11 @@ const AppNavbar = () => {
               open={Boolean(menuAnchorUser)}
               onClose={handleMenuClose(setMenuAnchorUser)}
             >
-              {esAdmin && (
+              {esAdmin && !isMobile && (
                 <>
                   <MenuItem onClick={() => setConfigExpanded((prev) => !prev)}>
-                    Configuración{" "}
-                    {configExpanded ? <ExpandLess /> : <ExpandMore />}
+                    Configuración {configExpanded ? <ExpandLess /> : <ExpandMore />}
                   </MenuItem>
-
                   {configExpanded && (
                     <>
                       <MenuItem
@@ -280,6 +319,41 @@ const AppNavbar = () => {
       >
         {drawerItems}
       </Drawer>
+
+      <Dialog
+        open={openReportesDialog}
+        onClose={() => setOpenReportesDialog(false)}
+      >
+        <DialogTitle sx={{ textAlign: "center", fontWeight: "bold" }}>
+          Reportes
+        </DialogTitle>
+        <DialogContent>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 2,
+              mt: 1,
+            }}
+          >
+            <Button
+              variant="contained"
+              sx={{ width: "85%" }}
+              onClick={() => handleNavigate("/report-licencias")}
+            >
+              Licencias
+            </Button>
+            <Button
+              variant="contained"
+              sx={{ width: "85%" }}
+              onClick={() => handleNavigate("/report-nomenclaturas")}
+            >
+              Nomenclaturas
+            </Button>
+          </Box>
+        </DialogContent>
+      </Dialog>
 
       <Dialog
         open={openHistorialDialog}
