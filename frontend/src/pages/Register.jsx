@@ -27,6 +27,7 @@ const Registros = () => {
   const [tasas, setTasas] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedTasa, setSelectedTasa] = useState(null);
+  ///const [isEditMode, setIsEditMode] = useState(false); //AGREGADO
   const [openLicenciaDialog, setOpenLicenciaDialog] = useState(false);
   const [selectedLicencia, setSelectedLicencia] = useState(null);
   const [openMapa, setOpenMapa] = useState(false);
@@ -70,8 +71,13 @@ const Registros = () => {
     fetchTasas();
   }, []);
 
-  // Funciones para abrir/cerrar modales y guardar datos
   const handleOpen = (tasa = null) => {
+    setSelectedTasa(tasa);
+    setOpenDialog(true);
+  };
+
+  const handleOpenEdit = (tasa) => {
+    console.log("Datos que llegan al formulario:", tasa);
     setSelectedTasa(tasa);
     setOpenDialog(true);
   };
@@ -83,6 +89,7 @@ const Registros = () => {
 
   const handleClose = () => {
     setSelectedTasa(null);
+    //setIsEditMode(false);
     setOpenDialog(false);
   };
 
@@ -121,6 +128,64 @@ const Registros = () => {
   const handleSaveLicencia = async () => {
     await fetchTasas();
     setOpenLicenciaDialog(false);
+  };
+
+  const handleEditTasa = async (row) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:3001/api/tasas/edicion/${row.id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const datosTasa = response.data;
+      console.log("Datos de la tasa para editar:", datosTasa);
+      //const primerTC = datosTasa.tipoConstruccion?.[0] || {};
+
+      // Si viene la tarifaCambioUso desde backend:
+      const tarifaCambioUsoObj = datosTasa.tarifaCambioUso
+        ? {
+            id_nombreTarifa: datosTasa.tarifaCambioUso.id_nombreTarifa,
+            nombre_tarifa: datosTasa.tarifaCambioUso.nombre_tarifa,
+          }
+        : null;
+
+      handleOpenEdit({
+        id_tasa: datosTasa.id_tasa || null,
+        direccionExacta: datosTasa.direccionExacta || "",
+        nombrePropietario: datosTasa.nombrePropietario || "",
+        dpi: datosTasa.dpi || "",
+        //tipoConstruccion: datosTasa.tipoConstruccion || [],
+        tipoConstruccion:
+          datosTasa.tipoConstruccion.map((tc) => ({
+            TARIFA_id_nombreTarifa: tc.TARIFA_id_nombreTarifa || "",
+            nombre_tarifa: tc.nombre_tarifa || "",
+            dimension_construccion: tc.dimension_construccion || "",
+            formula: tc.formula || "",
+            valor: tc.valor || "",
+            niveles: tc.niveles || [],
+          })) || [],
+        tarifaCambioUso: tarifaCambioUsoObj,
+        cuentaNoAlineacion: datosTasa.cuentaNoAlineacion ?? false,
+        anotaciones: datosTasa.anotaciones || "",
+        areaConstruccion: datosTasa.areaConstruccion || "",
+        valor50Porc: datosTasa.valor50Porc || "",
+        nivelesConstruccion: datosTasa.nivelesConstruccion || "",
+        cantDemoMovi: datosTasa.cantDemoMovi || "",
+        valorPorcentaje: datosTasa.valorPorcentaje || 0,
+        presupuestObra: datosTasa.presupuestObra || "0",
+        cantidadCancelar: datosTasa.cantidadCancelar || "0",
+        latitud: datosTasa.latitud || "",
+        longitud: datosTasa.longitud || "",
+        LICENCIAS_id_licencia_original:
+          datosTasa.LICENCIAS_id_licencia_original,
+        LICENCIAS_fecha_emisionL_original:
+          datosTasa.LICENCIAS_fecha_emisionL_original,
+      });
+    } catch (error) {
+      console.error("Error al obtener de editar:", error);
+    }
   };
 
   const handleAmpliacionClick = async (row) => {
@@ -274,6 +339,15 @@ const Registros = () => {
 
     return (
       <Box display="flex" gap={1}>
+        {row.registro_general === "En proceso" && (
+          <IconButton
+            size="small"
+            onClick={() => handleEditTasa(row)} // abre el modal con los datos de esa tasa
+            sx={{ color: "#1e6b3d" }}
+          >
+            <EditIcon fontSize="small" />
+          </IconButton>
+        )}
         <IconButton
           size="small"
           onClick={() => handleAmpliacionClick(row)}
@@ -428,9 +502,9 @@ const Registros = () => {
             }}
             onClick={() =>
               handleOpen({
-                esAmpliacion: false,
-                LICENCIAS_id_licencia_original: null,
-                LICENCIAS_fecha_emisionL_original: null,
+                // esAmpliacion: false,
+                // LICENCIAS_id_licencia_original: null,
+                // LICENCIAS_fecha_emisionL_original: null,
               })
             }
           >
@@ -491,6 +565,7 @@ const Registros = () => {
               onSubmit={handleSaveTasa}
               onClose={handleClose}
               initialData={selectedTasa}
+              //isEdit={isEditMode}
             />
           </DialogContent>
         </Dialog>
@@ -570,3 +645,4 @@ const Registros = () => {
 };
 
 export default Registros;
+

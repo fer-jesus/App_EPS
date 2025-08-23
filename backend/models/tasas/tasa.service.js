@@ -72,6 +72,166 @@ const crearTasa = async (tasaData, tarifasData, id_usuario) => {
   }
 };
 
+const obtenerTasaEdicion = async (id_tasa) => {
+  const tasa = await Tasa.findByPk(id_tasa, {
+    include: [
+      {
+        model: Propietario,
+        as: "propietario",
+        attributes: ["cui", "nombre_propietario"],
+      },
+      {
+        model: TasaTarifa,
+        as: "detalles_tarifas",
+        attributes: [
+          "TARIFA_id_nombreTarifa",
+          "dimension_construccion",
+          "formula",
+          "valor",
+        ],
+        include: [
+          {
+            model: Tarifa,
+            as: "tarifa",
+            attributes: ["id_nombreTarifa", "nombre_tarifa"],
+          },
+        ],
+      },
+    ],
+  });
+
+  if (!tasa) throw new Error("Tasa no encontrada");
+
+  // Calcular valorPorcentaje dinámicamente
+  const valorPorcentajeCalculado = (tasa.detalles_tarifas || []).reduce(
+    (acc, detalle) => {
+      // Aquí puedes aplicar la fórmula real si es más compleja
+      return acc + Number(detalle.valor || 0);
+    },
+    0
+  );
+
+  return {
+    id_tasa: tasa.id_tasa,
+    fechaRegistro: tasa.fecha_emisionT || "",
+    direccionExacta: tasa.direccion_propiedad || "",
+    nombrePropietario: tasa.propietario?.nombre_propietario || "",
+    dpi: tasa.propietario?.cui || "",
+    latitud: tasa.latitud || "",
+    longitud: tasa.longitud || "",
+    tipoConstruccion: (tasa.detalles_tarifas || []).map((detalle) => ({
+      TARIFA_id_nombreTarifa: detalle.TARIFA_id_nombreTarifa,
+      nombre_tarifa: detalle.tarifa?.nombre_tarifa || "",
+      dimension_construccion: detalle.dimension_construccion?.toString() || "",
+      formula: detalle.formula || "",
+      valor: detalle.valor || "",
+      niveles: detalle.niveles || [],
+    })),
+    areaConstruccion:
+      tasa.detalles_tarifas?.[0]?.dimension_construccion?.toString() || "",
+    cuentaNoAlineacion: tasa.alineacion_urban || false,
+    anotaciones: tasa.anotaciones || "",
+    cantDemoMovi: tasa.cant_dem_movTierra || "",
+    valorPorcentaje: valorPorcentajeCalculado,
+    presupuestObra: tasa.presupuesto_obra || 0,
+    cantidadCancelar: tasa.cantidad_cancelar || 0,
+    LICENCIAS_id_licencia_original: tasa.LICENCIAS_id_licencia_original || null,
+    LICENCIAS_fecha_emisionL_original:
+      tasa.LICENCIAS_fecha_emisionL_original || null,
+    latitud: tasa.latitud || "",
+    longitud: tasa.longitud || "",
+  };
+};
+
+const actualizarTasa = async (id_tasa, tasaData, tarifasData, id_usuario) => {
+  try {
+    const result = await Tasa.sequelize.transaction(async (t) => {
+      await setUsuarioId(Tasa.sequelize, id_usuario, t);
+
+      // 1. Actualizar los datos principales de la tasa con nombres exactos de la BD
+      await Tasa.update(
+        {
+          fecha_emisionT: tasaData.fechaRegistro,
+          direccion_propiedad: tasaData.direccionExacta,
+          alineacion_urban: tasaData.cuentaNoAlineacion || false,
+          anotaciones: tasaData.anotaciones || null,
+          cant_dem_movTierra: tasaData.cantDemoMovi || null,
+          presupuesto_obra: tasaData.presupuestObra || 0,
+          cantidad_cancelar: tasaData.cantidadCancelar || 0,
+          latitud: tasaData.latitud || null,
+          longitud: tasaData.longitud || null,
+          PROPIETARIOS_cui: tasaData.dpi ? parseInt(tasaData.dpi) : null,
+          LICENCIAS_id_licencia_original:
+            tasaData.LICENCIAS_id_licencia_original || null,
+          LICENCIAS_fecha_emisionL_original:
+            tasaData.LICENCIAS_fecha_emisionL_original || null,
+        },
+        {
+          where: { id_tasa },
+          transaction: t,
+        }
+      );
+
+      // 2. Eliminar las tarifas existentes
+      await TasaTarifa.destroy({
+        where: { TASAS_id_tasa: id_tasa },
+        transaction: t,
+      });
+
+      await TasaTarifaVariosNiveles.destroy({
+        where: { TASAS_TARIFA_TASAS_id_tasa: id_tasa },
+        transaction: t,
+      });
+
+      // 3. Insertar las nuevas tarifas si existen
+      if (tarifasData && tarifasData.length > 0) {
+        for (let i = 0; i < tarifasData.length; i++) {
+          const tarifa = tarifasData[i];
+          const correlativo = i + 1;
+
+          await TasaTarifa.create(
+            {
+              tarifa_correlativo: correlativo,
+              TASAS_id_tasa: id_tasa,
+              TARIFA_id_nombreTarifa: tarifa.TARIFA_id_nombreTarifa,
+              dimension_construccion: tarifa.dimension_construccion,
+              formula: tarifa.formula,
+              valor: tarifa.valor,
+            },
+            { transaction: t }
+          );
+
+          // Insertar niveles adicionales si existen
+          if (Array.isArray(tarifa.niveles) && tarifa.niveles.length > 0) {
+            for (const nivel of tarifa.niveles) {
+              await TasaTarifaVariosNiveles.create(
+                {
+                  TASAS_TARIFA_TASAS_id_tasa: id_tasa,
+                  TASAS_TARIFA_tarifa_correlativo: correlativo,
+                  TASAS_TARIFA_TARIFA_id_nombreTarifa:
+                    tarifa.TARIFA_id_nombreTarifa,
+                  nivel: nivel.nivel,
+                  dimension_construccion: nivel.dimension_construccion || null,
+                  formula: nivel.formula,
+                  valor: nivel.valor,
+                },
+                { transaction: t }
+              );
+            }
+          }
+        }
+      }
+
+      return id_tasa;
+    });
+
+    return result;
+  } catch (error) {
+    console.error("Error al actualizar tasa:", error);
+    throw new Error("No se pudo actualizar la tasa");
+  }
+};
+
 const obtenerRegistros = async () => {
   const tasas = await Tasa.findAll({
     include: [
@@ -266,10 +426,10 @@ const obtenerDatosParaDocumentoPDF = async (idTasa) => {
         required: true,
         include: [
           {
-          model: RolNombre,
-          as: "RolNombres",
-          required: true,
-          attributes: ["nombre_rol", "sexo"],
+            model: RolNombre,
+            as: "RolNombres",
+            required: true,
+            attributes: ["nombre_rol", "sexo"],
           },
         ],
       },
@@ -329,7 +489,8 @@ const obtenerDatosParaDocumentoPDF = async (idTasa) => {
   //VARIABLES DE CÁLCULO
 
   // Suma total de las tarifas
-  const valorTotal = tasa.detalles_tarifas?.reduce((acc, t) => acc + Number(t.valor), 0) || 0;
+  const valorTotal =
+    tasa.detalles_tarifas?.reduce((acc, t) => acc + Number(t.valor), 0) || 0;
 
   let formulasTarifa = [];
   let formulasSegundoNivel = [];
@@ -429,11 +590,15 @@ const obtenerDatosParaDocumentoPDF = async (idTasa) => {
         : `Q. ${formatearMoneda(tasa.cantidad_cancelar)}`;
     })(),
     usuario: tieneFirmante
-    ? `${usuarioFirmante?.titulo || ""} ${usuarioFirmante?.nombre || ""}`.trim()  : "",
+      ? `${usuarioFirmante?.titulo || ""} ${
+          usuarioFirmante?.nombre || ""
+        }`.trim()
+      : "",
     rol_nombre: tieneFirmante
-    ? (usuarioFirmante?.Rol?.RolNombres || [])
-      .find(rn => rn.sexo === usuarioFirmante.sexo)?.nombre_rol || ""
-  : "",
+      ? (usuarioFirmante?.Rol?.RolNombres || []).find(
+          (rn) => rn.sexo === usuarioFirmante.sexo
+        )?.nombre_rol || ""
+      : "",
     institucion_firma: tieneFirmante ? "MUNICIPALIDAD DE JALAPA" : "",
     firmaUsuario: true,
   };
@@ -441,7 +606,10 @@ const obtenerDatosParaDocumentoPDF = async (idTasa) => {
 
 module.exports = {
   crearTasa,
+  obtenerTasaEdicion,
+  actualizarTasa,
   obtenerRegistros,
   obtenerDatosTasaPorId,
   obtenerDatosParaDocumentoPDF,
 };
+
