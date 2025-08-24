@@ -88,6 +88,7 @@ const obtenerRegistros = async () => {
     ],
     attributes: [
       "id_tasa",
+      "fecha_emisionT", //Agregado para el historial
       "LICENCIAS_id_licencia_original",
       "LICENCIAS_fecha_emisionL_original",
       "latitud",
@@ -150,6 +151,7 @@ const obtenerRegistros = async () => {
 
     return {
       id: tasa.id_tasa,
+      fecha_emisionT: tasa.fecha_emisionT || null, //Agregado para el historial
       nombre_propietario: tasa.propietario?.nombre_propietario || "Desconocido",
       registro_general: registroGeneral,
       LICENCIAS_id_licencia_original:

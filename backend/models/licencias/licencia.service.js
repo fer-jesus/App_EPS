@@ -199,7 +199,7 @@ const actualizarRotulo = async (
 ) => {
   try {
     const result = await sequelize.transaction(async (t) => {
-      // Establecer variable de sesión para trigger
+      //Variable de sesión para trigger
       await setUsuarioId(sequelize, id_usuario, t);
 
       const [filasActualizadas] = await Licencia.update(

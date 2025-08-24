@@ -185,8 +185,7 @@ const ReportNomenclaturas = () => {
               backgroundColor: "#F2C037",
               fontWeight: "bold",
               "&:hover": { backgroundColor: "#d9aa2e" },
-              px: 3,
-              minWidth: "140px",
+              px: 1,
             }}
             startIcon={<DownloadIcon />}
             onClick={handleDownload}

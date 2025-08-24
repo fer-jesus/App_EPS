@@ -175,7 +175,7 @@ const Nomenclaturas = () => {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             sx={{
-              width: { xs: "50%", sm: 300 },
+              width: { xs: "50%", sm: 250 },
               backgroundColor: "#fff",
             }}
           />

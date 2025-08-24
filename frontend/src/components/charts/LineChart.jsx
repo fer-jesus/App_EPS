@@ -11,7 +11,7 @@ import {
 } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 
-// Registrar componentes de Chart.js
+//Componentes de Chart.js
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -22,17 +22,41 @@ ChartJS.register(
   Legend
 );
 
+const legendSpacingPlugin = {
+  id: "legendSpacing",
+  beforeInit(chart) {
+    const originalFit = chart.legend.fit;
+    chart.legend.fit = function fit() {
+      originalFit.bind(this)();
+      this.height += 20;
+    };
+  },
+};
+
 const LineChart = ({ labels, dataMonto }) => {
   const options = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { position: "top" },
+      legend: {
+        position: "top",
+        labels: {
+          padding: 12,
+          font: {
+            size: 20,
+            weight: "bold",
+          },
+        },
+      },
       tooltip: { enabled: true },
     },
     scales: {
+      x: {
+        offset: true,
+      },
       y: {
-        title: { display: true, text: "Monto total (Q)" },
+        title: { display: true, text: "Monto Total (Q)" },
+        beginAtZero: true,
       },
     },
   };
@@ -41,7 +65,7 @@ const LineChart = ({ labels, dataMonto }) => {
     labels,
     datasets: [
       {
-        label: "Monto total",
+        label: "Monto Total",
         data: dataMonto,
         borderColor: "rgba(54, 162, 235, 1)",
         backgroundColor: "rgba(54, 162, 235, 0.5)",
@@ -58,7 +82,13 @@ const LineChart = ({ labels, dataMonto }) => {
     ],
   };
 
-  return <Line data={chartData} options={options} plugins={[ChartDataLabels]}/>;
+  return (
+    <Line
+      data={chartData}
+      options={options}
+      plugins={[ChartDataLabels, legendSpacingPlugin]}
+    />
+  );
 };
 
 export default LineChart;

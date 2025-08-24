@@ -10,7 +10,7 @@ import {
 } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 
-// Registrar componentes de Chart.js
+//Componentes de Chart.js
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -20,12 +20,32 @@ ChartJS.register(
   Legend
 );
 
+const legendSpacingPlugin = {
+  id: "legendSpacing",
+  beforeInit(chart) {
+    const originalFit = chart.legend.fit;
+    chart.legend.fit = function fit() {
+      originalFit.bind(this)();
+      this.height += 20;
+    };
+  },
+};
+
 const BarChart = ({ labels, dataCantidad, label = "Cantidad" }) => {
   const options = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { position: "top" },
+      legend: {
+        position: "top",
+        labels: {
+          padding: 12,
+          font: {
+            size: 20, 
+            weight: "bold",
+          },
+        },
+      },
       title: { display: false },
     },
     scales: {
@@ -60,7 +80,13 @@ const BarChart = ({ labels, dataCantidad, label = "Cantidad" }) => {
     ],
   };
 
-  return <Bar data={chartData} options={options} plugins={[ChartDataLabels]} />;
+  return (
+    <Bar
+      data={chartData}
+      options={options}
+      plugins={[ChartDataLabels, legendSpacingPlugin]}
+    />
+  );
 };
 
 export default BarChart;

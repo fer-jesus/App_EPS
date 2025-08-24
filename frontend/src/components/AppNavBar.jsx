@@ -50,29 +50,14 @@ const AppNavbar = () => {
     rol === "SUBDIRECTOR" ||
     rol === "SUBDIRECTORA";
 
-  // const { logout } = useContext(AuthContext); //
-
   const handleMenuOpen = (setter) => (event) => setter(event.currentTarget);
   const handleMenuClose = (setter) => () => setter(null);
 
-  // const handleOpenConfigDialog = () => {
-  //   setOpenConfigDialog(true);
-  //   setAnchorElUser(null);
-  // };
-
-  // const handleCloseConfigDialog = () => setOpenConfigDialog(false);
-
   const handleNavigate = (path) => {
     navigate(path);
-    //setOpenConfigDialog(false);
     setDrawerOpen(false);
     setOpenHistorialDialog(false);
   };
-
-  // const handleLogout = () => {
-  //   // logout(); // función de cierre de sesión del AuthContext
-  //   navigate("/");
-  // };
 
   const drawerItems = (
     <List>
@@ -83,9 +68,20 @@ const AppNavbar = () => {
         <ListItemText primary="Nomenclaturas" />
       </ListItem>
 
-      <ListItem button onClick={() => setReportesExpanded(!reportesExpanded)}>
+      {/* <ListItem button onClick={() => setReportesExpanded(!reportesExpanded)}>
         <ListItemText primary="Reportes" />
         {reportesExpanded ? <ExpandLess /> : <ExpandMore />}
+      </ListItem> */}
+      <ListItem
+        button
+        onClick={() =>
+          isMobile
+            ? setOpenReportesDialog(true)
+            : setReportesExpanded(!reportesExpanded)
+        }
+      >
+        <ListItemText primary="Reportes" />
+        {!isMobile && (reportesExpanded ? <ExpandLess /> : <ExpandMore />)}
       </ListItem>
       {reportesExpanded && (
         <>
@@ -243,7 +239,7 @@ const AppNavbar = () => {
               <IconButton
                 onClick={() => setDrawerOpen(true)}
                 sx={{
-                  color: "#fff",
+                  color: "#ffffffff",
                   position: "absolute",
                   left: 8,
                   display: { xs: "flex", sm: "none" },
@@ -268,7 +264,8 @@ const AppNavbar = () => {
               {esAdmin && !isMobile && (
                 <>
                   <MenuItem onClick={() => setConfigExpanded((prev) => !prev)}>
-                    Configuración {configExpanded ? <ExpandLess /> : <ExpandMore />}
+                    Configuración{" "}
+                    {configExpanded ? <ExpandLess /> : <ExpandMore />}
                   </MenuItem>
                   {configExpanded && (
                     <>
@@ -316,6 +313,13 @@ const AppNavbar = () => {
         anchor="left"
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
+        sx={{
+          "& .MuiDrawer-paper": {
+            zIndex: (theme) => theme.zIndex.appBar - 1,
+            marginTop: "64px",
+            height: "calc(100% - 64px)",
+          },
+        }}
       >
         {drawerItems}
       </Drawer>
@@ -339,14 +343,24 @@ const AppNavbar = () => {
           >
             <Button
               variant="contained"
-              sx={{ width: "85%" }}
+              sx={{
+                width: "90%",
+                backgroundColor: "#F2C037",
+                fontWeight: "bold",
+                "&:hover": { backgroundColor: "#d9aa2e" },
+              }}
               onClick={() => handleNavigate("/report-licencias")}
             >
               Licencias
             </Button>
             <Button
               variant="contained"
-              sx={{ width: "85%" }}
+              sx={{
+                width: "90%",
+                backgroundColor: "#F2C037",
+                fontWeight: "bold",
+                "&:hover": { backgroundColor: "#d9aa2e" },
+              }}
               onClick={() => handleNavigate("/report-nomenclaturas")}
             >
               Nomenclaturas
@@ -374,21 +388,36 @@ const AppNavbar = () => {
           >
             <Button
               variant="contained"
-              sx={{ width: "85%" }}
+              sx={{
+                width: "90%",
+                backgroundColor: "#F2C037",
+                fontWeight: "bold",
+                "&:hover": { backgroundColor: "#d9aa2e" },
+              }}
               onClick={() => handleNavigate("/historial-tasas")}
             >
               Tasas
             </Button>
             <Button
               variant="contained"
-              sx={{ width: "85%" }}
+              sx={{
+                width: "90%",
+                backgroundColor: "#F2C037",
+                fontWeight: "bold",
+                "&:hover": { backgroundColor: "#d9aa2e" },
+              }}
               onClick={() => handleNavigate("/historial-licencias")}
             >
               Licencias
             </Button>
             <Button
               variant="contained"
-              sx={{ width: "85%" }}
+              sx={{
+                width: "90%",
+                backgroundColor: "#F2C037",
+                fontWeight: "bold",
+                "&:hover": { backgroundColor: "#d9aa2e" },
+              }}
               onClick={() => handleNavigate("/historial-nomenclaturas")}
             >
               Nomenclaturas
