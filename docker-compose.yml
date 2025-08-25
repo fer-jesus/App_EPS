@@ -61,8 +61,8 @@ services:
       - /app/node_modules
     environment: 
       - VITE_BACKEND_URL=http://backend:3001
-      - VIRTUAL_HOST=frontdot.dotmunijalapa.org
-      - LETSENCRYPT_HOST=frontdot.dotmunijalapa.org
+      - VIRTUAL_HOST=applic.dotmunijalapa.org
+      - LETSENCRYPT_HOST=applic.dotmunijalapa.org
       - LETSENCRYPT_EMAIL=admin@dotmunijalapa.org
 
     networks: 
