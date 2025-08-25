@@ -14,7 +14,7 @@ const LicenciaHistorial = () => {
   const fetchLicencias = async () => {
     try {
       // Traer todas las tasas
-      const responseTasas = await axios.get("http://localhost:3001/api/tasas", {
+      const responseTasas = await axios.get("https://backdot.dotmunijalapa.org/api/tasas", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -22,7 +22,7 @@ const LicenciaHistorial = () => {
         responseTasas.data.map(async (tasa) => {
           try {
             const responseLic = await axios.get(
-              `http://localhost:3001/api/licencias/por-tasa/${tasa.id}`,
+              `https://backdot.dotmunijalapa.org/api/licencias/por-tasa/${tasa.id}`,
               { headers: { Authorization: `Bearer ${token}` } }
             );
             const lic = responseLic.data;
@@ -57,7 +57,7 @@ const LicenciaHistorial = () => {
   const handleAbrirPDFLicencia = async (idLicencia, fechaEmision) => {
     try {
       const response = await fetch(
-        `http://localhost:3001/api/licencia-documento/pdf/${idLicencia}/${fechaEmision}`,
+        `https://backdot.dotmunijalapa.org/api/licencia-documento/pdf/${idLicencia}/${fechaEmision}`,
         { method: "GET", headers: { Authorization: `Bearer ${token}` } }
       );
 

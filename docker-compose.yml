@@ -15,8 +15,8 @@ services:
       - dot_data:/var/lib/mysql
       - ./database:/docker-entrypoint-initdb.d
     networks:
-      - app-network
-      #- nginx-proxy
+      #- app-network
+      - nginx-proxy
 
 
   backend:
@@ -35,13 +35,13 @@ services:
     - DB_PASSWORD=12345
     - DB_NAME=lic_const_db
     - DB_PORT=3306
-    # - VIRTUAL_HOST=back_dot.dotmunijalapa.org
-    # - LETSENCRYPT_HOST=back_dot.dotmunijalapa.org
-    # - LETSENCRYPT_EMAIL=admin@dotmunijalapa.org
+    - VIRTUAL_HOST=backdot.dotmunijalapa.org
+    - LETSENCRYPT_HOST=backdot.dotmunijalapa.org
+    - LETSENCRYPT_EMAIL=admin@dotmunijalapa.org
 
     networks:
-      - app-network
-      #- nginx-proxy
+      #- app-network
+      - nginx-proxy
 
     depends_on:
       - db
@@ -61,26 +61,27 @@ services:
       - /app/node_modules
     environment: 
       - VITE_BACKEND_URL=http://backend:3001
-      # - VIRTUAL_HOST=front_dot.dotmunijalapa.org
-      # - LETSENCRYPT_HOST=front_dot.dotmunijalapa.org
-      # - LETSENCRYPT_EMAIL=admin@dotmunijalapa.org
+      - VIRTUAL_HOST=frontdot.dotmunijalapa.org
+      - LETSENCRYPT_HOST=frontdot.dotmunijalapa.org
+      - LETSENCRYPT_EMAIL=admin@dotmunijalapa.org
 
     networks: 
-      - app-network
-      #- nginx-proxy
+      #- app-network
+      - nginx-proxy
 
     depends_on: 
       - backend
     restart: always
 
 networks:
-  app-network:
-    driver: bridge
-   #nginx-proxy:
-    #external: true
+  # app-network:
+  #   driver: bridge
+  nginx-proxy:
+    external: true
     
 volumes:
   dot_data:
+
 
 
 

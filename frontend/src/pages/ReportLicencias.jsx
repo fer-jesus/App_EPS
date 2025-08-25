@@ -65,7 +65,7 @@ const ReportLicencias = () => {
       )}-${lastDayOfMonth}`;
 
       const res = await axios.get(
-        "http://localhost:3001/api/licencias/reporte-mensual",
+        "https://backdot.dotmunijalapa.org/api/licencias/reporte-mensual",
         {
           headers: {
             Authorization: `Bearer ${token}`,

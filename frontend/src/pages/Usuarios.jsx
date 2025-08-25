@@ -24,7 +24,6 @@ const AdminUsuarios = () => {
   const [usuarios, setUsuarios] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  //const [selectedUsers, setSelectedUsers] = useState([]);
   const { auth } = useAuth();
   const currentUserId = auth?.user?.id_usuario;
   const token = localStorage.getItem("token");
@@ -35,11 +34,11 @@ const AdminUsuarios = () => {
   },
 };
 
-  // Obtener usuarios desde la API
+  
   useEffect(() => {
     const fetchUsuarios = async () => {
       try {
-        const res = await axios.get("http://localhost:3001/api/usuarios", headers);
+        const res = await axios.get("https://backdot.dotmunijalapa.org/api/usuarios", headers);
         const usuariosFormateados = res.data.usuarios.map((u) => ({
           id: u.id_usuario,
           nombre: u.nombre,
@@ -67,7 +66,7 @@ const AdminUsuarios = () => {
     if (user?.id) {
       try {
         const res = await axios.get(
-          `http://localhost:3001/api/usuarios/${user.id}`, headers
+          `https://backdot.dotmunijalapa.org/api/usuarios/${user.id}`, headers
           // {
           //   headers: {
           //     "x-user-id": currentUserId,
@@ -81,16 +80,11 @@ const AdminUsuarios = () => {
         setSelectedUser(res.data.usuario);
       } catch (error) {
         console.error("Error al cargar usuario:", error);
-        // Muestra error al usuario
-        // Swal.fire({
-        //   title: "Error",
-        //   text: "No se pudieron cargar los datos del usuario",
-        //   icon: "error",
-        // });
+ 
         alert("Error al cargar usuario: " + error.message);
       }
     } else {
-      setSelectedUser(null); // Para creación de nuevo usuario
+      setSelectedUser(null); 
     }
     setOpenDialog(true);
   };
@@ -117,14 +111,14 @@ const AdminUsuarios = () => {
       // Si existe ID, es edición
       if (data.id_usuario) {
         await axios.put(
-          `http://localhost:3001/api/usuarios/${data.id_usuario}`,
+          `https://backdot.dotmunijalapa.org/api/usuarios/${data.id_usuario}`,
           data,
           headers
         );
       }
 
       // Recarga de usuarios después de crear o editar
-      const res = await axios.get("http://localhost:3001/api/usuarios", headers);
+      const res = await axios.get("https://backdot.dotmunijalapa.org/api/usuarios", headers);
       const usuariosFormateados = res.data.usuarios.map((u) => ({
         id: u.id_usuario,
         rol: u.nombre_rol,
@@ -148,7 +142,7 @@ const AdminUsuarios = () => {
       const valorParaBackend = nuevoEstado ? 1 : 0;
 
       const response = await axios.put(
-        `http://localhost:3001/api/usuarios/${id_usuario}/en-funciones`,
+        `https://backdot.dotmunijalapa.org/api/usuarios/${id_usuario}/en-funciones`,
         { en_funciones: valorParaBackend },
         // {
         //   headers: {
@@ -164,7 +158,7 @@ const AdminUsuarios = () => {
       //     u.id === id_usuario ? { ...u, en_funciones: estadoConfirmado } : u
       //   )
       // );
-      const res = await axios.get("http://localhost:3001/api/usuarios", headers);
+      const res = await axios.get("https://backdot.dotmunijalapa.org/api/usuarios", headers);
       const usuariosFormateados = res.data.usuarios.map((u) => ({
         id: u.id_usuario,
         nombre: u.nombre,
@@ -214,8 +208,8 @@ const AdminUsuarios = () => {
     });
     if (!confirmResult.isConfirmed) return;
     try {
-      // Llamada al backend para eliminar el usuario
-      await axios.delete(`http://localhost:3001/api/usuarios/${id}`, headers
+      
+      await axios.delete(`https://backdot.dotmunijalapa.org/api/usuarios/${id}`, headers
       //   {
       //   headers: {
       //     "x-user-id": auth.user.id_usuario,
@@ -224,7 +218,7 @@ const AdminUsuarios = () => {
     );
 
       // Actualizar el listado tras eliminar
-      const res = await axios.get("http://localhost:3001/api/usuarios", headers);
+      const res = await axios.get("https://backdot.dotmunijalapa.org/api/usuarios", headers);
       const usuariosFormateados = res.data.usuarios.map((u) => ({
         id: u.id_usuario,
         rol: u.nombre_rol,
@@ -343,7 +337,7 @@ const AdminUsuarios = () => {
           sx={{
             height: 400,
             width: "100%",
-            overflow: "auto", // Permite scroll horizontal en móviles
+            overflow: "auto", 
           }}
         >
           <DataGrid
@@ -353,7 +347,7 @@ const AdminUsuarios = () => {
             density="standard"
             sx={{
               "& .MuiDataGrid-columnHeader": {
-                backgroundColor: "#D0D3D4", // Fondo distintivo para headers
+                backgroundColor: "#D0D3D4", 
                 "& .MuiDataGrid-columnHeaderTitle": {
                   fontWeight: "bold",
                   fontSize: { xs: "0.9rem", sm: "1rem" },
@@ -361,7 +355,7 @@ const AdminUsuarios = () => {
               },
               "& .MuiDataGrid-cell": {
                 fontSize: { xs: "0.9rem", sm: "1rem" },
-                whiteSpace: "normal", // Permite múltiples líneas en celdas
+                whiteSpace: "normal", 
                 padding: "8px",
               },
             }}
@@ -377,10 +371,10 @@ const AdminUsuarios = () => {
             sx: {
               mx: { xs: 2, sm: "auto" },
               width: {
-                xs: "100%", // 100% en pantallas pequeñas
-                sm: "90%", // un poco de margen en tablets
-                md: "70%", // más compacto en pantallas medianas
-                lg: "500px", // ancho fijo en pantallas grandes },
+                xs: "100%",
+                sm: "90%", 
+                md: "70%", 
+                lg: "500px", 
               },
             },
           }}

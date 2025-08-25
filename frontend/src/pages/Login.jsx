@@ -32,6 +32,7 @@ const Login = () => {
   const [showErrorAlert, setShowErrorAlert] = useState(false);
   const { login } = useAuth();
 
+  const API_URL = "https://backdot.dotmunijalapa.org";
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -56,8 +57,8 @@ const Login = () => {
     }
 
     try {
-      // Llamada a la API para autenticar al usuario
-      const res = await axios.post("http://localhost:3001/api/auth/login", {
+      
+      const res = await axios.post(`${API_URL}/api/auth/login`, {
         username: user,
         password: pass,
       });
@@ -101,7 +102,7 @@ const Login = () => {
     }
 
     try {
-      await axios.post("http://localhost:3001/api/auth/recoverpass", {
+      await axios.post(`${API_URL}/api/auth/recoverpass`, {
         correo: email,
       });
 
@@ -129,7 +130,7 @@ const Login = () => {
       maxWidth="md"
       sx={{
         mt: { xs: 2, sm: 8 },
-        px: { xs: 1, sm: 0 }, // Padding horizontal adaptable
+        px: { xs: 1, sm: 0 }, 
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -177,7 +178,7 @@ const Login = () => {
           maxWidth: 300,
           //background: "linear-gradient(135deg, #36454F 0%, rgba(115,147,179,0.1) 100%)",
           alignItems: "center",
-          backgroundColor: "#ffffffcc", // Blanco con transparencia
+          backgroundColor: "#ffffffcc", 
           borderRadius: 2,
           boxShadow: "0px 8px 20px rgba(0, 0, 0, 0.2)",
           backdropFilter: "blur(8px)",
@@ -306,7 +307,7 @@ const Login = () => {
         autoHideDuration={4000}
         onClose={() => {
           setShowErrorAlert(false);
-          setUser(""); // Limpiar campos
+          setUser(""); 
           setPass("");
         }}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}

@@ -37,7 +37,7 @@ const Registros = () => {
 
   const fetchTasas = async () => {
     try {
-      const response = await axios.get("http://localhost:3001/api/tasas", {
+      const response = await axios.get("https://backdot.dotmunijalapa.org/api/tasas", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -89,7 +89,7 @@ const Registros = () => {
   const handleOpenLicencia = async (tasa) => {
     try {
       const response = await axios.get(
-        `http://localhost:3001/api/licencias/datos-tasa/${tasa.id}`,
+        `https://backdot.dotmunijalapa.org/api/licencias/datos-tasa/${tasa.id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -136,7 +136,7 @@ const Registros = () => {
 
     try {
       const response = await axios.get(
-        `http://localhost:3001/api/tasas/ampliacion/${row.id}`,
+        `https://backdot.dotmunijalapa.org/api/tasas/ampliacion/${row.id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -191,7 +191,7 @@ const Registros = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:3001/api/tasa-documento/pdf/${idTasa}`,
+        `https://backdot.dotmunijalapa.org/api/tasa-documento/pdf/${idTasa}`,
         {
           method: "GET",
           headers: {
@@ -225,7 +225,7 @@ const Registros = () => {
 
     try {
       const response2 = await axios.get(
-        `http://localhost:3001/api/licencias/por-tasa/${row.id}`,
+        `https://backdot.dotmunijalapa.org/api/licencias/por-tasa/${row.id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -246,7 +246,7 @@ const Registros = () => {
       const fechaNormalizada = licenciaDatos.fecha_emisionL;
       const idLicencia = licenciaDatos.id_licencia;
       const response = await fetch(
-        `http://localhost:3001/api/licencia-documento/pdf/${idLicencia}/${fechaNormalizada}`,
+        `https://backdot.dotmunijalapa.org/api/licencia-documento/pdf/${idLicencia}/${fechaNormalizada}`,
         {
           method: "GET",
           headers: {

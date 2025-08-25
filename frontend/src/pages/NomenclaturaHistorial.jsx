@@ -14,7 +14,7 @@ const NomenclaturaHistorial = () => {
   const fetchNomenclaturas = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:3001/api/nomenclaturas",
+        "https://backdot.dotmunijalapa.org/api/nomenclaturas",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -45,7 +45,7 @@ const NomenclaturaHistorial = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:3001/api/nomenclatura-documento/pdf/${idNomenclatura}`,
+        `https://backdot.dotmunijalapa.org/api/nomenclatura-documento/pdf/${idNomenclatura}`,
         {
           method: "GET",
           headers: {

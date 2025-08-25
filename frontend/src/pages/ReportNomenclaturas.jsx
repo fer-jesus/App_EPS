@@ -63,7 +63,7 @@ const ReportNomenclaturas = () => {
       )}-${lastDayOfMonth}`;
 
       const res = await axios.get(
-        "http://localhost:3001/api/nomenclaturas/reporte-mensual",
+        "https://backdot.dotmunijalapa.org/api/nomenclaturas/reporte-mensual",
         {
           headers: {
             Authorization: `Bearer ${token}`,

@@ -13,7 +13,7 @@ const TasaHistorial = () => {
 
   const fetchTasas = async () => {
     try {
-      const response = await axios.get("http://localhost:3001/api/tasas", {
+      const response = await axios.get("https://backdot.dotmunijalapa.org/api/tasas", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -54,7 +54,7 @@ const TasaHistorial = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:3001/api/tasa-documento/pdf/${idTasa}`,
+        `https://backdot.dotmunijalapa.org/api/tasa-documento/pdf/${idTasa}`,
         {
           method: "GET",
           headers: {

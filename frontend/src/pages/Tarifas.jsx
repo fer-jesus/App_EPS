@@ -28,7 +28,7 @@ const AdminTarifas = () => {
 
   const fetchTarifas = async () => {
     try {
-      const response = await fetch("http://localhost:3001/api/tarifas", {
+      const response = await fetch("https://backdot.dotmunijalapa.org/api/tarifas", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -81,7 +81,7 @@ const AdminTarifas = () => {
   const handleGuardarCambios = async () => {
     if (tarifaEditando) {
       try {
-        await fetch(`http://localhost:3001/api/tarifas/${tarifaEditando.id}`, {
+        await fetch(`https://backdot.dotmunijalapa.org/api/tarifas/${tarifaEditando.id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -95,7 +95,7 @@ const AdminTarifas = () => {
             id_tipoConstruccion:
               tarifaEditando.TIPO_CONSTRUCCION_TARIFA_id_tipoConstruccion ??
               tarifaEditando.TipoConstruccionTarifa?.id_tipoConstruccion ??
-              1, // o permitir seleccionar
+              1, 
           }),
         });
 
@@ -167,7 +167,7 @@ const AdminTarifas = () => {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           sx={{
-            width: { xs: "50%", sm: 300 }, // Ancho completo en móviles, 300px en desktop
+            width: { xs: "50%", sm: 300 }, 
             backgroundColor: "#fff",
             mb: 2,
           }}
@@ -177,7 +177,7 @@ const AdminTarifas = () => {
             height: 400,
             width: "100%",
             overflow: { xs: "auto", sm: "hidden" },
-          }} // Permite scroll horizontal en móviles
+          }}
         >
           <DataGrid
             rows={filteredRows}
@@ -185,13 +185,10 @@ const AdminTarifas = () => {
             pageSize={5}
             density="standard"
             sx={{
-              //minWidth: 600,
-              //    "& .MuiDataGrid-root": {
-              //   minWidth: 600, // Ancho mínimo para evitar compresión excesiva
-              // },
+         
 
               "& .MuiDataGrid-columnHeader": {
-                backgroundColor: "#D0D3D4", // Fondo distintivo para headers
+                backgroundColor: "#D0D3D4", 
                 "& .MuiDataGrid-columnHeaderTitle": {
                   fontWeight: "bold",
                   fontSize: { xs: "0.9rem", sm: "1rem" },
@@ -199,13 +196,13 @@ const AdminTarifas = () => {
               },
               "& .MuiDataGrid-cell": {
                 fontSize: { xs: "0.9rem", sm: "1rem" },
-                whiteSpace: "normal", // Permite múltiples líneas en celdas
+                whiteSpace: "normal", 
                 padding: "8px",
               },
             }}
           />
         </Box>
-        {/* Diálogo de edición */}
+     
         <Box sx={{ p: 1 }}>
           <Dialog open={openDialog} onClose={handleCloseDialog}>
             <DialogTitle textAlign="center" fontWeight="bold">
@@ -252,8 +249,8 @@ const AdminTarifas = () => {
               spacing={2}
               justifyContent="center"
               sx={{
-                pb: 2, // Padding inferior para el contenedor
-                px: 2, // Padding horizontal para alinear con el contenido
+                pb: 2, 
+                px: 2, 
               }}
             >
               <Button onClick={handleCloseDialog} variant="outlined">
