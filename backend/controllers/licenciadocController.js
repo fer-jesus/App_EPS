@@ -10,13 +10,6 @@ const generarPDFLicencia = async (req, res) => {
   try {
     const { id, fechaEmision } = req.params;
 
-    // 1. Obtener datos de la licencia desde la BD
-    // const datosLicencia = await obtenerDatosParaLicenciaPDF(id);
-    // if (!datosLicencia) {
-    //   return res.status(404).json({ mensaje: "Licencia no encontrada" });
-    // }
-
-    //const datosLicencia = {}; // datos vacíos para la plantilla
     const datosLicencia = await obtenerDatosParaLicenciaPDF(id, fechaEmision);
 
     const logoMuniPath = path.resolve(
@@ -46,7 +39,7 @@ const generarPDFLicencia = async (req, res) => {
       "mayusculas",
       (texto) => texto?.toString().toUpperCase() || ""
     );
-   handlebars.registerHelper("formatUnidad", function (unidad) {
+    handlebars.registerHelper("formatUnidad", function (unidad) {
       if (!unidad) return "";
 
       return unidad.replace(/ Y /g, "\nY ");
@@ -64,10 +57,15 @@ const generarPDFLicencia = async (req, res) => {
 
     await page.setContent(content, { waitUntil: "networkidle0" });
 
+    // const pdfBuffer = await page.pdf({
+    //   format: "legal",
+    //   printBackground: true,
+    //   margin: { top: "0.5cm", right: "0.5cm", bottom: "0.5cm", left: "0.5cm" },
+    // });
+
     const pdfBuffer = await page.pdf({
-      format: "legal",
+      format: "A4",
       printBackground: true,
-      margin: { top: "0.5cm", right: "0.5cm", bottom: "0.5cm", left: "0.5cm" },
     });
 
     await browser.close();

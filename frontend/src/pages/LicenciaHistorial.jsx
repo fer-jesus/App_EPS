@@ -11,7 +11,7 @@ const LicenciaHistorial = () => {
   const [licencias, setLicencias] = useState([]);
   const token = localStorage.getItem("token");
 
-const fetchLicencias = async () => {
+  const fetchLicencias = async () => {
     try {
       // Traer todas las tasas
       const responseTasas = await axios.get("http://localhost:3001/api/tasas", {
@@ -71,12 +71,15 @@ const fetchLicencias = async () => {
     }
   };
 
-
   const renderCellPDF = (params) => (
     <Box display="flex" justifyContent="center" alignItems="center">
       <IconButton
         size="small"
-        onClick={() => handleAbrirPDFLicencia(params.row.id)}
+        onClick={(event) => {
+          event.stopPropagation();
+          handleAbrirPDFLicencia(params.row.id);
+        }}
+        //onClick={() => handleAbrirPDFLicencia(params.row.id)}
         sx={{ color: "#d32f2f" }}
       >
         <PictureAsPdfIcon fontSize="small" />
@@ -108,7 +111,7 @@ const fetchLicencias = async () => {
     },
   ];
 
-const filteredRows = licencias.filter((row) => {
+  const filteredRows = licencias.filter((row) => {
     const searchLower = search.toLowerCase();
     return (
       row.nombrePropietario?.toLowerCase().includes(searchLower) ||

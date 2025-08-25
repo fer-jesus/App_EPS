@@ -480,25 +480,7 @@ const obtenerDatosParaLicenciaPDF = async (idLicencia) => {
           //Si no hay usuario en funciones se pasa al siguiente rol
           continue;
         }
-
-        // if (!usuario) {
-        //   // fallback manual si no hay usuario
-        //   firmantes.push({
-        //     nombre: "",
-        //     rol:
-        //       rol.id === 3
-        //         ? "COORDINADOR INTERINO"
-        //         : rol.id === 2
-        //         ? "SUBDIRECTORA"
-        //         : "DIRECTOR",
-        //     unidad:
-        //       rol.id === 3
-        //         ? "PROYECTOS URBANOS - LICENCIAS DE CONSTRUCCIÓN"
-        //         : "DIRECCIÓN DE ORDENAMIENTO TERRITORIAL Y DESARROLLO MUNICIPAL",
-        //   });
-        //   continue;
-        // }
-
+        
         // Determinar el nombre del rol según sexo
         let nombreRol = "";
         if (usuario?.Rol?.RolNombres) {

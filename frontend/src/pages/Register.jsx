@@ -276,7 +276,11 @@ const Registros = () => {
       <Box display="flex" gap={1}>
         <IconButton
           size="small"
-          onClick={() => handleAmpliacionClick(row)}
+          onClick={(event) => {
+            event.stopPropagation();
+            handleAmpliacionClick(row);
+          }}
+          //onClick={() => handleAmpliacionClick(row)}
           disabled={yaAmpliada}
           sx={{
             color: yaAmpliada ? "inherit" : "#4187b3ff",
@@ -286,7 +290,13 @@ const Registros = () => {
         </IconButton>
         <IconButton
           size="small"
-          onClick={() => handleAbrirPDFTasa(row.id)}
+          onClick={(event) => {
+            event.stopPropagation(); // <-- Evita que el DataGrid seleccione la fila
+            handleAbrirPDFTasa(row.id);
+          }}
+          // onClick={() => {
+          //   handleAbrirPDFTasa(row.id);
+          // }}
           sx={{ color: "#2b4f6b" }}
         >
           <VisibilityIcon fontSize="small" />
@@ -348,21 +358,27 @@ const Registros = () => {
           <Box display="flex" gap={1}>
             <IconButton
               size="small"
-              onClick={() => handleOpenLicencia(params.row)}
+              onClick={(event) => {
+                event.stopPropagation();
+                handleOpenLicencia(params.row);
+              }}
+              //onClick={() => handleOpenLicencia(params.row)}
               disabled={yaAmpliada}
               sx={{
-                color: yaAmpliada ? "inherit" : "#1e6b3d", // verde elegante
+                color: yaAmpliada ? "inherit" : "#1e6b3d", 
               }}
             >
               <EditIcon fontSize="small" />
             </IconButton>
             <IconButton
               size="small"
-              onClick={() => {
-                //console.log("params.row completo:", params.row);
-                //console.log("Fecha emisión desde row:", params.row.fecha_emisionL);
+              onClick={(event) => {
+                event.stopPropagation(); // <-- Evita que el DataGrid seleccione la fila
                 handleAbrirPDFLicencia(params.row);
               }}
+              // onClick={() => {
+              //   handleAbrirPDFLicencia(params.row);
+              // }}
             >
               <VisibilityIcon fontSize="small" sx={{ color: "#2b4f6b" }} />
             </IconButton>

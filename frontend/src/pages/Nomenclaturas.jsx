@@ -71,7 +71,7 @@ const Nomenclaturas = () => {
     setOpenDialog(false);
   };
 
-    const handleAbrirPDFNomenclatura = async (idNomenclatura) => {
+  const handleAbrirPDFNomenclatura = async (idNomenclatura) => {
     const token = localStorage.getItem("token");
 
     try {
@@ -96,12 +96,12 @@ const Nomenclaturas = () => {
   };
 
   const filteredRows = nomenclaturas.filter((row) => {
-  const searchLower = search.toLowerCase();
-  return (
-    row.solicitante?.toLowerCase().includes(searchLower) ||
-    row.registroGeneral?.toLowerCase().includes(searchLower)
-  );
-});
+    const searchLower = search.toLowerCase();
+    return (
+      row.solicitante?.toLowerCase().includes(searchLower) ||
+      row.registroGeneral?.toLowerCase().includes(searchLower)
+    );
+  });
 
   const columns = [
     {
@@ -123,17 +123,26 @@ const Nomenclaturas = () => {
       minWidth: 150,
       renderCell: (params) => (
         <Box display="flex" gap={1}>
-          <IconButton size="small" 
-          onClick={() => handleAbrirPDFNomenclatura(params.row.id)}
-          sx={{ color: "#2b4f6b" }}
+          <IconButton
+            size="small"
+            onClick={(event) => {
+              event.stopPropagation(); // <-- Evita que el DataGrid seleccione la fila
+              handleAbrirPDFNomenclatura(params.row.id);
+            }}
+            // onClick={() => handleAbrirPDFNomenclatura(params.row.id)}
+            sx={{ color: "#2b4f6b" }}
           >
             <VisibilityIcon fontSize="small" />
           </IconButton>
           <IconButton
             size="small"
-            onClick={() => handleOpen(params.row, true)}
+            onClick={(event) => {
+              event.stopPropagation(); 
+              handleOpen(params.row, true); 
+            }}
+            //onClick={() => handleOpen(params.row, true)}
             sx={{
-              color: "#1e6b3d", 
+              color: "#1e6b3d",
             }}
           >
             <EditIcon fontSize="small" />

@@ -10,8 +10,8 @@ const generarPDFNomenclatura = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // const datosNomenclatura = {}; // datos vacíos para la plantilla
-    // 1. Obtener los datos de la Nomenclatura
+ 
+    //Obtener los datos de la Nomenclatura
     const datosNomenclatura = await obtenerDatosParaNomenclaturaPDF(id);
     if (!datosNomenclatura) {
       return res.status(404).json({ mensaje: "Nomenclatura no encontrada" });
@@ -47,19 +47,7 @@ const generarPDFNomenclatura = async (req, res) => {
       )}`;
     }
 
-    // // Convertir la imagen a base64
-    // const imagePath = path.resolve(
-    //   __dirname,
-    //   "../templates/nomenclaturaDoc/fondo_nomen.png"
-    // );
-    // const imageBuffer = await fs.readFile(imagePath);
-    // const base64Image = imageBuffer.toString("base64");
-    // const mimeType = "image/png";
-
-    // // Agregar como Data URI
-    // datosNomenclatura.imagenFondo = `data:${mimeType};base64,${base64Image}`;
-
-    // 2. Leer y compilar la plantilla
+    //Leer y compilar la plantilla
     const templatePath = path.join(
       __dirname,
       "../templates/nomenclaturaDoc/template.hbs"
@@ -81,7 +69,7 @@ const generarPDFNomenclatura = async (req, res) => {
 
     const content = template(datosNomenclatura);
 
-    // 3. Crear el PDF con Puppeteer
+    //Crear el PDF con Puppeteer
     const browser = await puppeteer.launch({
       headless: true,
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
@@ -89,12 +77,12 @@ const generarPDFNomenclatura = async (req, res) => {
 
     const page = await browser.newPage();
 
-    // 4. Cargar el contenido HTML en la página
+    //Cargar el contenido HTML en la página
     await page.setContent(content, {
       waitUntil: "networkidle0",
     });
 
-    // 5. Ruta de fondo relativo al HTML (usando Data URI si deseas evitar rutas relativas)
+    //Ruta de fondo relativo al HTML (usando Data URI si deseas evitar rutas relativas)
     const pdfBuffer = await page.pdf({
       format: "A4",
       printBackground: true,
@@ -102,7 +90,7 @@ const generarPDFNomenclatura = async (req, res) => {
 
     await browser.close();
 
-    // 6. Enviar el PDF como respuesta
+    //Enviar el PDF como respuesta
     res.set({
       "Content-Type": "application/pdf",
       "Content-Disposition": `attachment; filename=nomenclatura_${id}.pdf`,

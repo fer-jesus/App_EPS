@@ -80,7 +80,11 @@ const TasaHistorial = () => {
       <Box display="flex" justifyContent="center" alignItems="center">
         <IconButton
           size="small"
-          onClick={() => handleAbrirPDFTasa(row.id)}
+          onClick={(event) => {
+            event.stopPropagation();
+            handleAbrirPDFTasa(row.id);
+          }}
+          //onClick={() => handleAbrirPDFTasa(row.id)}
           sx={{ color: "#d32f2f" }}
         >
           <PictureAsPdfIcon fontSize="small" />

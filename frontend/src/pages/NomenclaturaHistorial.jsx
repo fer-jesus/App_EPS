@@ -71,7 +71,11 @@ const NomenclaturaHistorial = () => {
       <Box display="flex" justifyContent="center" alignItems="center">
         <IconButton
           size="small"
-          onClick={() => handleAbrirPDFNomenclatura(row.id)}
+          onClick={(event) => {
+            event.stopPropagation();
+            handleAbrirPDFNomenclatura(row.id);
+          }}
+          //onClick={() => handleAbrirPDFNomenclatura(row.id)}
           sx={{ color: "#d32f2f" }}
         >
           <PictureAsPdfIcon fontSize="small" />
