@@ -93,9 +93,9 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
   //   formData.nivelesConstruccion,
   // ]);
 
-  useEffect(() => {
-    // Solo calcular tasas si NO estamos en modo edición o si los datos han cambiado manualmente
-    if (!initialData || formData.id_tasa === null) {
+ useEffect(() => {
+    // Solo calcular tasas para el modo edición o si los datos han cambiado manualmente
+   
       const { valorPorcentaje, valor50Porc, presupuestObra, cantidadCancelar } =
         calcularTasa(formData);
 
@@ -106,15 +106,49 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
         presupuestObra,
         cantidadCancelar,
       }));
-    }
+   
   }, [
     formData.tipoConstruccion,
     formData.areaConstruccion,
     formData.cantDemoMovi,
     formData.tarifaCambioUso,
     formData.nivelesConstruccion,
-    initialData, // Agrega initialData como dependencia
+    
   ]);
+
+
+useEffect(() => {
+  // Limpiar campos relacionados cuando se eliminan tipos de construcción
+  const currentTypes = formData.tipoConstruccion.map(t => t.nombre_tarifa?.toUpperCase());
+  
+  // Si se eliminó cambio de uso, limpiar tarifaCambioUso
+  if (!currentTypes.includes("CAMBIO DE USO O REMODELACIONES") && formData.tarifaCambioUso) {
+    setFormData(prev => ({ ...prev, tarifaCambioUso: null }));
+  }
+  
+  // Si se eliminaron tipos que requieren niveles, limpiar nivelesConstruccion
+  const requiereNiveles = currentTypes.some(t => 
+    t && (t.includes("SEGUNDO NIVEL") || t.includes("NIVELES"))
+  );
+  if (!requiereNiveles && formData.nivelesConstruccion) {
+    setFormData(prev => ({ ...prev, nivelesConstruccion: "" }));
+  }
+  
+  // Si se eliminaron demo/movimiento, limpiar cantDemoMovi
+  const tieneDemoMovi = currentTypes.some(t => 
+    t && (t.includes("DEMOLICIÓN") || t.includes("MOVIMIENTO DE TIERRA"))
+  );
+  if (!tieneDemoMovi && formData.cantDemoMovi) {
+    setFormData(prev => ({ ...prev, cantDemoMovi: "" }));
+  }
+
+  // Si se eliminaron todos los tipos de construcción, limpiar areaConstruccion
+  if (formData.tipoConstruccion.length === 0 && formData.areaConstruccion) {
+    setFormData(prev => ({ ...prev, areaConstruccion: "" }));
+  }
+
+}, [formData.tipoConstruccion]);
+
 
   // Cargar datos iniciales
   const handleChange = (e) => {
@@ -126,98 +160,81 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
     }
   };
 
-  //   // Para editar
-  // useEffect(() => {
-  //     if (initialData) {
-  //       console.log("initialData en TasaForm:", initialData);
-  //       setFormData((prev) => ({
-  //         ...prev,
-  //         ...initialData,
-  //         fechaRegistro: initialData.fechaRegistro || today,
-  //         direccionExacta: initialData.direccionExacta || "",
-  //         dpi: initialData.dpi || "",
-  //         nombrePropietario: initialData.nombrePropietario || "",
-
-  //       }));
-  //     }
-  //   }, [initialData]);
-
-  // Cargar datos iniciales para edición
+  // Cargar de datos iniciales 
   useEffect(() => {
-    if (initialData) {
-      console.log("initialData en TasaForm:", initialData);
+    if (!initialData) return;
 
-       // Filtrar áreas de construcción que NO sean DEMOLICIÓN ni MOVIMIENTO DE TIERRA
+    console.log("initialData en TasaForm:", initialData);
+
     const areaConstruccionTexto = (initialData.tipoConstruccion || [])
       .filter(
         (tc) =>
-          tc.nombre_tarifa.toUpperCase() !== "DEMOLICIÓN" &&
-          tc.nombre_tarifa.toUpperCase() !== "MOVIMIENTO DE TIERRA" &&
-          tc.nombre_tarifa.toUpperCase() !== "AREA DE SEGUNDO NIVEL O MÁS"
+          ![
+            "DEMOLICIÓN",
+            "MOVIMIENTO DE TIERRA",
+            "AREA DE SEGUNDO NIVEL O MÁS",
+          ].includes(tc.nombre_tarifa?.toUpperCase())
       )
       .map((tc) => tc.dimension_construccion || "")
       .join("\n");
 
-    // Filtrar solo DEMOLICIÓN y MOVIMIENTO DE TIERRA
     const cantDemoMoviTexto = (initialData.tipoConstruccion || [])
-      .filter(
-        (tc) =>
-          tc.nombre_tarifa.toUpperCase() === "DEMOLICIÓN" ||
-          tc.nombre_tarifa.toUpperCase() === "MOVIMIENTO DE TIERRA"
+      .filter((tc) =>
+        ["DEMOLICIÓN", "MOVIMIENTO DE TIERRA"].includes(
+          tc.nombre_tarifa?.toUpperCase()
+        )
       )
       .map((tc) => tc.dimension_construccion || "")
       .join("\n");
 
-       const valor50PorcDato =
+    const valor50PorcDato =
       (initialData.tipoConstruccion || []).find(
         (tc) =>
-          tc.nombre_tarifa &&
-          tc.nombre_tarifa.toUpperCase() === "AREA DE SEGUNDO NIVEL O MÁS"
+          tc.nombre_tarifa?.toUpperCase() === "AREA DE SEGUNDO NIVEL O MÁS"
       )?.dimension_construccion || "";
 
-      setFormData({
-        id_tasa: initialData.id_tasa || initialData.id || null,
-        fechaRegistro: initialData.fechaRegistro || today,
-        direccionExacta: initialData.direccionExacta || "",
-        dpi: initialData.dpi || "",
-        nombrePropietario: initialData.nombrePropietario || "",
-        //tipoConstruccion: initialData.tipoConstruccion || [],
-        tipoConstruccion: (initialData.tipoConstruccion || []).map((tc) => ({
-          TARIFA_id_nombreTarifa: tc.TARIFA_id_nombreTarifa || "",
-          TIPO_CONSTRUCCION_TARIFA_id_tipoConstruccion: tc.TIPO_CONSTRUCCION_TARIFA_id_tipoConstruccion || null,
-          nombre_tarifa: tc.nombre_tarifa || "",
-          dimension_construccion: tc.dimension_construccion || "",
-          formula: tc.formula || "",
-          valor: tc.valor || "",
-          niveles: tc.niveles || [],
-        })),
-
-        tarifaCambioUso: initialData.tarifaCambioUso || null,
-        cuentaNoAlineacion:
-          initialData.cuentaNoAlineacion === true
-            ? "si"
-            : initialData.cuentaNoAlineacion === false
-            ? "no"
-            : "",
-        anotaciones: initialData.anotaciones || "",
-        areaConstruccion: areaConstruccionTexto,
-        nivelesConstruccion: initialData.nivelesConstruccion || valor50PorcDato || "",
-        cantDemoMovi: cantDemoMoviTexto,
-        valorPorcentaje:
-          initialData.tipoConstruccion?.map((tc) => tc.formula).join("\n") ||
-          "",
-        valor50Porc: initialData.valor50Porc || valor50PorcDato,
-        presupuestObra: initialData.presupuestObra || "",
-        cantidadCancelar: initialData.cantidadCancelar || "",
-        latitud: initialData.latitud || "",
-        longitud: initialData.longitud || "",
-        LICENCIAS_id_licencia_original:
-          initialData.LICENCIAS_id_licencia_original || null,
-        LICENCIAS_fecha_emisionL_original:
-          initialData.LICENCIAS_fecha_emisionL_original || null,
-        esAmpliacion: initialData.esAmpliacion || false,
-      });
-    }
+    setFormData((prev) => ({
+      ...prev,
+      id_tasa: initialData.id_tasa || initialData.id || null,
+      fechaRegistro: initialData.fechaRegistro || today,
+      direccionExacta: initialData.direccionExacta || "",
+      dpi: initialData.dpi || "",
+      nombrePropietario: initialData.nombrePropietario || "",
+      tipoConstruccion: (initialData.tipoConstruccion || []).map((tc) => ({
+        TARIFA_id_nombreTarifa: tc.TARIFA_id_nombreTarifa || "",
+        TIPO_CONSTRUCCION_TARIFA_id_tipoConstruccion:
+          tc.TIPO_CONSTRUCCION_TARIFA_id_tipoConstruccion || null,
+        nombre_tarifa: tc.nombre_tarifa || "",
+        dimension_construccion: tc.dimension_construccion || "",
+        formula: tc.formula || "",
+        valor: tc.valor || "",
+        niveles: tc.niveles || [],
+      })),
+      tarifaCambioUso: initialData.tarifaBaseCambioUso || initialData.tarifaCambioUso || null,
+      cuentaNoAlineacion:
+        initialData.cuentaNoAlineacion === true
+          ? "si"
+          : initialData.cuentaNoAlineacion === false
+          ? "no"
+          : "",
+      anotaciones: initialData.anotaciones || "",
+      areaConstruccion: areaConstruccionTexto,
+      nivelesConstruccion:
+        initialData.nivelesConstruccion || valor50PorcDato || "",
+      cantDemoMovi: cantDemoMoviTexto,
+      valorPorcentaje:
+        initialData.tipoConstruccion?.map((tc) => tc.formula).join("\n") || "",
+      valor50Porc: initialData.valor50Porc || valor50PorcDato,
+      presupuestObra: initialData.presupuestObra || "",
+      cantidadCancelar: initialData.cantidadCancelar || "",
+      latitud: initialData.latitud || "",
+      longitud: initialData.longitud || "",
+      LICENCIAS_id_licencia_original:
+        initialData.LICENCIAS_id_licencia_original || null,
+      LICENCIAS_fecha_emisionL_original:
+        initialData.LICENCIAS_fecha_emisionL_original || null,
+      esAmpliacion: initialData.esAmpliacion || false,
+    }));
   }, [initialData]);
 
   // Función para editar una tasa existente
@@ -373,6 +390,17 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
   };
 
   const calcularTasa = (form) => {
+
+      if (!form.tipoConstruccion || form.tipoConstruccion.length === 0) {
+    return {
+      valorPorcentaje: "",
+      valor50Porc: "",
+      presupuestObra: "0.00",
+      cantidadCancelar: "0.00",
+      tarifasData: [],
+    };
+  }
+
     let valorPorcentaje = "";
     let valor50Porc = "";
     let totalPresupuesto = 0;
@@ -936,4 +964,3 @@ TasaForm.propTypes = {
 };
 
 export default TasaForm;
-
