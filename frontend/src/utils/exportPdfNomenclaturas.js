@@ -7,7 +7,7 @@ export const exportChartsToPDFNomenclaturas = async (chartIds = []) => {
   let yOffset = 10;
 
   const logo = new Image();
-  logo.src = "/src/assets/DOT.png"; 
+  logo.src = "/DOT.png"; 
   await new Promise((resolve) => {
     logo.onload = resolve;
   });

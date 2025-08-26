@@ -7,7 +7,7 @@ export const exportChartsToPDFLicencias = async (lineChartId, barChartId) => {
   let yOffset = 10; // margen superior inicial
 
   const logo = new Image();
-  logo.src = "/src/assets/DOT.png";
+  logo.src = "/DOT.png";
   await new Promise((resolve) => {
     logo.onload = resolve;
   });
