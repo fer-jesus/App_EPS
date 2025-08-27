@@ -35,10 +35,12 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
     longitud: "",
     LICENCIAS_id_licencia_original: null,
     LICENCIAS_fecha_emisionL_original: null,
+    id_tasa: null, //para editar
   });
 
   const [tarifas, setTarifas] = useState([]);
   const [errors, setErrors] = useState({});
+  const [isConstruccion, setIsConstruccion] = useState(true);
   const token = localStorage.getItem("token");
 
   const headers = {
@@ -55,12 +57,13 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
       maximumFractionDigits: 2,
     })}`;
   };
+
   // Cargar tarifas desde el backend
   useEffect(() => {
     const fetchTarifas = async () => {
       try {
         const res = await axios.get(
-          "https://backdot.dotmunijalapa.org/api/tarifas",
+          "http://localhost:3001/api/tarifas",
           headers
         );
         setTarifas(res.data);
@@ -71,8 +74,88 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
     fetchTarifas();
   }, []);
 
-  // Calcular valores derivados al cambiar datos del formulario
+  // Cargar de datos iniciales
   useEffect(() => {
+    if (!initialData) return;
+
+    console.log("initialData en TasaForm:", initialData);
+
+    const areaConstruccionTexto = (initialData.tipoConstruccion || [])
+      .filter(
+        (tc) =>
+          ![
+            "DEMOLICIÓN",
+            "MOVIMIENTO DE TIERRA",
+            "AREA DE SEGUNDO NIVEL O MÁS",
+          ].includes(tc.nombre_tarifa?.toUpperCase())
+      )
+      .map((tc) => tc.dimension_construccion || "")
+      .join("\n");
+
+    const cantDemoMoviTexto = (initialData.tipoConstruccion || [])
+      .filter((tc) =>
+        ["DEMOLICIÓN", "MOVIMIENTO DE TIERRA"].includes(
+          tc.nombre_tarifa?.toUpperCase()
+        )
+      )
+      .map((tc) => tc.dimension_construccion || "")
+      .join("\n");
+
+    const valor50PorcDato =
+      (initialData.tipoConstruccion || []).find(
+        (tc) =>
+          tc.nombre_tarifa?.toUpperCase() === "AREA DE SEGUNDO NIVEL O MÁS"
+      )?.dimension_construccion || "";
+
+    setFormData((prev) => ({
+      ...prev,
+      id_tasa: initialData.id_tasa || initialData.id || null,
+      fechaRegistro: initialData.fechaRegistro || today,
+      direccionExacta: initialData.direccionExacta || "",
+      dpi: initialData.dpi || "",
+      nombrePropietario: initialData.nombrePropietario || "",
+      tipoConstruccion: (initialData.tipoConstruccion || []).map((tc) => ({
+        TARIFA_id_nombreTarifa: tc.TARIFA_id_nombreTarifa || "",
+        TIPO_CONSTRUCCION_TARIFA_id_tipoConstruccion:
+          tc.TIPO_CONSTRUCCION_TARIFA_id_tipoConstruccion || null,
+        nombre_tarifa: tc.nombre_tarifa || "",
+        dimension_construccion: tc.dimension_construccion || "",
+        formula: tc.formula || "",
+        valor: tc.valor || "",
+        niveles: tc.niveles || [],
+      })),
+      tarifaCambioUso:
+        initialData.tarifaBaseCambioUso || initialData.tarifaCambioUso || null,
+      cuentaNoAlineacion:
+        initialData.cuentaNoAlineacion === true
+          ? "si"
+          : initialData.cuentaNoAlineacion === false
+          ? "no"
+          : "",
+      anotaciones: initialData.anotaciones || "",
+      areaConstruccion: areaConstruccionTexto,
+      nivelesConstruccion:
+        initialData.nivelesConstruccion || valor50PorcDato || "",
+      cantDemoMovi: cantDemoMoviTexto,
+      valorPorcentaje:
+        initialData.tipoConstruccion?.map((tc) => tc.formula).join("\n") || "",
+      valor50Porc: initialData.valor50Porc || valor50PorcDato,
+      presupuestObra: initialData.presupuestObra || "",
+      cantidadCancelar: initialData.cantidadCancelar || "",
+      latitud: initialData.latitud || "",
+      longitud: initialData.longitud || "",
+      LICENCIAS_id_licencia_original:
+        initialData.LICENCIAS_id_licencia_original || null,
+      LICENCIAS_fecha_emisionL_original:
+        initialData.LICENCIAS_fecha_emisionL_original || null,
+      esAmpliacion: initialData.esAmpliacion || false,
+    }));
+    console.log("Datos iniciales cargados:", formData);
+  }, []);
+
+  //   // Calcular valores derivados al cambiar datos del formulario
+  useEffect(() => {
+    if (!isConstruccion){ 
     const { valorPorcentaje, valor50Porc, presupuestObra, cantidadCancelar } =
       calcularTasa(formData);
 
@@ -83,6 +166,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
       presupuestObra,
       cantidadCancelar,
     }));
+    }
   }, [
     formData.tipoConstruccion,
     formData.areaConstruccion,
@@ -91,7 +175,67 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
     formData.nivelesConstruccion,
   ]);
 
-  // Cargar datos iniciales si se está editando
+
+// porque con el dato inicial de construccion al agregar uno nuevo me borra los datos
+// y porque al momento de eliminar y volver agregar mas tipos de construccion 
+// si los agrega normal 
+
+
+
+
+
+  // Función para editar una tasa existente
+  const editarTasa = async (form) => {
+    try {
+      console.log("Preparando datos para editar tasa...");
+      await mantenimientoPropietario();
+
+      const { presupuestObra, cantidadCancelar, tarifasData } =
+        calcularTasa(form);
+
+      const parseMonedaToFloat = (valor) => {
+        if (!valor) return 0;
+        return parseFloat(valor.replace(/[Q,\s]/g, ""));
+      };
+
+      const tasaData = {
+        fecha_emisionT: form.fechaRegistro,
+        direccion_propiedad: form.direccionExacta,
+        alineacion_urban: form.cuentaNoAlineacion === "si",
+        anotaciones: form.anotaciones || null,
+        cant_dem_movTierra: parseFloat(form.cantDemoMovi) || null,
+        presupuesto_obra: parseMonedaToFloat(presupuestObra),
+        cantidad_cancelar: parseMonedaToFloat(cantidadCancelar),
+        documento: null,
+        latitud: form.latitud || null,
+        longitud: form.longitud || null,
+        PROPIETARIOS_cui: parseInt(form.dpi),
+        // LICENCIAS_id_licencia_original:
+        //   form.LICENCIAS_id_licencia_original || null,
+        // LICENCIAS_fecha_emisionL_original:
+        //   form.LICENCIAS_fecha_emisionL_original || null,
+      };
+
+      const payload = { tasaData, tarifasData };
+      console.log("Datos a actualizar:", payload);
+
+      // Usar PUT en lugar de POST para actualizar
+      const response = await axios.put(
+        `http://localhost:3001/api/tasas/${form.id_tasa}`,
+        payload,
+        headers
+      );
+
+      console.log("Respuesta del servidor:", response.data);
+      alert("Tasa actualizada con éxito");
+
+      if (onSubmit) onSubmit();
+    } catch (error) {
+      console.error("Error al actualizar tasa:", error);
+      alert("Error al actualizar la tasa");
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -101,26 +245,6 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
     }
   };
 
-  useEffect(() => {
-    if (initialData) {
-      console.log("initialData en TasaForm:", initialData);
-      setFormData((prev) => ({
-        ...prev,
-        ...initialData,
-        fechaRegistro: initialData.fechaRegistro || today,
-        direccionExacta: initialData.direccionExacta || "",
-        dpi: initialData.dpi || "",
-        nombrePropietario: initialData.nombrePropietario || "",
-        esAmpliacion: !!initialData.esAmpliacion,
-        LICENCIAS_id_licencia_original:
-          initialData.LICENCIAS_id_licencia_original ?? null,
-        LICENCIAS_fecha_emisionL_original:
-          initialData.LICENCIAS_fecha_emisionL_original ?? null,
-      }));
-    }
-  }, [initialData]);
-
-  console.log("esAmpliacion actual:", formData.esAmpliacion);
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -140,13 +264,11 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
 
     Object.keys(formData).forEach((key) => {
       const excepciones = [
+        "id_tasa",
         "anotaciones",
         "tarifaCambioUso",
         "cantDemoMovi",
         "areaConstruccion",
-        "esAmpliacion",
-        "LICENCIAS_id_licencia_original",
-        "LICENCIAS_fecha_emisionL_original",
         "nivelesConstruccion",
         "valor50Porc",
         "latitud",
@@ -188,34 +310,31 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
       hasErrors = true;
     }
 
-    //Validaciones si es ampliación
-    if (formData.esAmpliacion) {
-      if (
-        !formData.LICENCIAS_id_licencia_original &&
-        formData.LICENCIAS_id_licencia_original !== 0
-      ) {
-        newErrors.LICENCIAS_id_licencia_original = true;
-        hasErrors = true;
-      }
-      if (!formData.LICENCIAS_fecha_emisionL_original) {
-        newErrors.LICENCIAS_fecha_emisionL_original = true;
-        hasErrors = true;
-      }
-    }
-
     console.log("formData", formData);
 
     setErrors(newErrors);
 
     if (!hasErrors) {
       console.log("Datos del formulario:", formData);
-      enviarTasa(formData);
+      editarTasa(formData);
     } else {
       console.warn("Errores encontrados: ", newErrors);
     }
   };
 
   const calcularTasa = (form) => {
+    // if (form.tipoConstruccion.length === 0) {
+    //   return;
+    //   //   console.log("No hay tipos de construcción seleccionados.");
+    //   //   return {
+    //   //     valorPorcentaje: "",
+    //   //     valor50Porc: "",
+    //   //     presupuestObra: "0.00",
+    //   //     cantidadCancelar: "0.00",
+    //   //     tarifasData: [],
+    //   //   };
+    // }
+
     let valorPorcentaje = "";
     let valor50Porc = "";
     let totalPresupuesto = 0;
@@ -273,7 +392,13 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
             TARIFA_id_nombreTarifa: 32, // 32 ó form.tarifaCambioUso.id_nombreTarifa,
             dimension_construccion: areaCU,
             //formula: `${areaCU} x ${baseCU} x 25% x 3.5%`,
-            formula: `${areaCU}X${baseCU}=${subtotal1.toLocaleString("es-GT")}X25%=${subtotal2.toFixed(2).toLocaleString("es-GT")}X3.5%=${subtotal3.toFixed(2).toLocaleString("es-GT")}`,
+            formula: `${areaCU}X${baseCU}=${subtotal1.toLocaleString(
+              "es-GT"
+            )}X25%=${subtotal2
+              .toFixed(2)
+              .toLocaleString("es-GT")}X3.5%=${subtotal3
+              .toFixed(2)
+              .toLocaleString("es-GT")}`,
             valor: subtotal3,
           });
         }
@@ -304,7 +429,9 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           TARIFA_id_nombreTarifa: tipo.id_nombreTarifa,
           dimension_construccion: area,
           //formula: `${area} x ${costo} x ${porcentaje}%`,
-          formula: `${area}X${costo}=${subtotal.toLocaleString("es-GT")}X${porcentaje}%=${valor.toFixed(2).toLocaleString("es-GT")}`,
+          formula: `${area}X${costo}=${subtotal.toLocaleString(
+            "es-GT"
+          )}X${porcentaje}%=${valor.toFixed(2).toLocaleString("es-GT")}`,
           valor,
         });
 
@@ -333,7 +460,13 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
               TARIFA_id_nombreTarifa: tipo.id_nombreTarifa,
               dimension_construccion: nivelArea,
               //formula: `${nivelArea} x ${costo} x ${porcentaje}% x 50%`,
-              formula: `${nivelArea}X${costo}=${subtotalNivel.toLocaleString("es-GT")}X${porcentaje}%=${porcNivel.toFixed(2).toLocaleString("es-GT")}X50%=${valorNivel.toFixed(2).toLocaleString("es-GT")}`,
+              formula: `${nivelArea}X${costo}=${subtotalNivel.toLocaleString(
+                "es-GT"
+              )}X${porcentaje}%=${porcNivel
+                .toFixed(2)
+                .toLocaleString("es-GT")}X50%=${valorNivel
+                .toFixed(2)
+                .toLocaleString("es-GT")}`,
               valor: valorNivel,
             });
           });
@@ -355,7 +488,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
       //Verificar si el propietario ya existe
 
       const response = await axios.get(
-        `https://backdot.dotmunijalapa.org/api/propietarios/${formData.dpi}`,
+        `http://localhost:3001/api/propietarios/${formData.dpi}`,
         headers
       );
       const nombreBD = response.data.nombre_propietario?.trim().toLowerCase();
@@ -364,7 +497,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
       //Si el nombre cambió, actualizar
       if (nombreBD !== nombreFormulario) {
         await axios.put(
-          `https://backdot.dotmunijalapa.org/api/propietarios/${formData.dpi}`,
+          `http://localhost:3001/api/propietarios/${formData.dpi}`,
           {
             nombre_propietario: formData.nombrePropietario.trim(),
           },
@@ -375,7 +508,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
       if (err.response?.status === 404) {
         // No existe propietario, crear
         await axios.post(
-          `https://backdot.dotmunijalapa.org/api/propietarios`,
+          `http://localhost:3001/api/propietarios`,
           {
             cui: parseInt(formData.dpi),
             nombre_propietario: formData.nombrePropietario.trim(),
@@ -394,7 +527,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
 
     try {
       const response = await axios.get(
-        `https://backdot.dotmunijalapa.org/api/propietarios/${cui}`,
+        `http://localhost:3001/api/propietarios/${cui}`,
         headers
       );
       if (response.data && response.data.nombre_propietario) {
@@ -421,70 +554,70 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
     }
   };
 
-  const enviarTasa = async (form) => {
-    try {
-      console.log("Preparando datos para enviar al backend...");
-      if (!form.dpi || !form.fechaRegistro || !form.direccionExacta) {
-        throw new Error("Faltan datos requeridos");
-      }
-      await mantenimientoPropietario();
-
-      //const { tarifasData } = calcularTasa(form);
-
-      const parseMonedaToFloat = (valor) => {
-        if (!valor) return 0;
-        return parseFloat(valor.replace(/[Q,\s]/g, ""));
-      };
-
-      // Obtener los cálculos desde calcularTasa
-      const { presupuestObra, cantidadCancelar, tarifasData } =
-        calcularTasa(form);
-
-      const tasaData = {
-        fecha_emisionT: form.fechaRegistro,
-        direccion_propiedad: form.direccionExacta,
-        alineacion_urban: form.cuentaNoAlineacion === "si",
-        anotaciones: form.anotaciones || null,
-        cant_dem_movTierra: parseFloat(form.cantDemoMovi) || null,
-        presupuesto_obra: parseMonedaToFloat(presupuestObra),
-        cantidad_cancelar: parseMonedaToFloat(cantidadCancelar),
-        documento: null,
-        latitud: form.latitud || null,
-        longitud: form.longitud || null,
-        PROPIETARIOS_cui: parseInt(form.dpi),
-        LICENCIAS_id_licencia_original:
-          form.LICENCIAS_id_licencia_original || null,
-        LICENCIAS_fecha_emisionL_original:
-          form.LICENCIAS_fecha_emisionL_original || null,
-      };
-
-      const payload = { tasaData, tarifasData };
-      console.log("Datos a enviar:", payload);
-
-      const response = await axios.post(
-        "https://backdot.dotmunijalapa.org/api/tasas",
-        payload,
-        headers
-      );
-
-      console.log("Respuesta del servidor:", response.data);
-      alert("Tasa guardada con éxito");
-
-      if (onSubmit) onSubmit();
-    } catch (error) {
-      console.error("Error al guardar tasa:", error);
-      alert("Error al guardar la tasa");
-    }
-  };
-
   const getLabel = (name, label) =>
     errors[name] ? "Rellena este campo" : label;
+
+  //   const enviarTasa = async (form) => {
+  //     try {
+  //       console.log("Preparando datos para enviar al backend...");
+  //       if (!form.dpi || !form.fechaRegistro || !form.direccionExacta) {
+  //         throw new Error("Faltan datos requeridos");
+  //       }
+  //       await mantenimientoPropietario();
+
+  //       //const { tarifasData } = calcularTasa(form);
+
+  //       const parseMonedaToFloat = (valor) => {
+  //         if (!valor) return 0;
+  //         return parseFloat(valor.replace(/[Q,\s]/g, ""));
+  //       };
+
+  //       // Obtener los cálculos desde calcularTasa
+  //       const { presupuestObra, cantidadCancelar, tarifasData } =
+  //         calcularTasa(form);
+
+  //       const tasaData = {
+  //         fecha_emisionT: form.fechaRegistro,
+  //         direccion_propiedad: form.direccionExacta,
+  //         alineacion_urban: form.cuentaNoAlineacion === "si",
+  //         anotaciones: form.anotaciones || null,
+  //         cant_dem_movTierra: parseFloat(form.cantDemoMovi) || null,
+  //         presupuesto_obra: parseMonedaToFloat(presupuestObra),
+  //         cantidad_cancelar: parseMonedaToFloat(cantidadCancelar),
+  //         documento: null,
+  //         latitud: form.latitud || null,
+  //         longitud: form.longitud || null,
+  //         PROPIETARIOS_cui: parseInt(form.dpi),
+  //         LICENCIAS_id_licencia_original:
+  //           form.LICENCIAS_id_licencia_original || null,
+  //         LICENCIAS_fecha_emisionL_original:
+  //           form.LICENCIAS_fecha_emisionL_original || null,
+  //       };
+
+  //       const payload = { tasaData, tarifasData };
+  //       console.log("Datos a enviar:", payload);
+
+  //       const response = await axios.post(
+  //         "http://localhost:3001/api/tasas",
+  //         payload,
+  //         headers
+  //       );
+
+  //       console.log("Respuesta del servidor:", response.data);
+  //       alert("Tasa guardada con éxito");
+
+  //       if (onSubmit) onSubmit();
+  //     } catch (error) {
+  //       console.error("Error al guardar tasa:", error);
+  //       alert("Error al guardar la tasa");
+  //     }
+  //   };
 
   return (
     <Box sx={{ p: 2 }}>
       <Stack spacing={2}>
         <Typography variant="h6" textAlign="center" fontWeight="bold">
-          {initialData?.esAmpliacion ? "Ampliación" : "Crear Nueva Tasa"}
+          Editar Tasasss
         </Typography>
 
         <TextField
@@ -505,7 +638,6 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           onChange={handleChange}
           fullWidth
           required
-          disabled={formData.esAmpliacion}
           multiline
           error={Boolean(errors.direccionExacta)}
         />
@@ -517,7 +649,6 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           onBlur={(e) => buscarPropietarioPorCUI(e.target.value)}
           fullWidth
           required
-          disabled={formData.esAmpliacion}
           error={Boolean(errors.dpi)}
         />
 
@@ -528,7 +659,6 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           onChange={handleChange}
           fullWidth
           required
-          disabled={formData.esAmpliacion}
           multiline
           error={Boolean(errors.nombrePropietario)}
         />
@@ -541,10 +671,28 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           filterSelectedOptions={false} // evita que se oculten opciones ya seleccionadas
           value={formData.tipoConstruccion}
           onChange={(event, newValue) => {
-            setFormData((prev) => ({
-              ...prev,
-              tipoConstruccion: newValue,
-            }));
+            setIsConstruccion(false);
+            if (newValue.length === 0) {
+              // 🔹 Si se borran todas las opciones, reseteamos valores
+              setFormData((prev) => ({
+                ...prev,
+                tipoConstruccion: [],
+                areaConstruccion: "",
+                cantDemoMovi: "",
+                valorPorcentaje: "",
+                valor50Porc: "",
+                presupuestObra: "0.00",
+                cantidadCancelar: "0.00",
+                tarifasData: [],
+              }));
+            } else {
+              // 🔹 Caso normal, solo actualiza tipoConstruccion
+              setFormData((prev) => ({
+                ...prev,
+                tipoConstruccion: newValue,
+              }));
+            }
+
             if (errors.tipoConstruccion) {
               setErrors((prev) => ({ ...prev, tipoConstruccion: false }));
             }
@@ -692,7 +840,6 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           label={getLabel("latitud", "LATITUD (opcional)")}
           value={formData.latitud}
           onChange={handleChange}
-          //disabled={formData.esAmpliacion}
         />
 
         <TextField
@@ -700,7 +847,6 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           label={getLabel("longitud", "  LONGITUD (opcional)")}
           value={formData.longitud}
           onChange={handleChange}
-          //disabled={formData.esAmpliacion}
         />
         <TextField
           name="presupuestObra"
@@ -761,4 +907,3 @@ TasaForm.propTypes = {
 };
 
 export default TasaForm;
-

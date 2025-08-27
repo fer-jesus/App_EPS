@@ -20,6 +20,7 @@ import MapaLeaflet from "../components/MapaLeaflet";
 import AppNavbar from "../components/AppNavBar";
 import Swal from "sweetalert2";
 import TasaForm from "../components/TasaForm";
+import EditTasaForm from "../components/EditTasaForm";
 import LicenciaForm from "../components/LicenciaForm";
 import axios from "axios";
 
@@ -27,7 +28,7 @@ const Registros = () => {
   const [tasas, setTasas] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedTasa, setSelectedTasa] = useState(null);
-  ///const [isEditMode, setIsEditMode] = useState(false); //AGREGADO
+  const [editDialog, setEditDialog] = useState(false);
   const [openLicenciaDialog, setOpenLicenciaDialog] = useState(false);
   const [selectedLicencia, setSelectedLicencia] = useState(null);
   const [openMapa, setOpenMapa] = useState(false);
@@ -79,18 +80,19 @@ const Registros = () => {
   const handleOpenEdit = (tasa) => {
     console.log("Datos que llegan al formulario:", tasa);
     setSelectedTasa(tasa);
-    setOpenDialog(true);
+    setEditDialog(true);
   };
 
   const handleSaveTasa = async () => {
     await fetchTasas();
     setOpenDialog(false);
+    setEditDialog(false);
   };
 
   const handleClose = () => {
     setSelectedTasa(null);
-    //setIsEditMode(false);
     setOpenDialog(false);
+    setEditDialog(false);
   };
 
   const handleOpenLicencia = async (tasa) => {
@@ -565,7 +567,32 @@ const Registros = () => {
               onSubmit={handleSaveTasa}
               onClose={handleClose}
               initialData={selectedTasa}
-              //isEdit={isEditMode}
+            />
+          </DialogContent>
+        </Dialog>
+
+        <Dialog
+          open={editDialog}
+          onClose={handleClose}
+          fullWidth
+          maxWidth="sm"
+          PaperProps={{
+            sx: {
+              mx: { xs: 2, sm: "auto" },
+              width: {
+                xs: "100%",
+                sm: "90%",
+                md: "70%",
+                lg: "600px",
+              },
+            },
+          }}
+        >
+          <DialogContent>
+            <EditTasaForm
+              onSubmit={handleSaveTasa}
+              onClose={handleClose}
+              initialData={selectedTasa}
             />
           </DialogContent>
         </Dialog>
@@ -645,4 +672,3 @@ const Registros = () => {
 };
 
 export default Registros;
-

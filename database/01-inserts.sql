@@ -162,8 +162,8 @@ INSERT INTO TARIFA_COSTO_DIMENSION (TARIFA_id_nombreTarifa, costo_tarifa, unidad
 (52, 1500.00, 'm²', 4.5),
 (53, 1800.00, 'm²', 4.5),
 (54, 1200.00, 'm²', 4.5),
-(55, 50.00, 'm²', 3),
-(56, 50.00, 'm²', 3); 
+(55, 150.00, 'm²', 3),
+(56, 150.00, 'm²', 3); 
 
 
 INSERT INTO TARIFA_COSTO_PROYECTO (TARIFA_id_nombreTarifa, porcentaje_costoProyecto, porcentaje)
