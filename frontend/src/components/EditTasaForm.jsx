@@ -185,8 +185,13 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
       console.log("Preparando datos para editar tasa...");
       await mantenimientoPropietario();
 
-      const { presupuestObra, cantidadCancelar, tarifasData } =
-        calcularTasa(form);
+      const {
+        presupuestObra: recalculado,
+        cantidadCancelar: recalculadoCancelar,
+        tarifasData,
+      } = calcularTasa(form);
+      // const { presupuestObra, cantidadCancelar, tarifasData } =
+      //   calcularTasa(form);
 
       const parseMonedaToFloat = (valor) => {
         if (!valor) return 0;
@@ -194,21 +199,25 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
       };
 
       const tasaData = {
-      fechaRegistro: form.fechaRegistro,
-      direccionExacta: form.direccionExacta,
-      cuentaNoAlineacion: form.cuentaNoAlineacion === "si",
-      anotaciones: form.anotaciones || null,
-      cantDemoMovi: parseFloat(form.cantDemoMovi) || null,
-      presupuestObra: parseMonedaToFloat(presupuestObra),
-      cantidadCancelar: parseMonedaToFloat(cantidadCancelar),
-      latitud: form.latitud || null,
-      longitud: form.longitud || null,
-      dpi: parseInt(form.dpi),
-      LICENCIAS_id_licencia_original:
-        form.LICENCIAS_id_licencia_original || null,
-      LICENCIAS_fecha_emisionL_original:
-        form.LICENCIAS_fecha_emisionL_original || null,
-    };
+        fechaRegistro: form.fechaRegistro,
+        direccionExacta: form.direccionExacta,
+        cuentaNoAlineacion: form.cuentaNoAlineacion === "si",
+        anotaciones: form.anotaciones || null,
+        cantDemoMovi: parseFloat(form.cantDemoMovi) || null,
+        presupuestObra: recalculado
+          ? parseMonedaToFloat(recalculado)
+          : form.presupuestObra,
+        cantidadCancelar: recalculadoCancelar
+          ? parseMonedaToFloat(recalculadoCancelar)
+          : form.cantidadCancelar,
+        latitud: form.latitud || null,
+        longitud: form.longitud || null,
+        dpi: parseInt(form.dpi),
+        LICENCIAS_id_licencia_original:
+          form.LICENCIAS_id_licencia_original || null,
+        LICENCIAS_fecha_emisionL_original:
+          form.LICENCIAS_fecha_emisionL_original || null,
+      };
 
       const payload = { tasaData, tarifasData };
       console.log("Datos a actualizar:", payload);
@@ -267,6 +276,8 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
         "valor50Porc",
         "latitud",
         "longitud",
+        "LICENCIAS_id_licencia_original",
+        "LICENCIAS_fecha_emisionL_original",
       ];
 
       const value = formData[key];
