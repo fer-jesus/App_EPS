@@ -155,17 +155,17 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
 
   //   // Calcular valores derivados al cambiar datos del formulario
   useEffect(() => {
-    if (!isConstruccion){ 
-    const { valorPorcentaje, valor50Porc, presupuestObra, cantidadCancelar } =
-      calcularTasa(formData);
+    if (!isConstruccion) {
+      const { valorPorcentaje, valor50Porc, presupuestObra, cantidadCancelar } =
+        calcularTasa(formData);
 
-    setFormData((prev) => ({
-      ...prev,
-      valorPorcentaje,
-      valor50Porc,
-      presupuestObra,
-      cantidadCancelar,
-    }));
+      setFormData((prev) => ({
+        ...prev,
+        valorPorcentaje,
+        valor50Porc,
+        presupuestObra,
+        cantidadCancelar,
+      }));
     }
   }, [
     formData.tipoConstruccion,
@@ -175,14 +175,9 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
     formData.nivelesConstruccion,
   ]);
 
-
-// porque con el dato inicial de construccion al agregar uno nuevo me borra los datos
-// y porque al momento de eliminar y volver agregar mas tipos de construccion 
-// si los agrega normal 
-
-
-
-
+  // porque con el dato inicial de construccion al agregar uno nuevo me borra los datos
+  // y porque al momento de eliminar y volver agregar mas tipos de construccion
+  // si los agrega normal
 
   // Función para editar una tasa existente
   const editarTasa = async (form) => {
@@ -199,22 +194,21 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
       };
 
       const tasaData = {
-        fecha_emisionT: form.fechaRegistro,
-        direccion_propiedad: form.direccionExacta,
-        alineacion_urban: form.cuentaNoAlineacion === "si",
-        anotaciones: form.anotaciones || null,
-        cant_dem_movTierra: parseFloat(form.cantDemoMovi) || null,
-        presupuesto_obra: parseMonedaToFloat(presupuestObra),
-        cantidad_cancelar: parseMonedaToFloat(cantidadCancelar),
-        documento: null,
-        latitud: form.latitud || null,
-        longitud: form.longitud || null,
-        PROPIETARIOS_cui: parseInt(form.dpi),
-        // LICENCIAS_id_licencia_original:
-        //   form.LICENCIAS_id_licencia_original || null,
-        // LICENCIAS_fecha_emisionL_original:
-        //   form.LICENCIAS_fecha_emisionL_original || null,
-      };
+      fechaRegistro: form.fechaRegistro,
+      direccionExacta: form.direccionExacta,
+      cuentaNoAlineacion: form.cuentaNoAlineacion === "si",
+      anotaciones: form.anotaciones || null,
+      cantDemoMovi: parseFloat(form.cantDemoMovi) || null,
+      presupuestObra: parseMonedaToFloat(presupuestObra),
+      cantidadCancelar: parseMonedaToFloat(cantidadCancelar),
+      latitud: form.latitud || null,
+      longitud: form.longitud || null,
+      dpi: parseInt(form.dpi),
+      LICENCIAS_id_licencia_original:
+        form.LICENCIAS_id_licencia_original || null,
+      LICENCIAS_fecha_emisionL_original:
+        form.LICENCIAS_fecha_emisionL_original || null,
+    };
 
       const payload = { tasaData, tarifasData };
       console.log("Datos a actualizar:", payload);
@@ -668,6 +662,9 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           options={tarifas}
           getOptionLabel={(option) => option.nombre_tarifa || ""}
           isOptionEqualToValue={() => false}
+          // isOptionEqualToValue={(option, value) =>
+          //   option.TARIFA_id_nombreTarifa === value.TARIFA_id_nombreTarifa
+          // }
           filterSelectedOptions={false} // evita que se oculten opciones ya seleccionadas
           value={formData.tipoConstruccion}
           onChange={(event, newValue) => {

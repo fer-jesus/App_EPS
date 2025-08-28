@@ -148,7 +148,7 @@ const actualizarTasa = async (id_tasa, tasaData, tarifasData, id_usuario) => {
     const result = await Tasa.sequelize.transaction(async (t) => {
       await setUsuarioId(Tasa.sequelize, id_usuario, t);
 
-      // 1. Actualizar los datos principales de la tasa con nombres exactos de la BD
+      //Actualizar los datos principales de la tasa con nombres exactos de la BD
       await Tasa.update(
         {
           fecha_emisionT: tasaData.fechaRegistro,
@@ -172,24 +172,39 @@ const actualizarTasa = async (id_tasa, tasaData, tarifasData, id_usuario) => {
         }
       );
 
-      // 2. Eliminar las tarifas existentes
-      await TasaTarifa.destroy({
+      //Cargar las tarifas existentes
+      const tarifasExistentes = await TasaTarifa.findAll({
         where: { TASAS_id_tasa: id_tasa },
         transaction: t,
       });
 
-      await TasaTarifaVariosNiveles.destroy({
-        where: { TASAS_TARIFA_TASAS_id_tasa: id_tasa },
-        transaction: t,
-      });
+   
 
-      // 3. Insertar las nuevas tarifas si existen
-      if (tarifasData && tarifasData.length > 0) {
-        for (let i = 0; i < tarifasData.length; i++) {
-          const tarifa = tarifasData[i];
-          const correlativo = i + 1;
+      //Recorrer tarifas nuevas y hacer UPSERT
+      for (let i = 0; i < tarifasData.length; i++) {
+        const tarifa = tarifasData[i];
+        const correlativo = i + 1;
 
-          await TasaTarifa.create(
+        // Buscar tarifa existente
+        let tarifaExistente = tarifasExistentes.find(
+          (tt) =>
+            tt.tarifa_correlativo === correlativo &&
+            tt.TARIFA_id_nombreTarifa === tarifa.TARIFA_id_nombreTarifa
+        );
+
+        if (tarifaExistente) {
+          // Actualizar tarifa existente
+          await tarifaExistente.update(
+            {
+              dimension_construccion: tarifa.dimension_construccion,
+              formula: tarifa.formula,
+              valor: tarifa.valor,
+            },
+            { transaction: t }
+          );
+        } else {
+          // Crear nueva tarifa
+          tarifaExistente = await TasaTarifa.create(
             {
               tarifa_correlativo: correlativo,
               TASAS_id_tasa: id_tasa,
@@ -200,10 +215,35 @@ const actualizarTasa = async (id_tasa, tasaData, tarifasData, id_usuario) => {
             },
             { transaction: t }
           );
+        }
 
-          // Insertar niveles adicionales si existen
-          if (Array.isArray(tarifa.niveles) && tarifa.niveles.length > 0) {
-            for (const nivel of tarifa.niveles) {
+        // Manejar niveles
+        if (Array.isArray(tarifa.niveles)) {
+          for (const nivel of tarifa.niveles) {
+            // Buscar nivel existente
+            const nivelExistente = await TasaTarifaVariosNiveles.findOne({
+              where: {
+                TASAS_TARIFA_TASAS_id_tasa: id_tasa,
+                TASAS_TARIFA_tarifa_correlativo: correlativo,
+                TASAS_TARIFA_TARIFA_id_nombreTarifa:
+                  tarifa.TARIFA_id_nombreTarifa,
+                nivel: nivel.nivel,
+              },
+              transaction: t,
+            });
+
+            if (nivelExistente) {
+              // Actualizar nivel existente
+              await nivelExistente.update(
+                {
+                  dimension_construccion: nivel.dimension_construccion || null,
+                  formula: nivel.formula,
+                  valor: nivel.valor,
+                },
+                { transaction: t }
+              );
+            } else {
+              // Crear nivel nuevo
               await TasaTarifaVariosNiveles.create(
                 {
                   TASAS_TARIFA_TASAS_id_tasa: id_tasa,
@@ -612,4 +652,3 @@ module.exports = {
   obtenerDatosTasaPorId,
   obtenerDatosParaDocumentoPDF,
 };
-
