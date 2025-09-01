@@ -178,8 +178,7 @@ const actualizarTasa = async (id_tasa, tasaData, tarifasData, id_usuario) => {
         transaction: t,
       });
 
-   
-
+  
       //Recorrer tarifas nuevas y hacer UPSERT
       for (let i = 0; i < tarifasData.length; i++) {
         const tarifa = tarifasData[i];

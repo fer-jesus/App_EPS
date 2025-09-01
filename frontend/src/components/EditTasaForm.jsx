@@ -175,28 +175,19 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
     formData.nivelesConstruccion,
   ]);
 
-  // porque con el dato inicial de construccion al agregar uno nuevo me borra los datos
-  // y porque al momento de eliminar y volver agregar mas tipos de construccion
-  // si los agrega normal
-
   // Función para editar una tasa existente
   const editarTasa = async (form) => {
     try {
       console.log("Preparando datos para editar tasa...");
       await mantenimientoPropietario();
 
-      const {
-        presupuestObra: recalculado,
-        cantidadCancelar: recalculadoCancelar,
-        tarifasData,
-      } = calcularTasa(form);
-      // const { presupuestObra, cantidadCancelar, tarifasData } =
-      //   calcularTasa(form);
+      const { tarifasData } =
+        calcularTasa(form);
 
-      const parseMonedaToFloat = (valor) => {
-        if (!valor) return 0;
-        return parseFloat(valor.replace(/[Q,\s]/g, ""));
-      };
+      // const parseMonedaToFloat = (valor) => {
+      //   if (!valor) return 0;
+      //   return parseFloat(valor.replace(/[Q,\s]/g, ""));
+      // };
 
       const tasaData = {
         fechaRegistro: form.fechaRegistro,
@@ -204,12 +195,8 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
         cuentaNoAlineacion: form.cuentaNoAlineacion === "si",
         anotaciones: form.anotaciones || null,
         cantDemoMovi: parseFloat(form.cantDemoMovi) || null,
-        presupuestObra: recalculado
-          ? parseMonedaToFloat(recalculado)
-          : form.presupuestObra,
-        cantidadCancelar: recalculadoCancelar
-          ? parseMonedaToFloat(recalculadoCancelar)
-          : form.cantidadCancelar,
+        presupuestObra: form.presupuestObra,
+        cantidadCancelar: form.cantidadCancelar,
         latitud: form.latitud || null,
         longitud: form.longitud || null,
         dpi: parseInt(form.dpi),
@@ -218,6 +205,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
         LICENCIAS_fecha_emisionL_original:
           form.LICENCIAS_fecha_emisionL_original || null,
       };
+      console.log("tasaData a enviar:", tasaData);
 
       const payload = { tasaData, tarifasData };
       console.log("Datos a actualizar:", payload);
@@ -681,6 +669,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           onChange={(event, newValue) => {
             setIsConstruccion(false);
             if (newValue.length === 0) {
+              setIsConstruccion(false);
               // 🔹 Si se borran todas las opciones, reseteamos valores
               setFormData((prev) => ({
                 ...prev,
