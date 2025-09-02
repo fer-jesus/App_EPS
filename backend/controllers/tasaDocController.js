@@ -84,16 +84,15 @@ const generarPDFTasa = async (req, res) => {
     //Guardar el PDF en la base de datos
     await Tasa.update(
       {
-        documento: pdfBuffer, // Sequelize maneja automáticamente el buffer
+        documento: pdfBuffer, //Sequelize maneja automáticamente el buffer
       },
       {
-        where: { id_tasa: id },  
-        transaction: t
+        where: { id_tasa: id },
+        transaction: t,
       }
     );
-     await t.commit();
+    await t.commit();
 
-    console.log(`PDF guardado en la base de datos para la tasa ID: ${id}`);
 
     //Enviar el PDF como respuesta
     res.set({
@@ -105,41 +104,13 @@ const generarPDFTasa = async (req, res) => {
     console.error("Error generando PDF:", error);
     res.status(500).json({ mensaje: "Error generando PDF de tasa" });
   } finally {
-    // Cerrar el navegador de manera segura
+    //Cerrar el navegador de manera segura
     if (browser) {
       await browser.close();
     }
   }
 };
 
-// const obtenerPDFTasa = async (req, res) => {
-//   try {
-//     const { id } = req.params;
-
-//     const tasa = await Tasa.findByPk(id, {
-//       attributes: ["documento"], // solo traemos el BLOB
-//     });
-
-//     if (!tasa || !tasa.documento) {
-//       return res.status(404).json({ mensaje: "PDF no encontrado" });
-//     }
-
-//     const pdfBuffer = tasa.documento; // Sequelize ya devuelve un Buffer
-
-//     res.set({
-//       "Content-Type": "application/pdf",
-//       "Content-Disposition": `inline; filename=tasa_${id}.pdf`,
-//     });
-
-//     res.send(pdfBuffer);
-//   } catch (error) {
-//     console.error("Error al obtener PDF:", error);
-//     res.status(500).json({ mensaje: "Error al obtener PDF de tasa" });
-//   }
-// };
-
-
 module.exports = {
   generarPDFTasa,
-  //obtenerPDFTasa,
 };

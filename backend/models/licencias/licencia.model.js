@@ -27,7 +27,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
     },
     documento: {
-      type: DataTypes.BLOB("long"),
+      type: DataTypes.BLOB("medium"),
       allowNull: true,
     },
     TASAS_id_tasa: {

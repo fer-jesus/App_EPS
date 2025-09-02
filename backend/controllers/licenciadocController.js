@@ -57,20 +57,17 @@ const generarPDFLicencia = async (req, res) => {
 
     await page.setContent(content, { waitUntil: "networkidle0" });
 
-    // const pdfBuffer = await page.pdf({
-    //   format: "legal",
-    //   printBackground: true,
-    //   margin: { top: "0.5cm", right: "0.5cm", bottom: "0.5cm", left: "0.5cm" },
-    // });
-
     const pdfBuffer = await page.pdf({
       format: "A4",
       printBackground: true,
     });
 
+
+    
+
     await browser.close();
 
-    //Enviar PDF
+    //Enviar PDF como respuesta
     res.set({
       "Content-Type": "application/pdf",
       "Content-Disposition": `attachment; filename=licencia_${id}.pdf`,
