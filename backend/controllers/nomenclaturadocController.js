@@ -5,19 +5,20 @@ const handlebars = require("handlebars");
 const {
   obtenerDatosParaNomenclaturaPDF,
 } = require("../models/nomenclaturas/nomenclatura.service");
+const { Nomenclatura } = require("../models/nomenclaturas");
 
 const generarPDFNomenclatura = async (req, res) => {
+  let browser;
   try {
     const { id } = req.params;
 
- 
     //Obtener los datos de la Nomenclatura
     const datosNomenclatura = await obtenerDatosParaNomenclaturaPDF(id);
     if (!datosNomenclatura) {
       return res.status(404).json({ mensaje: "Nomenclatura no encontrada" });
     }
 
-    //Fondo base 
+    //Fondo base
     const fondoPath = path.resolve(
       __dirname,
       "../templates/nomenclaturaDoc/fondo_nomen.png"
@@ -88,8 +89,16 @@ const generarPDFNomenclatura = async (req, res) => {
       printBackground: true,
     });
 
-    await browser.close();
-
+    //Guardar el PDF en la base de datos
+    await Nomenclatura.update(
+      {
+        documento: pdfBuffer, //Sequelize maneja automáticamente el buffer
+      },
+      {
+        where: { id_nomenclatura: id },
+      }
+    );
+  
     //Enviar el PDF como respuesta
     res.set({
       "Content-Type": "application/pdf",
@@ -99,6 +108,11 @@ const generarPDFNomenclatura = async (req, res) => {
   } catch (error) {
     console.error("Error generando PDF:", error);
     res.status(500).json({ mensaje: "Error generando PDF de nomenclatura" });
+  } finally {
+    //Cerrar el navegador de manera segura
+    if (browser) {
+      await browser.close();
+    }
   }
 };
 

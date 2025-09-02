@@ -5,10 +5,21 @@ const handlebars = require("handlebars");
 const {
   obtenerDatosParaLicenciaPDF,
 } = require("../models/licencias/licencia.service");
+const { setUsuarioId } = require("../utils/historial");
+const { Licencia } = require("../models/licencias");
 
 const generarPDFLicencia = async (req, res) => {
+  let browser;
+  const t = await Licencia.sequelize.transaction();
+
   try {
     const { id, fechaEmision } = req.params;
+    const id_usuario = req.user?.id_usuario || req.body.id_usuario;
+    if (!id_usuario) {
+      return res
+        .status(400)
+        .json({ mensaje: "Falta id_usuario en la solicitud" });
+    }
 
     const datosLicencia = await obtenerDatosParaLicenciaPDF(id, fechaEmision);
 
@@ -62,20 +73,36 @@ const generarPDFLicencia = async (req, res) => {
       printBackground: true,
     });
 
+    await setUsuarioId(Licencia.sequelize, id_usuario, t);
 
-    
-
-    await browser.close();
+    //Guardar el PDF en la base de datos
+    await Licencia.update(
+      {
+        documento: pdfBuffer, //Sequelize maneja automáticamente el buffer
+      },
+      {
+        where: { id_licencia: id },
+        transaction: t,
+      }
+    );
+    await t.commit();
 
     //Enviar PDF como respuesta
     res.set({
       "Content-Type": "application/pdf",
       "Content-Disposition": `attachment; filename=licencia_${id}.pdf`,
     });
-    res.send(pdfBuffer);
+    res.send(pdfBuffer); 
   } catch (error) {
+    //Revertir la transacción si existe
+    if (t) await t.rollback();
     console.error("Error generando PDF de licencia:", error);
     res.status(500).json({ mensaje: "Error generando PDF de licencia" });
+  } finally {
+    //Cerrar el navegador de manera segura
+    if (browser) {
+      await browser.close();
+    }
   }
 };
 

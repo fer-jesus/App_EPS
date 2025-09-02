@@ -268,7 +268,6 @@ const Registros = () => {
   // Función render para la celda "tasa"
   const renderCellTasa = (params) => {
     const row = params.row;
-    console.log("latitud:", row.latitud, "longitud:", row.longitud);
     const yaAmpliada = row.registro_general?.startsWith("AMP-");
     const tieneCoordenadas = coordenadasValidas(row.latitud, row.longitud);
 

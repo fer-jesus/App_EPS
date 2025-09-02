@@ -102,6 +102,8 @@ const generarPDFTasa = async (req, res) => {
     res.send(pdfBuffer);
   } catch (error) {
     console.error("Error generando PDF:", error);
+      //Revertir la transacción si existe
+  if (t) await t.rollback();
     res.status(500).json({ mensaje: "Error generando PDF de tasa" });
   } finally {
     //Cerrar el navegador de manera segura
