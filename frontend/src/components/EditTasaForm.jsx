@@ -78,8 +78,6 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
   useEffect(() => {
     if (!initialData) return;
 
-    console.log("initialData en TasaForm:", initialData);
-
     const areaConstruccionTexto = (initialData.tipoConstruccion || [])
       .filter(
         (tc) =>
@@ -150,12 +148,14 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
         initialData.LICENCIAS_fecha_emisionL_original || null,
       esAmpliacion: initialData.esAmpliacion || false,
     }));
-    console.log("Datos iniciales cargados:", formData);
+   
   }, []);
 
   //   // Calcular valores derivados al cambiar datos del formulario
   useEffect(() => {
+    console.log("UseEffect fuera del if", formData);
     if (!isConstruccion) {
+      console.log("useEffect dentro del if", formData);
       const { valorPorcentaje, valor50Porc, presupuestObra, cantidadCancelar } =
         calcularTasa(formData);
 
@@ -166,7 +166,9 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
         presupuestObra,
         cantidadCancelar,
       }));
+      console.log("Cálculos actualizados useEffect:", formData);
     }
+
   }, [
     formData.tipoConstruccion,
     formData.areaConstruccion,
@@ -665,11 +667,12 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           //   option.TARIFA_id_nombreTarifa === value.TARIFA_id_nombreTarifa
           // }
           filterSelectedOptions={false} // evita que se oculten opciones ya seleccionadas
-          value={formData.tipoConstruccion}
+          value={formData.tipoConstruccion} 
           onChange={(event, newValue) => {
+            console.log("Nuevo tipoConstruccion seleccionado:", newValue);
+            console.log("Estado de construcción:", formData.tipoConstruccion);
             setIsConstruccion(false);
             if (newValue.length === 0) {
-              setIsConstruccion(false);
               // 🔹 Si se borran todas las opciones, reseteamos valores
               setFormData((prev) => ({
                 ...prev,

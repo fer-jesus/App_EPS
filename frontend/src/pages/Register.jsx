@@ -78,7 +78,6 @@ const Registros = () => {
   };
 
   const handleOpenEdit = (tasa) => {
-    console.log("Datos que llegan al formulario:", tasa);
     setSelectedTasa(tasa);
     setEditDialog(true);
   };
@@ -142,7 +141,7 @@ const Registros = () => {
       );
 
       const datosTasa = response.data;
-      console.log("Datos de la tasa para editar:", datosTasa);
+      
       //const primerTC = datosTasa.tipoConstruccion?.[0] || {};
 
       // Si viene la tarifaCambioUso desde backend:
@@ -335,7 +334,6 @@ const Registros = () => {
   // Función render para la celda "tasa"
   const renderCellTasa = (params) => {
     const row = params.row;
-    console.log("latitud:", row.latitud, "longitud:", row.longitud);
     const yaAmpliada = row.registro_general?.startsWith("AMP-");
     const tieneCoordenadas = coordenadasValidas(row.latitud, row.longitud);
 

@@ -37,7 +37,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       documento: {
-        type: DataTypes.BLOB("long"),
+        type: DataTypes.BLOB("medium"),
         allowNull: true,
       },
       latitud: {
