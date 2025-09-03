@@ -75,7 +75,8 @@ const generarPDFTasa = async (req, res) => {
 
     // Ruta de fondo relativo al HTML
     const pdfBuffer = await page.pdf({
-      format: "A4",
+      width: "21.59cm", 
+      height: "27.94cm",
       printBackground: true,
     });
 
@@ -93,7 +94,6 @@ const generarPDFTasa = async (req, res) => {
     );
     await t.commit();
 
-
     //Enviar el PDF como respuesta
     res.set({
       "Content-Type": "application/pdf",
@@ -102,8 +102,8 @@ const generarPDFTasa = async (req, res) => {
     res.send(pdfBuffer);
   } catch (error) {
     console.error("Error generando PDF:", error);
-      //Revertir la transacción si existe
-  if (t) await t.rollback();
+    //Revertir la transacción si existe
+    if (t) await t.rollback();
     res.status(500).json({ mensaje: "Error generando PDF de tasa" });
   } finally {
     //Cerrar el navegador de manera segura

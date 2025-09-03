@@ -69,7 +69,8 @@ const generarPDFLicencia = async (req, res) => {
     await page.setContent(content, { waitUntil: "networkidle0" });
 
     const pdfBuffer = await page.pdf({
-      format: "A4",
+      width: "21.59cm", 
+      height: "27.94cm",
       printBackground: true,
     });
 

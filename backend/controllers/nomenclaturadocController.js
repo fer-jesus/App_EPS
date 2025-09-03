@@ -85,7 +85,8 @@ const generarPDFNomenclatura = async (req, res) => {
 
     //Ruta de fondo relativo al HTML (usando Data URI si deseas evitar rutas relativas)
     const pdfBuffer = await page.pdf({
-      format: "A4",
+      width: "21.59cm",
+      height: "27.94cm",
       printBackground: true,
     });
 
@@ -98,7 +99,7 @@ const generarPDFNomenclatura = async (req, res) => {
         where: { id_nomenclatura: id },
       }
     );
-  
+
     //Enviar el PDF como respuesta
     res.set({
       "Content-Type": "application/pdf",
