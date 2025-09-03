@@ -141,7 +141,8 @@ const Registros = () => {
       );
 
       const datosTasa = response.data;
-      
+      console.log("Datos de la tasa en el Register:", datosTasa);
+
       //const primerTC = datosTasa.tipoConstruccion?.[0] || {};
 
       // Si viene la tarifaCambioUso desde backend:
@@ -157,16 +158,16 @@ const Registros = () => {
         direccionExacta: datosTasa.direccionExacta || "",
         nombrePropietario: datosTasa.nombrePropietario || "",
         dpi: datosTasa.dpi || "",
-        //tipoConstruccion: datosTasa.tipoConstruccion || [],
-        tipoConstruccion:
-          datosTasa.tipoConstruccion.map((tc) => ({
-            TARIFA_id_nombreTarifa: tc.TARIFA_id_nombreTarifa || "",
-            nombre_tarifa: tc.nombre_tarifa || "",
-            dimension_construccion: tc.dimension_construccion || "",
-            formula: tc.formula || "",
-            valor: tc.valor || "",
-            niveles: tc.niveles || [],
-          })) || [],
+        tipoConstruccion: datosTasa.tipoConstruccion || [],
+        // tipoConstruccion:
+        //   datosTasa.tipoConstruccion.map((tc) => ({
+        //     TARIFA_id_nombreTarifa: tc.TARIFA_id_nombreTarifa || "",
+        //     nombre_tarifa: tc.nombre_tarifa || "",
+        //     dimension_construccion: tc.dimension_construccion || "",
+        //     formula: tc.formula || "",
+        //     valor: tc.valor || "",
+        //     niveles: tc.niveles || [],
+        //   })) || [],
         tarifaCambioUso: tarifaCambioUsoObj,
         cuentaNoAlineacion: datosTasa.cuentaNoAlineacion ?? false,
         anotaciones: datosTasa.anotaciones || "",
