@@ -304,12 +304,12 @@ const Registros = () => {
           <IconButton
             size="small"
             onClick={() => {
-              console.log("Coordenadas y dirección:", {
-                latitud: Number(row.latitud.toString().trim()),
-                longitud: Number(row.longitud.toString().trim()),
-                direccion_propiedad: row.direccion_propiedad || "",
-                nombre_propietario: row.nombrePropietario || "Desconocido",
-              });
+              // console.log("Coordenadas y dirección:", {
+              //   latitud: Number(row.latitud.toString().trim()),
+              //   longitud: Number(row.longitud.toString().trim()),
+              //   direccion_propiedad: row.direccion_propiedad || "",
+              //   nombre_propietario: row.nombrePropietario || "Desconocido",
+              // });
               setCoordenadasSeleccionadas({
                 latitud: Number(row.latitud.toString().trim()),
                 longitud: Number(row.longitud.toString().trim()),
