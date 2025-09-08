@@ -77,7 +77,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
   // Cargar de datos iniciales
   useEffect(() => {
     if (!initialData) return;
-
+    console.log("Datos iniciales recibidos en el editTasaForm:", initialData);
     const areaConstruccionTexto = (initialData.tipoConstruccion || [])
       .filter(
         (tc) =>
@@ -113,14 +113,17 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
       dpi: initialData.dpi || "",
       nombrePropietario: initialData.nombrePropietario || "",
       tipoConstruccion: (initialData.tipoConstruccion || []).map((tc) => ({
-        TARIFA_id_nombreTarifa: tc.TARIFA_id_nombreTarifa || "",
         TIPO_CONSTRUCCION_TARIFA_id_tipoConstruccion:
-          tc.TIPO_CONSTRUCCION_TARIFA_id_tipoConstruccion || null,
+          tc.tipoConstruccionTarifa.id_tipoConstruccion || null,
+        TarifaCostoDimension: tc.tarifaCostoDimension || null,
+        TarifaCostoProyecto: tc.tarifaCostoProyecto || null,
+        TipoConstruccionTarifa: tc.tipoConstruccionTarifa || null,
+        id_nombreTarifa: tc.TARIFA_id_nombreTarifa || "",
         nombre_tarifa: tc.nombre_tarifa || "",
-        dimension_construccion: tc.dimension_construccion || "",
-        formula: tc.formula || "",
-        valor: tc.valor || "",
-        niveles: tc.niveles || [],
+        // dimension_construccion: tc.dimension_construccion || "",
+        // formula: tc.formula || "",
+        // valor: tc.valor || "",
+        // niveles: tc.niveles || [],
       })),
       tarifaCambioUso:
         initialData.tarifaBaseCambioUso || initialData.tarifaCambioUso || null,
@@ -148,7 +151,6 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
         initialData.LICENCIAS_fecha_emisionL_original || null,
       esAmpliacion: initialData.esAmpliacion || false,
     }));
-   
   }, []);
 
   //   // Calcular valores derivados al cambiar datos del formulario
@@ -168,7 +170,6 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
       }));
       console.log("Cálculos actualizados useEffect:", formData);
     }
-
   }, [
     formData.tipoConstruccion,
     formData.areaConstruccion,
@@ -183,8 +184,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
       console.log("Preparando datos para editar tasa...");
       await mantenimientoPropietario();
 
-      const { tarifasData } =
-        calcularTasa(form);
+      const { tarifasData } = calcularTasa(form);
 
       // const parseMonedaToFloat = (valor) => {
       //   if (!valor) return 0;
@@ -612,7 +612,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
     <Box sx={{ p: 2 }}>
       <Stack spacing={2}>
         <Typography variant="h6" textAlign="center" fontWeight="bold">
-          Editar Tasasss
+          Editar Tasa
         </Typography>
 
         <TextField
@@ -667,7 +667,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           //   option.TARIFA_id_nombreTarifa === value.TARIFA_id_nombreTarifa
           // }
           filterSelectedOptions={false} // evita que se oculten opciones ya seleccionadas
-          value={formData.tipoConstruccion} 
+          value={formData.tipoConstruccion}
           onChange={(event, newValue) => {
             console.log("Nuevo tipoConstruccion seleccionado:", newValue);
             console.log("Estado de construcción:", formData.tipoConstruccion);

@@ -104,7 +104,8 @@ const obtenerDatosTasaPorId = async (id_tasa) => {
       {
         association: "detalles_tarifas",
         attributes: ["dimension_construccion"],
-
+        where: { activo: true },
+        required: false,
         include: [
           {
             association: "tarifa",
@@ -244,6 +245,8 @@ const obtenerDatosParaLicenciaPDF = async (idLicencia) => {
             {
               association: "detalles_tarifas",
               attributes: ["dimension_construccion"],
+              where: { activo: true },
+              required: false,
               include: [
                 {
                   association: "tarifa",
