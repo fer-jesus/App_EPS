@@ -268,10 +268,10 @@ const obtenerDatosParaDocumentoPDF = async (idTasa) => {
         required: true,
         include: [
           {
-          model: RolNombre,
-          as: "RolNombres",
-          required: true,
-          attributes: ["nombre_rol", "sexo"],
+            model: RolNombre,
+            as: "RolNombres",
+            required: true,
+            attributes: ["nombre_rol", "sexo"],
           },
         ],
       },
@@ -331,7 +331,8 @@ const obtenerDatosParaDocumentoPDF = async (idTasa) => {
   //VARIABLES DE CÁLCULO
 
   // Suma total de las tarifas
-  const valorTotal = tasa.detalles_tarifas?.reduce((acc, t) => acc + Number(t.valor), 0) || 0;
+  const valorTotal =
+    tasa.detalles_tarifas?.reduce((acc, t) => acc + Number(t.valor), 0) || 0;
 
   let formulasTarifa = [];
   let formulasSegundoNivel = [];
@@ -431,11 +432,17 @@ const obtenerDatosParaDocumentoPDF = async (idTasa) => {
         : `Q. ${formatearMoneda(tasa.cantidad_cancelar)}`;
     })(),
     usuario: tieneFirmante
-    ? `${usuarioFirmante?.titulo || ""} ${usuarioFirmante?.nombre || ""}`.trim()  : "",
+      ? `${usuarioFirmante?.titulo || ""} ${
+          usuarioFirmante?.nombre || ""
+        }`.trim()
+      : "",
     rol_nombre: tieneFirmante
-    ? (usuarioFirmante?.Rol?.RolNombres || [])
-      .find(rn => rn.sexo === usuarioFirmante.sexo)?.nombre_rol || ""
-  : "",
+      ? `${
+          (usuarioFirmante?.Rol?.RolNombres || []).find
+            (rn => rn.sexo === usuarioFirmante.sexo)
+          ?.nombre_rol || ""
+        } DE PROYECTOS URBANOS`
+      : "",
     institucion_firma: tieneFirmante ? "MUNICIPALIDAD DE JALAPA" : "",
     firmaUsuario: true,
   };

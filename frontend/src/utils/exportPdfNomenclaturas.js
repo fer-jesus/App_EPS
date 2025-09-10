@@ -4,6 +4,7 @@ import html2canvas from "html2canvas";
 export const exportChartsToPDFNomenclaturas = async (chartIds = []) => {
   const pdf = new jsPDF("p", "mm", "a4");
   const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
   let yOffset = 10;
 
   const logo = new Image();
@@ -11,7 +12,7 @@ export const exportChartsToPDFNomenclaturas = async (chartIds = []) => {
   await new Promise((resolve) => {
     logo.onload = resolve;
   });
-  pdf.addImage(logo, "PNG", 10, 8, 30, 25); 
+  pdf.addImage(logo, "PNG", 10, 8, 30, 22); 
   pdf.setFontSize(16);
   pdf.setFont("helvetica", "bold");
   pdf.text("Reportes de Nomenclaturas", pageWidth / 2, 20, {
@@ -38,6 +39,18 @@ export const exportChartsToPDFNomenclaturas = async (chartIds = []) => {
       yOffset += pdfHeight + 10;
     }
   }
+
+  const now = new Date();
+  const fechaHora = now.toLocaleString("es-GT", {
+    dateStyle: "short",
+    timeStyle: "short",
+  });
+
+  pdf.setFontSize(10);
+  pdf.setFont("helvetica", "normal");
+  pdf.text(`Generado: ${fechaHora}`, pageWidth - 10, pageHeight - 10, {
+    align: "right",
+  });
 
   // Abrir en nueva pestaña
   const pdfBlob = pdf.output("blob");

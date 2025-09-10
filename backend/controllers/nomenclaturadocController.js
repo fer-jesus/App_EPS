@@ -83,7 +83,7 @@ const generarPDFNomenclatura = async (req, res) => {
       waitUntil: "networkidle0",
     });
 
-    //Ruta de fondo relativo al HTML (usando Data URI si deseas evitar rutas relativas)
+    //Ruta de fondo relativo al HTML 
     const pdfBuffer = await page.pdf({
       width: "21.59cm",
       height: "27.94cm",
