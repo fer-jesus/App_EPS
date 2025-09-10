@@ -4,6 +4,7 @@ import html2canvas from "html2canvas";
 export const exportChartsToPDFLicencias = async (lineChartId, barChartId) => {
   const pdf = new jsPDF("p", "mm", "a4");
   const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
   let yOffset = 10; // margen superior inicial
 
   const logo = new Image();
@@ -11,7 +12,7 @@ export const exportChartsToPDFLicencias = async (lineChartId, barChartId) => {
   await new Promise((resolve) => {
     logo.onload = resolve;
   });
-  pdf.addImage(logo, "PNG", 10, 8, 30, 25);
+  pdf.addImage(logo, "PNG", 10, 8, 30, 22);
   pdf.setFontSize(16);
   pdf.setFont("helvetica", "bold");
   pdf.text("Reporte de Licencias de Construccion", pageWidth / 2, 20, {
@@ -47,6 +48,18 @@ export const exportChartsToPDFLicencias = async (lineChartId, barChartId) => {
 
     pdf.addImage(imgDataBar, "PNG", 10, yOffset, pdfWidth, pdfHeight);
   }
+
+  const now = new Date();
+  const fechaHora = now.toLocaleString("es-GT", {
+    dateStyle: "short",
+    timeStyle: "short",
+  });
+
+  pdf.setFontSize(10);
+  pdf.setFont("helvetica", "normal");
+  pdf.text(`Generado: ${fechaHora}`, pageWidth - 10, pageHeight - 10, {
+    align: "right",
+  });
 
   // Generar Blob y abrir en nueva pestaña
   const pdfBlob = pdf.output("blob");

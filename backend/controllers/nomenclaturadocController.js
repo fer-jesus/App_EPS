@@ -5,12 +5,13 @@ const handlebars = require("handlebars");
 const {
   obtenerDatosParaNomenclaturaPDF,
 } = require("../models/nomenclaturas/nomenclatura.service");
+const { Nomenclatura } = require("../models/nomenclaturas");
 
 const generarPDFNomenclatura = async (req, res) => {
+ let browser;
   try {
     const { id } = req.params;
 
- 
     //Obtener los datos de la Nomenclatura
     const datosNomenclatura = await obtenerDatosParaNomenclaturaPDF(id);
     if (!datosNomenclatura) {
@@ -30,7 +31,7 @@ const generarPDFNomenclatura = async (req, res) => {
     //Overlay según tipo_nomenclatura
     const overlayMap = {
       IUSI: "IUSI.png",
-      JALAPAGUA: "JALAPAGUA.png",
+      JALAPAGUA: "Jalapagua.png",
       "EMPRESA ELECTRICA": "Elec.png",
     };
 
@@ -70,25 +71,44 @@ const generarPDFNomenclatura = async (req, res) => {
     const content = template(datosNomenclatura);
 
     //Crear el PDF con Puppeteer
-    const browser = await puppeteer.launch({
+    browser = await puppeteer.launch({
       headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      args: ["--no-sandbox", 
+             "--disable-setuid-sandbox",
+             "--disable-dev-shm-usage",
+	     "--disable-gpu", 
+	     "--single-process",
+	     "--no-zygote", 
+	],
     });
 
     const page = await browser.newPage();
 
+    page.setDefaultNavigationTimeout(5000);
+    page.setDefaultTimeout(5000);
+
     //Cargar el contenido HTML en la página
     await page.setContent(content, {
-      waitUntil: "networkidle0",
+      waitUntil: "domcontentloaded",
+      timeout: 5000,
     });
 
-    //Ruta de fondo relativo al HTML (usando Data URI si deseas evitar rutas relativas)
+    //Ruta de fondo relativo al HTML 
     const pdfBuffer = await page.pdf({
-      format: "A4",
+      width: "21.59cm",
+      height: "27.94cm",
       printBackground: true,
     });
 
-    await browser.close();
+    //Guardar el PDF en la base de datos
+    await Nomenclatura.update(
+      {
+        documento: pdfBuffer, 
+      },
+      {
+        where: { id_nomenclatura: id },
+      }
+    );
 
     //Enviar el PDF como respuesta
     res.set({
@@ -99,6 +119,11 @@ const generarPDFNomenclatura = async (req, res) => {
   } catch (error) {
     console.error("Error generando PDF:", error);
     res.status(500).json({ mensaje: "Error generando PDF de nomenclatura" });
+  } finally {
+    
+    if (browser) {
+      await browser.close();
+    }
   }
 };
 

@@ -119,7 +119,7 @@
 
     <div style="
     position: absolute;
-    top: calc(0.5cm + 4cm); 
+    top: calc(0.5cm + 2.8cm); 
     left: 50%;
     width: 20cm; 
     height: 13cm;
@@ -130,7 +130,7 @@
   "></div>
 
 <!-- Contenido dentro del cuadro -->
-<div style="position: absolute; top: calc(0.5cm + 3.8cm); left: 50%; width: 20cm; transform: translateX(-50%); padding: 0.5cm; box-sizing: border-box;">
+<div style="position: absolute; top: calc(0.5cm + 2.5cm); left: 50%; width: 20cm; transform: translateX(-50%); padding: 0.5cm; box-sizing: border-box;">
   <div style="text-align: justify; font-weight: bold; margin-bottom: 10px;">DATOS DE LA LICENCIA</div>
   
   <table style="width: 100%; margin-bottom: 15px; text-align: center;">
@@ -150,7 +150,7 @@
   </tr>
 </table>
 
-  <!-- Secci贸n de solicitante -->
+  <!-- Secci髇 de solicitante -->
   <div style="margin-top: 30px;">
     <div style="font-weight: bold; text-transform: uppercase;">DATOS DEL SOLICITANTE</div>
     <div style="margin-top: 5px;">
@@ -163,12 +163,12 @@
     </div>
   </div>
 
-  <!--  TIPO DE CONSTRUCCI脫N  -->
+  <!--  TIPO DE CONSTRUCCI覰  -->
 <div style="margin-top: 15px; margin-bottom: 10px; text-align: center; font-weight: bold; font-size: 10pt; text-transform: uppercase;">
   {{tipoConstruccion}}
 </div>
 
-  <!-- Secci贸n de datos financieros -->
+  <!-- Secci髇 de datos financieros -->
   <div style="margin-top: 35px;">
     <div style="margin-bottom: 10px;">
       <span style="text-transform: uppercase;">CANCELA LA CANTIDAD DE:</span>
@@ -181,13 +181,13 @@
     </div>
     
     <div style="margin-bottom: 10px;">
-      <span style="text-transform: uppercase;">ROTULO:</span>
+      <span style="text-transform: uppercase;">R脫TULO:</span>
       <span style="font-weight: bold;">{{rotulo}}</span>
     </div>
   </div>
 
   <div style="margin-top: 10px;">
-    <span style="text-transform: uppercase;">脕REA DE LA CONSTRUCCI脫N:</span>
+    <span style="text-transform: uppercase;">AREA DE LA CONSTRUCCI脫N:</span>
     <span style="font-weight: bold;">{{areaConstruccion}}</span>
   </div>
 </div>
@@ -195,7 +195,7 @@
 
   <div style="
   position: absolute;
-  top: calc(0.5cm + 4cm + 11.82cm + 1.5cm); /* cuadro top + alto + separaci贸n */
+  top: calc(0.5cm + 3.3cm + 11.82cm + 1.5cm); /* cuadro top + alto + separaci髇 */
   left: 50%;
   width: 20cm;
   transform: translateX(-50%);
@@ -206,15 +206,15 @@
 ">
   <strong style="display: block; text-align: center; margin-bottom: 0.3em;">AUTORIZA</strong>
 
-  Autoriza con fundamento en el art铆culo 20 y 11 del Reglamento de Construcci贸n, Urbanismo y Ornato<br>
+  Autoriza con fundamento en el articulo 20 y 11 del Reglamento de Construcci贸n, Urbanismo y Ornato<br>
   del Municipio de Jalapa, Departamento de Jalapa. Seg煤n Reglamento de Construcci贸n, la presente<br>
   tiene doce meses de vigencia a partir de la fecha de emisi贸n.
 </div>
 
-<!-- Secci贸n de firmas -->
-<div style="width: 100%; margin-top: 750px; text-align: center; font-size: 12pt;">
+<!-- Secci髇 de firmas -->
+<div style="width: 100%; margin-top: 700px; text-align: center; font-size: 12pt;">
 
-  <!-- Contenedor para las dos primeras firmas en l铆nea, centradas -->
+  <!-- Contenedor para las dos primeras firmas -->
   <div style="display: flex; justify-content: center; gap: 120px; margin-bottom: 60px;">
     <!-- Firma 1 -->
    <div style="text-align: center; font-size: 10pt">
@@ -232,8 +232,8 @@
     </div>
   </div>
 
-  <!-- Firma 3 centrada debajo de las dos primeras -->
- <div style="text-align: center; margin-top: 80px; font-size: 10pt">
+  <!-- Firma del DIRECTOR -->
+ <div style="text-align: center; margin-top: 60px; font-size: 10pt">
     <div style="font-weight: bold; text-transform: uppercase">{{firmantes.2.nombre}}</div>
     <div style="margin-bottom: 5px;">{{firmantes.2.rol}}</div>
     <div style="white-space: pre-line;">{{formatUnidad firmantes.2.unidad}}</div>

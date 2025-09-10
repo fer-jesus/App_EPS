@@ -235,14 +235,6 @@ const Registros = () => {
 
       const licenciaDatos = response2.data;
 
-      console.log("Datos de la tasa para PDF:", licenciaDatos);
-      console.log(
-        "fecha_emisionL:",
-        licenciaDatos.fecha_emisionL,
-        "id_licencia:",
-        licenciaDatos.id_licencia
-      );
-
       const fechaNormalizada = licenciaDatos.fecha_emisionL;
       const idLicencia = licenciaDatos.id_licencia;
       const response = await fetch(
@@ -268,7 +260,6 @@ const Registros = () => {
   // Función render para la celda "tasa"
   const renderCellTasa = (params) => {
     const row = params.row;
-    console.log("latitud:", row.latitud, "longitud:", row.longitud);
     const yaAmpliada = row.registro_general?.startsWith("AMP-");
     const tieneCoordenadas = coordenadasValidas(row.latitud, row.longitud);
 
@@ -291,7 +282,7 @@ const Registros = () => {
         <IconButton
           size="small"
           onClick={(event) => {
-            event.stopPropagation(); // <-- Evita que el DataGrid seleccione la fila
+            event.stopPropagation(); // 
             handleAbrirPDFTasa(row.id);
           }}
           // onClick={() => {
@@ -305,13 +296,7 @@ const Registros = () => {
           <IconButton
             size="small"
             onClick={() => {
-              console.log("Coordenadas y dirección:", {
-                latitud: Number(row.latitud.toString().trim()),
-                longitud: Number(row.longitud.toString().trim()),
-                direccion_propiedad: row.direccion_propiedad || "",
-                nombre_propietario: row.nombrePropietario || "Desconocido",
-              });
-              setCoordenadasSeleccionadas({
+                setCoordenadasSeleccionadas({
                 latitud: Number(row.latitud.toString().trim()),
                 longitud: Number(row.longitud.toString().trim()),
                 direccion_propiedad: row.direccion_propiedad || "",
@@ -373,7 +358,7 @@ const Registros = () => {
             <IconButton
               size="small"
               onClick={(event) => {
-                event.stopPropagation(); // <-- Evita que el DataGrid seleccione la fila
+                event.stopPropagation(); 
                 handleAbrirPDFLicencia(params.row);
               }}
               // onClick={() => {

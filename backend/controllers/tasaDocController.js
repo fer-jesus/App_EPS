@@ -5,10 +5,20 @@ const handlebars = require("handlebars");
 const {
   obtenerDatosParaDocumentoPDF,
 } = require("../models/tasas/tasa.service");
+const { Tasa } = require("../models/tasas");
+const { setUsuarioId } = require("../utils/historial");
 
 const generarPDFTasa = async (req, res) => {
+  let browser;
+  const t = await Tasa.sequelize.transaction();
   try {
     const { id } = req.params;
+    const id_usuario = req.user?.id_usuario || req.body.id_usuario;
+    if (!id_usuario) {
+      return res
+        .status(400)
+        .json({ mensaje: "Falta id_usuario en la solicitud" });
+    }
 
     //Obtener los datos de la Tasa
     const datosTasa = await obtenerDatosParaDocumentoPDF(id);
@@ -51,27 +61,48 @@ const generarPDFTasa = async (req, res) => {
     const content = template(datosTasa);
 
     //Crear el PDF con Puppeteer
-    const browser = await puppeteer.launch({
+    browser = await puppeteer.launch({
       headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      args: ["--no-sandbox", 
+             "--disable-setuid-sandbox",
+             "--disable-dev-shm-usage",
+	     "--disable-gpu", 
+	     "--single-process",
+	     "--no-zygote", 
+	],
     });
 
     const page = await browser.newPage();
 
-    //Cargar el contenido HTML en la pÃ¡gina
+    page.setDefaultNavigationTimeout(2000);
+    page.setDefaultTimeout(2000);
+
+    //Cargar el contenido HTML en la página
     await page.setContent(content, {
-      waitUntil: "networkidle0",
+      waitUntil: "domcontentloaded",
+      timeout: 2000,
     });
 
-    // Ruta de fondo relativo al HTML 
+    // Ruta de fondo relativo al HTML
     const pdfBuffer = await page.pdf({
-      format: "A4",
+      width: "21.59cm", 
+      height: "27.94cm",
       printBackground: true,
     });
 
-    await browser.close();
+    await setUsuarioId(Tasa.sequelize, id_usuario, t);
 
-
+    //Guardar el PDF en la base de datos
+    await Tasa.update(
+      {
+        documento: pdfBuffer, 
+      },
+      {
+        where: { id_tasa: id },
+        transaction: t,
+      }
+    );
+    await t.commit();
 
     //Enviar el PDF como respuesta
     res.set({
@@ -81,7 +112,13 @@ const generarPDFTasa = async (req, res) => {
     res.send(pdfBuffer);
   } catch (error) {
     console.error("Error generando PDF:", error);
+    //Revertir la transacción si existe
+    if (t) await t.rollback();
     res.status(500).json({ mensaje: "Error generando PDF de tasa" });
+  } finally {
+    if (browser) {
+      await browser.close();
+    }
   }
 };
 

@@ -5,10 +5,21 @@ const handlebars = require("handlebars");
 const {
   obtenerDatosParaLicenciaPDF,
 } = require("../models/licencias/licencia.service");
+const { setUsuarioId } = require("../utils/historial");
+const { Licencia } = require("../models/licencias");
 
 const generarPDFLicencia = async (req, res) => {
+  let browser;
+  const t = await Licencia.sequelize.transaction();
+
   try {
     const { id, fechaEmision } = req.params;
+    const id_usuario = req.user?.id_usuario || req.body.id_usuario;
+    if (!id_usuario) {
+      return res
+        .status(400)
+        .json({ mensaje: "Falta id_usuario en la solicitud" });
+    }
 
     const datosLicencia = await obtenerDatosParaLicenciaPDF(id, fechaEmision);
 
@@ -48,27 +59,48 @@ const generarPDFLicencia = async (req, res) => {
     const template = handlebars.compile(html);
     const content = template(datosLicencia);
 
-    //Crear el PDF con Puppeteer (tamaÃ±o legal)
+    //Crear el PDF con Puppeteer
     const browser = await puppeteer.launch({
       headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      args: ["--no-sandbox",
+ 	     "--disable-setuid-sandbox",
+	     "--disable-dev-shm-usage",
+	     "--disable-gpu", 
+	     "--single-process",
+	     "--no-zygote", 
+	],
     });
+
     const page = await browser.newPage();
 
-    await page.setContent(content, { waitUntil: "networkidle0" });
+    page.setDefaultNavigationTimeout(2000);
+    page.setDefaultTimeout(2000);
 
-    // const pdfBuffer = await page.pdf({
-    //   format: "legal",
-    //   printBackground: true,
-    //   margin: { top: "0.5cm", right: "0.5cm", bottom: "0.5cm", left: "0.5cm" },
-    // });
+    //Cargar el contenido HTML en la página
+    await page.setContent(content, { 
+	waitUntil: "domcontentloaded",
+	timeout: 2000,
+	 });
 
     const pdfBuffer = await page.pdf({
-      format: "A4",
+      width: "21.59cm", 
+      height: "27.94cm",
       printBackground: true,
     });
 
-    await browser.close();
+    await setUsuarioId(Licencia.sequelize, id_usuario, t);
+
+    //Guardar el PDF en la base de datos
+    await Licencia.update(
+      {
+        documento: pdfBuffer, 
+      },
+      {
+        where: { id_licencia: id },
+        transaction: t,
+      }
+    );
+    await t.commit();
 
     //Enviar PDF
     res.set({
@@ -77,8 +109,13 @@ const generarPDFLicencia = async (req, res) => {
     });
     res.send(pdfBuffer);
   } catch (error) {
+    if (t) await t.rollback();
     console.error("Error generando PDF de licencia:", error);
     res.status(500).json({ mensaje: "Error generando PDF de licencia" });
+  } finally {
+    if (browser) {
+      await browser.close();
+    }
   }
 };
 

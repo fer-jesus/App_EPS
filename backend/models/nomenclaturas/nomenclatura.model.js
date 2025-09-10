@@ -23,7 +23,7 @@ module.exports = (sequelize) => {
         allowNull: false,
       },
       documento: {
-        type: DataTypes.BLOB("long"),
+        type: DataTypes.BLOB("medium"),
         allowNull: true,
       },
       PROPIETARIOS_cui: {

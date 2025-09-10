@@ -433,9 +433,12 @@ const obtenerDatosParaDocumentoPDF = async (idTasa) => {
     usuario: tieneFirmante
     ? `${usuarioFirmante?.titulo || ""} ${usuarioFirmante?.nombre || ""}`.trim()  : "",
     rol_nombre: tieneFirmante
-    ? (usuarioFirmante?.Rol?.RolNombres || [])
-      .find(rn => rn.sexo === usuarioFirmante.sexo)?.nombre_rol || ""
-  : "",
+    ? `${
+          (usuarioFirmante?.Rol?.RolNombres || []).find
+            (rn => rn.sexo === usuarioFirmante.sexo)
+          ?.nombre_rol || ""
+        } DE PROYECTOS URBANOS`
+      : "",
     institucion_firma: tieneFirmante ? "MUNICIPALIDAD DE JALAPA" : "",
     firmaUsuario: true,
   };
