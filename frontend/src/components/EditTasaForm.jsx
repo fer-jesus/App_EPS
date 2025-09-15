@@ -35,7 +35,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
     longitud: "",
     LICENCIAS_id_licencia_original: null,
     LICENCIAS_fecha_emisionL_original: null,
-    id_tasa: null, //para editar
+    id_tasa: null, 
   });
 
   const [tarifas, setTarifas] = useState([]);
@@ -77,7 +77,6 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
   // Cargar de datos iniciales
   useEffect(() => {
     if (!initialData) return;
-    console.log("Datos iniciales recibidos en el editTasaForm:", initialData);
     const areaConstruccionTexto = (initialData.tipoConstruccion || [])
       .filter(
         (tc) =>
@@ -120,10 +119,6 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
         TipoConstruccionTarifa: tc.tipoConstruccionTarifa || null,
         id_nombreTarifa: tc.TARIFA_id_nombreTarifa || "",
         nombre_tarifa: tc.nombre_tarifa || "",
-        // dimension_construccion: tc.dimension_construccion || "",
-        // formula: tc.formula || "",
-        // valor: tc.valor || "",
-        // niveles: tc.niveles || [],
       })),
       tarifaCambioUso:
         initialData.tarifaBaseCambioUso || initialData.tarifaCambioUso || null,
@@ -155,9 +150,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
 
   //   // Calcular valores derivados al cambiar datos del formulario
   useEffect(() => {
-    console.log("UseEffect fuera del if", formData);
     if (!isConstruccion) {
-      console.log("useEffect dentro del if", formData);
       const { valorPorcentaje, valor50Porc, presupuestObra, cantidadCancelar } =
         calcularTasa(formData);
 
@@ -168,7 +161,6 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
         presupuestObra,
         cantidadCancelar,
       }));
-      console.log("Cálculos actualizados useEffect:", formData);
     }
   }, [
     formData.tipoConstruccion,
@@ -181,15 +173,9 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
   // Función para editar una tasa existente
   const editarTasa = async (form) => {
     try {
-      console.log("Preparando datos para editar tasa...");
       await mantenimientoPropietario();
 
       const { tarifasData } = calcularTasa(form);
-
-      // const parseMonedaToFloat = (valor) => {
-      //   if (!valor) return 0;
-      //   return parseFloat(valor.replace(/[Q,\s]/g, ""));
-      // };
 
       const tasaData = {
         fechaRegistro: form.fechaRegistro,
@@ -212,7 +198,6 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
       const payload = { tasaData, tarifasData };
       console.log("Datos a actualizar:", payload);
 
-      // Usar PUT en lugar de POST para actualizar
       const response = await axios.put(
         `http://localhost:3001/api/tasas/${form.id_tasa}`,
         payload,
@@ -305,8 +290,6 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
       hasErrors = true;
     }
 
-    console.log("formData", formData);
-
     setErrors(newErrors);
 
     if (!hasErrors) {
@@ -318,17 +301,6 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
   };
 
   const calcularTasa = (form) => {
-    // if (form.tipoConstruccion.length === 0) {
-    //   return;
-    //   //   console.log("No hay tipos de construcción seleccionados.");
-    //   //   return {
-    //   //     valorPorcentaje: "",
-    //   //     valor50Porc: "",
-    //   //     presupuestObra: "0.00",
-    //   //     cantidadCancelar: "0.00",
-    //   //     tarifasData: [],
-    //   //   };
-    // }
 
     let valorPorcentaje = "";
     let valor50Porc = "";
@@ -552,62 +524,6 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
   const getLabel = (name, label) =>
     errors[name] ? "Rellena este campo" : label;
 
-  //   const enviarTasa = async (form) => {
-  //     try {
-  //       console.log("Preparando datos para enviar al backend...");
-  //       if (!form.dpi || !form.fechaRegistro || !form.direccionExacta) {
-  //         throw new Error("Faltan datos requeridos");
-  //       }
-  //       await mantenimientoPropietario();
-
-  //       //const { tarifasData } = calcularTasa(form);
-
-  //       const parseMonedaToFloat = (valor) => {
-  //         if (!valor) return 0;
-  //         return parseFloat(valor.replace(/[Q,\s]/g, ""));
-  //       };
-
-  //       // Obtener los cálculos desde calcularTasa
-  //       const { presupuestObra, cantidadCancelar, tarifasData } =
-  //         calcularTasa(form);
-
-  //       const tasaData = {
-  //         fecha_emisionT: form.fechaRegistro,
-  //         direccion_propiedad: form.direccionExacta,
-  //         alineacion_urban: form.cuentaNoAlineacion === "si",
-  //         anotaciones: form.anotaciones || null,
-  //         cant_dem_movTierra: parseFloat(form.cantDemoMovi) || null,
-  //         presupuesto_obra: parseMonedaToFloat(presupuestObra),
-  //         cantidad_cancelar: parseMonedaToFloat(cantidadCancelar),
-  //         documento: null,
-  //         latitud: form.latitud || null,
-  //         longitud: form.longitud || null,
-  //         PROPIETARIOS_cui: parseInt(form.dpi),
-  //         LICENCIAS_id_licencia_original:
-  //           form.LICENCIAS_id_licencia_original || null,
-  //         LICENCIAS_fecha_emisionL_original:
-  //           form.LICENCIAS_fecha_emisionL_original || null,
-  //       };
-
-  //       const payload = { tasaData, tarifasData };
-  //       console.log("Datos a enviar:", payload);
-
-  //       const response = await axios.post(
-  //         "http://localhost:3001/api/tasas",
-  //         payload,
-  //         headers
-  //       );
-
-  //       console.log("Respuesta del servidor:", response.data);
-  //       alert("Tasa guardada con éxito");
-
-  //       if (onSubmit) onSubmit();
-  //     } catch (error) {
-  //       console.error("Error al guardar tasa:", error);
-  //       alert("Error al guardar la tasa");
-  //     }
-  //   };
-
   return (
     <Box sx={{ p: 2 }}>
       <Stack spacing={2}>
@@ -673,7 +589,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
             console.log("Estado de construcción:", formData.tipoConstruccion);
             setIsConstruccion(false);
             if (newValue.length === 0) {
-              // 🔹 Si se borran todas las opciones, reseteamos valores
+              //Si se borran todas las opciones, se resetean los valores
               setFormData((prev) => ({
                 ...prev,
                 tipoConstruccion: [],
@@ -686,7 +602,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
                 tarifasData: [],
               }));
             } else {
-              // 🔹 Caso normal, solo actualiza tipoConstruccion
+              //Caso normal, solo actualiza tipoConstruccion
               setFormData((prev) => ({
                 ...prev,
                 tipoConstruccion: newValue,
