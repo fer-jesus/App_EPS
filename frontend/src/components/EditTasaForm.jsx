@@ -31,6 +31,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
     esAmpliacion: false,
     nivelesConstruccion: "",
     valor50Porc: "",
+    formula50Porc: "",
     latitud: "",
     longitud: "",
     LICENCIAS_id_licencia_original: null,
@@ -77,14 +78,22 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
   // Cargar de datos iniciales
   useEffect(() => {
     if (!initialData) return;
+    
     const areaConstruccionTexto = (initialData.tipoConstruccion || [])
       .filter(
-        (tc) =>
-          ![
-            "DEMOLICIÓN",
-            "MOVIMIENTO DE TIERRA",
-            "AREA DE SEGUNDO NIVEL O MÁS",
-          ].includes(tc.nombre_tarifa?.toUpperCase())
+    
+        (tc) => {
+          const nombre = tc.tipoConstruccionTarifa.id_tipoConstruccion || "";
+          if (
+            nombre === 10 ||
+            nombre === 11 ||
+            (nombre === 2 && tc.formula?.includes("50%")) ||
+            (nombre === 3 && tc.formula?.includes("50%"))
+          ) {
+            return false;
+          }
+          return true;
+        }
       )
       .map((tc) => tc.dimension_construccion || "")
       .join("\n");
@@ -100,8 +109,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
 
     const valor50PorcDato =
       (initialData.tipoConstruccion || []).find(
-        (tc) =>
-          tc.nombre_tarifa?.toUpperCase() === "AREA DE SEGUNDO NIVEL O MÁS"
+        (tc) => tc.TARIFA_id_nombreTarifa === 2 && tc.formula?.includes("50%")
       )?.dimension_construccion || "";
 
     setFormData((prev) => ({
@@ -134,8 +142,15 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
         initialData.nivelesConstruccion || valor50PorcDato || "",
       cantDemoMovi: cantDemoMoviTexto,
       valorPorcentaje:
-        initialData.tipoConstruccion?.map((tc) => tc.formula).join("\n") || "",
+        initialData.tipoConstruccion
+          ?.filter((tc) => !tc.formula?.includes("50%"))
+          .map((tc) => tc.formula)
+          .join("\n") || "",
       valor50Porc: initialData.valor50Porc || valor50PorcDato,
+      formula50Porc:
+        (initialData.tipoConstruccion || []).find((tc) =>
+          tc.formula?.includes("50%")
+        )?.formula || "",
       presupuestObra: initialData.presupuestObra || "",
       cantidadCancelar: initialData.cantidadCancelar || "",
       latitud: initialData.latitud || "",
@@ -148,9 +163,11 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
     }));
   }, []);
 
-  //   // Calcular valores derivados al cambiar datos del formulario
+  // Calcular valores derivados al cambiar datos del formulario
   useEffect(() => {
+    
     if (!isConstruccion) {
+    
       const { valorPorcentaje, valor50Porc, presupuestObra, cantidadCancelar } =
         calcularTasa(formData);
 
@@ -161,6 +178,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
         presupuestObra,
         cantidadCancelar,
       }));
+   
     }
   }, [
     formData.tipoConstruccion,
@@ -173,6 +191,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
   // Función para editar una tasa existente
   const editarTasa = async (form) => {
     try {
+      console.log("Preparando datos para editar tasa...");
       await mantenimientoPropietario();
 
       const { tarifasData } = calcularTasa(form);
@@ -193,11 +212,9 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
         LICENCIAS_fecha_emisionL_original:
           form.LICENCIAS_fecha_emisionL_original || null,
       };
-      console.log("tasaData a enviar:", tasaData);
-
+     
       const payload = { tasaData, tarifasData };
-      console.log("Datos a actualizar:", payload);
-
+      
       const response = await axios.put(
         `http://localhost:3001/api/tasas/${form.id_tasa}`,
         payload,
@@ -218,6 +235,15 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
+         if (
+    name === "areaConstruccion" ||
+    name === "cantDemoMovi" ||
+    name === "tarifaCambioUso" ||
+    name === "nivelesConstruccion"
+  ) {
+    setIsConstruccion(false);
+  }
+
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: false }));
     }
@@ -229,7 +255,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
     const newErrors = {};
     let hasErrors = false;
 
-    //Validación de campos requeridos
+    // Validación de campos requeridos
     const incluyeCambioUso = formData.tipoConstruccion.some(
       (t) => t.nombre_tarifa?.toUpperCase() === "CAMBIO DE USO O REMODELACIONES"
     );
@@ -249,6 +275,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
         "areaConstruccion",
         "nivelesConstruccion",
         "valor50Porc",
+        "formula50Porc",
         "latitud",
         "longitud",
         "LICENCIAS_id_licencia_original",
@@ -301,7 +328,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
   };
 
   const calcularTasa = (form) => {
-
+   
     let valorPorcentaje = "";
     let valor50Porc = "";
     let totalPresupuesto = 0;
@@ -426,7 +453,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
             tarifasData.push({
               TARIFA_id_nombreTarifa: tipo.id_nombreTarifa,
               dimension_construccion: nivelArea,
-              //formula: `${nivelArea} x ${costo} x ${porcentaje}% x 50%`,
+              // formula: `${nivelArea} x ${costo} x ${porcentaje}% x 50%`,
               formula: `${nivelArea}X${costo}=${subtotalNivel.toLocaleString(
                 "es-GT"
               )}X${porcentaje}%=${porcNivel
@@ -510,7 +537,6 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
       }
     } catch (error) {
       if (error.response?.status === 404) {
-        //console.error("Error al buscar propietario:", error);
         setFormData((prev) => ({
           ...prev,
           nombrePropietario: "",
@@ -589,7 +615,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
             console.log("Estado de construcción:", formData.tipoConstruccion);
             setIsConstruccion(false);
             if (newValue.length === 0) {
-              //Si se borran todas las opciones, se resetean los valores
+              // Si se borran todas las opciones, se resetean valores
               setFormData((prev) => ({
                 ...prev,
                 tipoConstruccion: [],
@@ -602,7 +628,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
                 tarifasData: [],
               }));
             } else {
-              //Caso normal, solo actualiza tipoConstruccion
+              // Caso normal, solo actualiza tipoConstruccion
               setFormData((prev) => ({
                 ...prev,
                 tipoConstruccion: newValue,
@@ -741,7 +767,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           <TextField
             label="50% DEL VALOR DE LA LICENCIA SEGÚN LOS PLANOS PRESENTADOS DEL SEGUNDO NIVEL O MÁS NIVELES"
             name="valor50Porc"
-            value={formData.valor50Porc}
+            value={formData.formula50Porc}
             fullWidth
             margin="normal"
             multiline
@@ -823,3 +849,4 @@ TasaForm.propTypes = {
 };
 
 export default TasaForm;
+

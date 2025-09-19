@@ -143,8 +143,6 @@ const Registros = () => {
       const datosTasa = response.data;
       console.log("Datos de la tasa en el Register:", datosTasa);
 
-      //const primerTC = datosTasa.tipoConstruccion?.[0] || {};
-
       // Si viene la tarifaCambioUso desde backend:
       const tarifaCambioUsoObj = datosTasa.tarifaCambioUso
         ? {
@@ -158,7 +156,6 @@ const Registros = () => {
         direccionExacta: datosTasa.direccionExacta || "",
         nombrePropietario: datosTasa.nombrePropietario || "",
         dpi: datosTasa.dpi || "",
-        //tipoConstruccion: datosTasa.tipoConstruccion || [],
         tipoConstruccion:
           datosTasa.tipoConstruccion.map((tc) => ({
             TARIFA_id_nombreTarifa: tc.TARIFA_id_nombreTarifa || "",
@@ -346,7 +343,7 @@ const Registros = () => {
         {row.registro_general === "En proceso" && (
           <IconButton
             size="small"
-            onClick={() => handleEditTasa(row)} // abre el modal con los datos de esa tasa
+            onClick={() => handleEditTasa(row)}
             sx={{ color: "#1e6b3d" }}
           >
             <EditIcon fontSize="small" />
@@ -429,7 +426,7 @@ const Registros = () => {
               onClick={() => handleOpenLicencia(params.row)}
               disabled={yaAmpliada}
               sx={{
-                color: yaAmpliada ? "inherit" : "#1e6b3d", // verde elegante
+                color: yaAmpliada ? "inherit" : "#1e6b3d", 
               }}
             >
               <EditIcon fontSize="small" />
@@ -437,8 +434,6 @@ const Registros = () => {
             <IconButton
               size="small"
               onClick={() => {
-                //console.log("params.row completo:", params.row);
-                //console.log("Fecha emisión desde row:", params.row.fecha_emisionL);
                 handleAbrirPDFLicencia(params.row);
               }}
             >
