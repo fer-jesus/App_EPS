@@ -163,7 +163,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
     }));
   }, []);
 
-  //   // Calcular valores derivados al cambiar datos del formulario
+  // Calcular valores derivados al cambiar datos del formulario
   useEffect(() => {
     
     if (!isConstruccion) {
@@ -255,7 +255,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
     const newErrors = {};
     let hasErrors = false;
 
-    //Validación de campos requeridos
+    // Validación de campos requeridos
     const incluyeCambioUso = formData.tipoConstruccion.some(
       (t) => t.nombre_tarifa?.toUpperCase() === "CAMBIO DE USO O REMODELACIONES"
     );
@@ -385,7 +385,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           tarifasData.push({
             TARIFA_id_nombreTarifa: 32, // 32 ó form.tarifaCambioUso.id_nombreTarifa,
             dimension_construccion: areaCU,
-            //formula: `${areaCU} x ${baseCU} x 25% x 3.5%`,
+            // formula: `${areaCU} x ${baseCU} x 25% x 3.5%`,
             formula: `${areaCU}X${baseCU}=${subtotal1.toLocaleString(
               "es-GT"
             )}X25%=${subtotal2
@@ -422,7 +422,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
         tarifasData.push({
           TARIFA_id_nombreTarifa: tipo.id_nombreTarifa,
           dimension_construccion: area,
-          //formula: `${area} x ${costo} x ${porcentaje}%`,
+          // formula: `${area} x ${costo} x ${porcentaje}%`,
           formula: `${area}X${costo}=${subtotal.toLocaleString(
             "es-GT"
           )}X${porcentaje}%=${valor.toFixed(2).toLocaleString("es-GT")}`,
@@ -453,7 +453,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
             tarifasData.push({
               TARIFA_id_nombreTarifa: tipo.id_nombreTarifa,
               dimension_construccion: nivelArea,
-              //formula: `${nivelArea} x ${costo} x ${porcentaje}% x 50%`,
+              // formula: `${nivelArea} x ${costo} x ${porcentaje}% x 50%`,
               formula: `${nivelArea}X${costo}=${subtotalNivel.toLocaleString(
                 "es-GT"
               )}X${porcentaje}%=${porcNivel
@@ -479,7 +479,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
 
   const mantenimientoPropietario = async () => {
     try {
-      //Verificar si el propietario ya existe
+      // Verificar si el propietario ya existe
 
       const response = await axios.get(
         `https://backdot.dotmunijalapa.org/api/propietarios/${formData.dpi}`,
@@ -488,7 +488,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
       const nombreBD = response.data.nombre_propietario?.trim().toLowerCase();
       const nombreFormulario = formData.nombrePropietario?.trim().toLowerCase();
 
-      //Si el nombre cambió, actualizar
+      // Si el nombre cambió, actualizar
       if (nombreBD !== nombreFormulario) {
         await axios.put(
           `https://backdot.dotmunijalapa.org/api/propietarios/${formData.dpi}`,
@@ -515,7 +515,7 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
     }
   };
 
-  //Función para buscar propietario por CUI
+  // Función para buscar propietario por CUI
   const buscarPropietarioPorCUI = async (cui) => {
     if (!cui || cui.trim() === "") return;
 
@@ -604,10 +604,10 @@ const TasaForm = ({ onSubmit, onClose, initialData }) => {
           multiple
           options={tarifas}
           getOptionLabel={(option) => option.nombre_tarifa || ""}
-          //isOptionEqualToValue={() => false}
-           isOptionEqualToValue={(option, value) =>
-             option.TARIFA_id_nombreTarifa === value.TARIFA_id_nombreTarifa
-          }
+          isOptionEqualToValue={() => false}
+          // isOptionEqualToValue={(option, value) =>
+          // option.TARIFA_id_nombreTarifa === value.TARIFA_id_nombreTarifa
+          // }
           filterSelectedOptions={false} // evita que se oculten opciones ya seleccionadas
           value={formData.tipoConstruccion}
           onChange={(event, newValue) => {

@@ -43,6 +43,15 @@ Licencia.belongsTo(Tasa, {
   as: "tasa"
 });
 
+TasaTarifa.hasMany(TasaTarifaVariosNiveles, {
+  foreignKey: ["TASAS_TARIFA_TASAS_id_tasa", "TASAS_TARIFA_tarifa_correlativo", "TASAS_TARIFA_TARIFA_id_nombreTarifa"],
+  as: "niveles"
+});
+TasaTarifaVariosNiveles.belongsTo(TasaTarifa, {
+  foreignKey: ["TASAS_TARIFA_TASAS_id_tasa", "TASAS_TARIFA_tarifa_correlativo", "TASAS_TARIFA_TARIFA_id_nombreTarifa"],
+  as: "tarifa"
+});
+
 module.exports = {
   Tasa,
   TasaTarifa,

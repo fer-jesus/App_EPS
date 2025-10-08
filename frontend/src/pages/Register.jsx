@@ -20,6 +20,7 @@ import MapaLeaflet from "../components/MapaLeaflet";
 import AppNavbar from "../components/AppNavBar";
 import Swal from "sweetalert2";
 import TasaForm from "../components/TasaForm";
+import EditTasaForm from "../components/EditTasaForm";
 import LicenciaForm from "../components/LicenciaForm";
 import axios from "axios";
 
@@ -27,6 +28,7 @@ const Registros = () => {
   const [tasas, setTasas] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedTasa, setSelectedTasa] = useState(null);
+  const [editDialog, setEditDialog] = useState(false);
   const [openLicenciaDialog, setOpenLicenciaDialog] = useState(false);
   const [selectedLicencia, setSelectedLicencia] = useState(null);
   const [openMapa, setOpenMapa] = useState(false);
@@ -70,20 +72,27 @@ const Registros = () => {
     fetchTasas();
   }, []);
 
-  // Funciones para abrir/cerrar modales y guardar datos
+  
   const handleOpen = (tasa = null) => {
     setSelectedTasa(tasa);
     setOpenDialog(true);
   };
 
+  const handleOpenEdit = (tasa) => {
+    setSelectedTasa(tasa);
+    setEditDialog(true);
+  };
+
   const handleSaveTasa = async () => {
     await fetchTasas();
     setOpenDialog(false);
+    setEditDialog(false);
   };
 
   const handleClose = () => {
     setSelectedTasa(null);
     setOpenDialog(false);
+    setEditDialog(false);
   };
 
   const handleOpenLicencia = async (tasa) => {
@@ -96,8 +105,7 @@ const Registros = () => {
           },
         }
       );
-      console.log("Datos de la tasa para licencia:", response.data);
-
+      
       setSelectedLicencia({
         ...response.data,
         TASAS_id_tasa: tasa.id,
@@ -121,6 +129,64 @@ const Registros = () => {
   const handleSaveLicencia = async () => {
     await fetchTasas();
     setOpenLicenciaDialog(false);
+  };
+
+const handleEditTasa = async (row) => {
+    try {
+      const response = await axios.get(
+        `https://backdot.dotmunijalapa.org/api/tasas/edicion/${row.id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const datosTasa = response.data;
+      
+      // Si viene la tarifaCambioUso desde backend:
+      const tarifaCambioUsoObj = datosTasa.tarifaCambioUso
+        ? {
+            id_nombreTarifa: datosTasa.tarifaCambioUso.id_nombreTarifa,
+            nombre_tarifa: datosTasa.tarifaCambioUso.nombre_tarifa,
+          }
+        : null;
+
+      handleOpenEdit({
+        id_tasa: datosTasa.id_tasa || null,
+        direccionExacta: datosTasa.direccionExacta || "",
+        nombrePropietario: datosTasa.nombrePropietario || "",
+        dpi: datosTasa.dpi || "",
+        tipoConstruccion:
+          datosTasa.tipoConstruccion.map((tc) => ({
+            TARIFA_id_nombreTarifa: tc.TARIFA_id_nombreTarifa || "",
+            nombre_tarifa: tc.nombre_tarifa || "",
+            dimension_construccion: tc.dimension_construccion || "",
+            formula: tc.formula || "",
+            valor: tc.valor || "",
+            niveles: tc.niveles || [],
+            tipoConstruccionTarifa: tc.tipoConstruccionTarifa || null,
+            tarifaCostoDimension: tc.tarifaCostoDimension || null,
+            tarifaCostoProyecto: tc.tarifaCostoProyecto || null,
+          })) || [],
+        tarifaCambioUso: tarifaCambioUsoObj,
+        cuentaNoAlineacion: datosTasa.cuentaNoAlineacion ?? false,
+        anotaciones: datosTasa.anotaciones || "",
+        areaConstruccion: datosTasa.areaConstruccion || "",
+        valor50Porc: datosTasa.valor50Porc || "",
+        nivelesConstruccion: datosTasa.nivelesConstruccion || "",
+        cantDemoMovi: datosTasa.cantDemoMovi || "",
+        valorPorcentaje: datosTasa.valorPorcentaje || 0,
+        presupuestObra: datosTasa.presupuestObra || "0",
+        cantidadCancelar: datosTasa.cantidadCancelar || "0",
+        latitud: datosTasa.latitud || "",
+        longitud: datosTasa.longitud || "",
+        LICENCIAS_id_licencia_original:
+          datosTasa.LICENCIAS_id_licencia_original,
+        LICENCIAS_fecha_emisionL_original:
+          datosTasa.LICENCIAS_fecha_emisionL_original,
+      });
+    } catch (error) {
+      console.error("Error al obtener de editar:", error);
+    }
   };
 
   const handleAmpliacionClick = async (row) => {
@@ -265,6 +331,15 @@ const Registros = () => {
 
     return (
       <Box display="flex" gap={1}>
+        {row.registro_general === "En proceso" && (
+          <IconButton
+            size="small"
+            onClick={() => handleEditTasa(row)}
+            sx={{ color: "#1e6b3d" }}
+          >
+            <EditIcon fontSize="small" />
+          </IconButton>
+        )}
         <IconButton
           size="small"
           onClick={(event) => {
@@ -489,6 +564,32 @@ const Registros = () => {
         >
           <DialogContent>
             <TasaForm
+              onSubmit={handleSaveTasa}
+              onClose={handleClose}
+              initialData={selectedTasa}
+            />
+          </DialogContent>
+        </Dialog>
+
+	<Dialog
+          open={editDialog}
+          onClose={handleClose}
+          fullWidth
+          maxWidth="sm"
+          PaperProps={{
+            sx: {
+              mx: { xs: 2, sm: "auto" },
+              width: {
+                xs: "100%",
+                sm: "90%",
+                md: "70%",
+                lg: "600px",
+              },
+            },
+          }}
+        >
+          <DialogContent>
+            <EditTasaForm
               onSubmit={handleSaveTasa}
               onClose={handleClose}
               initialData={selectedTasa}

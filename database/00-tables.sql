@@ -175,6 +175,7 @@ CREATE TABLE TASAS_TARIFA (
   dimension_construccion DECIMAL (5,2) NULL, 
   formula VARCHAR(250) NOT NULL,
   valor DECIMAL NOT NULL,
+  activo TINYINT(1) NOT NULL DEFAULT 1,
   TARIFA_id_nombreTarifa INT NOT NULL,
    PRIMARY KEY (TASAS_id_tasa, tarifa_correlativo, TARIFA_id_nombreTarifa),
   CONSTRAINT fk_TASAS_has_TARIFA_TASAS1

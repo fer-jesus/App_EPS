@@ -1,3 +1,6 @@
+const sequelize = require("../../config/sequelize");
+const defineTarifaModels = require("../tarifas");
+
 const {
   Tasa,
   TasaTarifa,
@@ -6,6 +9,8 @@ const {
   Licencia,
   TasaTarifaVariosNiveles,
 } = require(".");
+const { TipoConstruccionTarifa, TarifaCostoDimension, TarifaCostoProyecto } =
+  defineTarifaModels(sequelize);
 
 const { Usuario, Rol, RolNombre } = require("../usuario");
 
@@ -37,6 +42,7 @@ const crearTasa = async (tasaData, tarifasData, id_usuario) => {
               dimension_construccion: tarifa.dimension_construccion,
               formula: tarifa.formula,
               valor: tarifa.valor,
+  	      activo: true,
             },
             { transaction: t }
           );
@@ -71,6 +77,254 @@ const crearTasa = async (tasaData, tarifasData, id_usuario) => {
     throw new Error("No se pudo crear la tasa");
   }
 };
+
+const obtenerTasaEdicion = async (id_tasa) => {
+  const tasa = await Tasa.findByPk(id_tasa, {
+    include: [
+      {
+        model: Propietario,
+        as: "propietario",
+        attributes: ["cui", "nombre_propietario"],
+      },
+      {
+        model: TasaTarifa,
+        as: "detalles_tarifas",
+        where: { activo: true },
+        required: false,
+        attributes: [
+          "TARIFA_id_nombreTarifa",
+          "dimension_construccion",
+          "formula",
+          "valor",
+        ],
+        include: [
+          {
+            model: Tarifa,
+            as: "tarifa",
+            attributes: ["id_nombreTarifa", "nombre_tarifa"],
+            include: [
+              {
+                model: TipoConstruccionTarifa,
+                attributes: ["id_tipoConstruccion", "tipo_construccion"],
+              },
+              {
+                model: TarifaCostoDimension,
+                attributes: ["costo_tarifa", "porcentaje", "unidad_medida"],
+              },
+              {
+                model: TarifaCostoProyecto,
+                attributes: ["porcentaje_costoProyecto", "porcentaje"],
+              },
+            ],
+          },
+	],
+      },
+    ],
+  });
+
+
+  if (!tasa) throw new Error("Tasa no encontrada");
+
+  // Calcular valorPorcentaje dinámicamente
+  const valorPorcentajeCalculado = (tasa.detalles_tarifas || []).reduce(
+    (acc, detalle) => {
+	return acc + Number(detalle.valor || 0);
+    },
+    0
+  );
+
+    return {
+    id_tasa: tasa.id_tasa,
+    fechaRegistro: tasa.fecha_emisionT || "",
+    direccionExacta: tasa.direccion_propiedad || "",
+    nombrePropietario: tasa.propietario?.nombre_propietario || "",
+    dpi: tasa.propietario?.cui || "",
+    latitud: tasa.latitud || "",
+    longitud: tasa.longitud || "",
+    tipoConstruccion: (tasa.detalles_tarifas || []).map((detalle) => ({
+      TARIFA_id_nombreTarifa: detalle.TARIFA_id_nombreTarifa,
+      nombre_tarifa: detalle.tarifa?.nombre_tarifa || "",
+      dimension_construccion: detalle.dimension_construccion?.toString() || "",
+      formula: detalle.formula || "",
+      valor: detalle.valor || "",
+      niveles: detalle.niveles || [],
+      tipoConstruccionTarifa: detalle.tarifa?.TipoConstruccionTarifa || null,
+      tarifaCostoDimension: detalle.tarifa?.TarifaCostoDimension || null,
+      tarifaCostoProyecto: detalle.tarifa?.TarifaCostoProyecto || null,
+    })),
+    areaConstruccion:
+      tasa.detalles_tarifas?.[0]?.dimension_construccion?.toString() || "",
+    cuentaNoAlineacion: tasa.alineacion_urban || false,
+    anotaciones: tasa.anotaciones || "",
+    cantDemoMovi: tasa.cant_dem_movTierra || "",
+    valorPorcentaje: valorPorcentajeCalculado,
+    presupuestObra: tasa.presupuesto_obra || 0,
+    cantidadCancelar: tasa.cantidad_cancelar || 0,
+    LICENCIAS_id_licencia_original: tasa.LICENCIAS_id_licencia_original || null,
+    LICENCIAS_fecha_emisionL_original:
+      tasa.LICENCIAS_fecha_emisionL_original || null,
+    latitud: tasa.latitud || "",
+    longitud: tasa.longitud || "",
+  };
+};
+
+    const actualizarTasa = async (id_tasa, tasaData, tarifasData, id_usuario) => {
+  try {
+    const result = await Tasa.sequelize.transaction(async (t) => {
+      await setUsuarioId(Tasa.sequelize, id_usuario, t);
+
+      //Actualizar los datos principales de la tasa con nombres exactos de la BD
+      await Tasa.update(
+        {
+          fecha_emisionT: tasaData.fechaRegistro,
+          direccion_propiedad: tasaData.direccionExacta,
+          alineacion_urban: tasaData.cuentaNoAlineacion || false,
+          anotaciones: tasaData.anotaciones || null,
+          cant_dem_movTierra: tasaData.cantDemoMovi || null,
+          presupuesto_obra: tasaData.presupuestObra,
+          cantidad_cancelar: tasaData.cantidadCancelar,
+          latitud: tasaData.latitud || null,
+          longitud: tasaData.longitud || null,
+          PROPIETARIOS_cui: tasaData.dpi ? parseInt(tasaData.dpi) : null,
+          LICENCIAS_id_licencia_original:
+            tasaData.LICENCIAS_id_licencia_original || null,
+          LICENCIAS_fecha_emisionL_original:
+            tasaData.LICENCIAS_fecha_emisionL_original || null,
+        },
+        {
+          where: { id_tasa },
+          transaction: t,
+        }
+      );
+
+      //Cargar las tarifas existentes
+      const tarifasExistentes = await TasaTarifa.findAll({
+        where: { TASAS_id_tasa: id_tasa },
+        transaction: t,
+      });
+
+      // Construir IDs de tarifas nuevas (correlativo + idTarifa)
+      const idsNuevos = tarifasData.map(
+        (tarifa, i) => `${i + 1}-${tarifa.TARIFA_id_nombreTarifa}`
+      );
+
+      //Eliminar tarifas que ya no están en el form
+      for (const tarifaExistente of tarifasExistentes) {
+        const idCompuesto = `${tarifaExistente.tarifa_correlativo}-${tarifaExistente.TARIFA_id_nombreTarifa}`;
+        if (!idsNuevos.includes(idCompuesto)) {
+          // Eliminar niveles asociados primero
+          await TasaTarifaVariosNiveles.destroy({
+            where: {
+              TASAS_TARIFA_TASAS_id_tasa: id_tasa,
+              TASAS_TARIFA_tarifa_correlativo:
+                tarifaExistente.tarifa_correlativo,
+              TASAS_TARIFA_TARIFA_id_nombreTarifa:
+                tarifaExistente.TARIFA_id_nombreTarifa,
+            },
+            transaction: t,
+          });
+
+          // Luego eliminar la tarifa
+         await tarifaExistente.update({ activo: false }, { transaction: t });
+        }
+      }
+
+      //Recorrer tarifas nuevas y hacer UPSERT
+      for (let i = 0; i < tarifasData.length; i++) {
+        const tarifa = tarifasData[i];
+        const correlativo = i + 1;
+
+        // Buscar tarifa existente
+        let tarifaExistente = await TasaTarifa.findOne({
+          where: {
+            TASAS_id_tasa: id_tasa,
+            tarifa_correlativo: correlativo,
+            TARIFA_id_nombreTarifa: tarifa.TARIFA_id_nombreTarifa,
+          },
+          transaction: t,
+        });
+
+        if (tarifaExistente) {
+          // Actualizar tarifa existente
+          await tarifaExistente.update(
+            {
+              dimension_construccion: tarifa.dimension_construccion,
+              formula: tarifa.formula,
+              valor: tarifa.valor,
+              activo: true,
+            },
+            { transaction: t }
+          );
+        } else {
+          // Crear nueva tarifa
+          tarifaExistente = await TasaTarifa.create(
+            {
+              tarifa_correlativo: correlativo,
+              TASAS_id_tasa: id_tasa,
+              TARIFA_id_nombreTarifa: tarifa.TARIFA_id_nombreTarifa,
+              dimension_construccion: tarifa.dimension_construccion,
+              formula: tarifa.formula,
+              valor: tarifa.valor,
+            },
+            { transaction: t }
+          );
+        }
+
+        // Manejar niveles
+        if (Array.isArray(tarifa.niveles)) {
+          for (const nivel of tarifa.niveles) {
+            // Buscar nivel existente
+            const nivelExistente = await TasaTarifaVariosNiveles.findOne({
+              where: {
+                TASAS_TARIFA_TASAS_id_tasa: id_tasa,
+                TASAS_TARIFA_tarifa_correlativo: correlativo,
+                TASAS_TARIFA_TARIFA_id_nombreTarifa:
+                  tarifa.TARIFA_id_nombreTarifa,
+                nivel: nivel.nivel,
+              },
+              transaction: t,
+            });
+
+            if (nivelExistente) {
+              // Actualizar nivel existente
+              await nivelExistente.update(
+                {
+                  dimension_construccion: nivel.dimension_construccion || null,
+                  formula: nivel.formula,
+                  valor: nivel.valor,
+                },
+                { transaction: t }
+              );
+            } else {
+              // Crear nivel nuevo
+              await TasaTarifaVariosNiveles.create(
+                {
+                  TASAS_TARIFA_TASAS_id_tasa: id_tasa,
+                  TASAS_TARIFA_tarifa_correlativo: correlativo,
+                  TASAS_TARIFA_TARIFA_id_nombreTarifa:
+                    tarifa.TARIFA_id_nombreTarifa,
+                  nivel: nivel.nivel,
+                  dimension_construccion: nivel.dimension_construccion || null,
+                  formula: nivel.formula,
+                  valor: nivel.valor,
+                },
+                { transaction: t }
+              );
+            }
+          }
+        }
+      }
+
+      return id_tasa;
+    });
+
+    return result;
+  } catch (error) {
+    console.error("Error al actualizar tasa:", error);
+    throw new Error("No se pudo actualizar la tasa");
+  }
+};
+
 
 const obtenerRegistros = async () => {
   const tasas = await Tasa.findAll({
@@ -236,6 +490,8 @@ const obtenerDatosParaDocumentoPDF = async (idTasa) => {
       {
         model: TasaTarifa,
         as: "detalles_tarifas",
+	where: { activo: true },
+        required: false,
         include: [
           {
             model: Tarifa,
@@ -446,6 +702,8 @@ const obtenerDatosParaDocumentoPDF = async (idTasa) => {
 
 module.exports = {
   crearTasa,
+  obtenerTasaEdicion,
+  actualizarTasa,
   obtenerRegistros,
   obtenerDatosTasaPorId,
   obtenerDatosParaDocumentoPDF,
